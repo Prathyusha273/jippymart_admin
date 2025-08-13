@@ -46,6 +46,7 @@ class ActivityLogger
             // Prepare log data
             $logData = [
                 'user_id' => $user->id ?? $user->uid ?? 'unknown',
+                'user_name' => $this->getUserName($user),
                 'user_type' => $userType,
                 'role' => $role,
                 'module' => $module,
@@ -116,6 +117,46 @@ class ActivityLogger
         }
 
         return 'unknown';
+    }
+
+    /**
+     * Get user name
+     *
+     * @param mixed $user
+     * @return string
+     */
+    protected function getUserName($user)
+    {
+        if (!$user) {
+            return 'Unknown User';
+        }
+
+        // Check for name property
+        if (isset($user->name) && !empty($user->name)) {
+            return $user->name;
+        }
+
+        // Check for first_name and last_name properties
+        if (isset($user->first_name) && isset($user->last_name)) {
+            return trim($user->first_name . ' ' . $user->last_name);
+        }
+
+        // Check for username property
+        if (isset($user->username) && !empty($user->username)) {
+            return $user->username;
+        }
+
+        // Check for email property
+        if (isset($user->email) && !empty($user->email)) {
+            return $user->email;
+        }
+
+        // Fallback to user ID
+        if (isset($user->id)) {
+            return 'User ' . $user->id;
+        }
+
+        return 'Unknown User';
     }
 
     /**

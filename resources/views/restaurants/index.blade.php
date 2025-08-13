@@ -860,20 +860,7 @@
         if ($('#storeTable .is_open:checked').length) {
             if (confirm("{{trans('lang.selected_delete_alert')}}")) {
                 jQuery("#data-table_processing").show();
-                var selectedRestaurants = [];
-                for (let i = 0; i < $('#storeTable .is_open:checked').length; i++) {
-                    var dataId = $('#storeTable .is_open:checked').eq(i).attr('dataId');
-                    try {
-                        var doc = await database.collection('vendors').doc(dataId).get();
-                        if (doc.exists) {
-                            selectedRestaurants.push(doc.data().title || 'Unknown');
-                        }
-                    } catch (error) {
-                        console.error('Error getting restaurant title:', error);
-                    }
-                }
-                
-                $('#storeTable .is_open:checked').each(async function () {
+                $('#storeTable .is_open:checked').each(function () {
                     var dataId = $(this).attr('dataId');
                     var author = $(this).attr('author');
                     database.collection('users').doc(author).update({ 'vendorID': "" }).then(function (result) {
@@ -882,18 +869,6 @@
                             return deleteStoreData(dataId);
                         })
                         .then(() => {
-                            console.log('✅ Bulk restaurant deletion completed, now logging activity...');
-                            try {
-                                if (typeof logActivity === 'function') {
-                                    console.log('🔍 Calling logActivity for bulk restaurant deletion...');
-                                    logActivity('restaurants', 'bulk_deleted', 'Bulk deleted restaurants: ' + selectedRestaurants.join(', '));
-                                    console.log('✅ Activity logging completed successfully');
-                                } else {
-                                    console.error('❌ logActivity function is not available');
-                                }
-                            } catch (error) {
-                                console.error('❌ Error calling logActivity:', error);
-                            }
                             window.location.reload();
                         })
                         .catch((error) => {
@@ -910,18 +885,8 @@
         var url = $(this).attr('data-url');
         window.location.href = url;
     });
-    $(document).on("click", "a[name='vendor-delete']", async function (e) {
+    $(document).on("click", "a[name='vendor-delete']", function (e) {
         var id = this.id;
-        var restaurantTitle = '';
-        try {
-            var doc = await database.collection('vendors').doc(id).get();
-            if (doc.exists) {
-                restaurantTitle = doc.data().title || 'Unknown';
-            }
-        } catch (error) {
-            console.error('Error getting restaurant title:', error);
-        }
-        
         jQuery("#data-table_processing").show();
         var author = $(this).attr('author');
         if (confirm("{{trans('lang.selected_delete_alert')}}")) {
@@ -929,19 +894,7 @@
             .then(() => {
                 return deleteStoreData(id);
             })
-            .then(async () => {
-                console.log('✅ Restaurant deleted successfully, now logging activity...');
-                try {
-                    if (typeof logActivity === 'function') {
-                        console.log('🔍 Calling logActivity for restaurant deletion...');
-                        await logActivity('restaurants', 'deleted', 'Deleted restaurant: ' + restaurantTitle);
-                        console.log('✅ Activity logging completed successfully');
-                    } else {
-                        console.error('❌ logActivity function is not available');
-                    }
-                } catch (error) {
-                    console.error('❌ Error calling logActivity:', error);
-                }
+            .then(() => {
                 window.location.reload();
             })
             .catch((error) => {
