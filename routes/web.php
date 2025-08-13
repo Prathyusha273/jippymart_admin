@@ -69,10 +69,10 @@ Route::middleware(['permission:vendors,vendors.create'])->group(function () {
 
 });
 Route::middleware(['permission:approve_vendors,approve.vendors.list'])->group(function () {
-    Route::get('/vendors/approved', [App\Http\Controllers\RestaurantController::class, 'vendors'])->name('vendors.approved');
+Route::get('/vendors/approved', [App\Http\Controllers\RestaurantController::class, 'vendors'])->name('vendors.approved');
 });
 Route::middleware(['permission:pending_vendors,pending.vendors.list'])->group(function () {
-    Route::get('/vendors/pending', [App\Http\Controllers\RestaurantController::class, 'vendors'])->name('vendors.pending');
+Route::get('/vendors/pending', [App\Http\Controllers\RestaurantController::class, 'vendors'])->name('vendors.pending');
 });
 Route::middleware(['permission:restaurants,restaurants'])->group(function () {
     Route::get('/restaurants', [App\Http\Controllers\RestaurantController::class, 'index'])->name('restaurants');
@@ -121,7 +121,7 @@ Route::middleware(['permission:foods,foods'])->group(function () {
 
 Route::middleware(['permission:foods,foods.edit'])->group(function () {
     Route::get('/foods/edit/{id}', [App\Http\Controllers\FoodController::class, 'edit'])->name('foods.edit');
-    Route::patch('/foods/inline-update/{id}', [App\Http\Controllers\FoodController::class, 'inlineUpdate'])->name('foods.inlineUpdate');
+
 });
 Route::middleware(['permission:foods,foods.create'])->group(function () {
     Route::get('/food/create', [App\Http\Controllers\FoodController::class, 'create'])->name('foods.create');
@@ -160,6 +160,17 @@ Route::get('/categories/download-template', [CategoryController::class, 'downloa
 Route::post('/cuisines/import', [CuisineController::class, 'import'])->name('cuisines.import');
 Route::get('/cuisines/download-template', [CuisineController::class, 'downloadTemplate'])->name('cuisines.download-template');
 
+// Activity Log Routes
+Route::middleware(['auth'])->group(function () {
+    Route::get('/activity-logs', [App\Http\Controllers\ActivityLogController::class, 'index'])->name('activity-logs');
+    Route::get('/test-activity-log', function() {
+        return view('test_activity_log_page');
+    })->name('test-activity-log');
+});
+Route::post('/api/activity-logs/log', [App\Http\Controllers\ActivityLogController::class, 'logActivity'])->name('api.activity-logs.log');
+Route::get('/api/activity-logs/module/{module}', [App\Http\Controllers\ActivityLogController::class, 'getModuleLogs'])->name('api.activity-logs.module');
+Route::get('/api/activity-logs/all', [App\Http\Controllers\ActivityLogController::class, 'getAllLogs'])->name('api.activity-logs.all');
+Route::get('/api/activity-logs/cuisines', [App\Http\Controllers\ActivityLogController::class, 'getCuisinesLogs'])->name('api.activity-logs.cuisines');
 
 Route::get('/cuisines', [App\Http\Controllers\CuisineController::class, 'index'])->name('cuisines');
 Route::get('/cuisines/edit/{id}', [App\Http\Controllers\CuisineController::class, 'edit'])->name('cuisines.edit');
