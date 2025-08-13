@@ -91,8 +91,9 @@
                             <table class="table table-hover table-striped" id="activity-logs-table">
                                 <thead>
                                     <tr>                                 
-                                        <th>User</th>
-                                        <th>Type</th>
+                                        <th>User ID</th>
+                                        <th>User Name</th>
+                                        <th>User Type</th>
                                         <th>Role</th>
                                         <th>Module</th>
                                         <th>Action</th>
@@ -179,7 +180,7 @@ $(document).ready(function() {
             logsListener();
         }
         
-        let query = db.collection('activity_logs').orderBy('created_at', 'desc').limit(100);
+        let query = db.collection('activity_logs').orderBy('created_at', 'desc').limit(1000);
         
         if (currentModule) {
             query = query.where('module', '==', currentModule);
@@ -206,6 +207,7 @@ $(document).ready(function() {
                         <td>
                             <div class="d-flex align-items-center">
                                 <input type="checkbox" class="log-checkbox" value="${doc.id}">
+                                <small class="font-weight-bold">ID: ${data.user_id}</small>
                             </div>
                         </td>
                         <td>
@@ -216,8 +218,7 @@ $(document).ready(function() {
                                     </div>
                                 </div>
                                 <div>
-                                    <div class="font-weight-bold">${data.user_id}</div>
-                                    <small class="text-muted">ID: ${data.user_id}</small>
+                                    <div class="font-weight-bold">${data.user_name || 'Unknown User'}</div>
                                 </div>
                             </div>
                         </td>
@@ -239,10 +240,10 @@ $(document).ready(function() {
                             </div>
                         </td>
                         <td>
-                            <small class="text-muted">${data.ip_address}</small>
+                            <small class="font-weight-semibold">${data.ip_address}</small>
                         </td>
                         <td>
-                            <small class="text-muted">${timestamp}</small>
+                            <small class="font-weight-semibold">${timestamp}</small>
                         </td>
                     </tr>
                 `;
