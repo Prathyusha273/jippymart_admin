@@ -147,6 +147,43 @@
             </div>
         </div>
     </div>
+    
+    <!-- Global Restaurant Status Control - Below Bulk Import/Update -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="card border">
+                <div class="card-body py-3">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <div class="mr-3">
+                                <i class="mdi mdi-store-check text-primary" style="font-size: 18px;"></i>
+                            </div>
+                            <div>
+                                <label class="control-label mb-0" style="font-size: 14px; color: #333;">
+                                    <strong>Global Restaurant Status:</strong>
+                                </label>
+                                <small class="text-muted d-block" style="font-size: 12px;">
+                                    Override all restaurants' open/closed status
+                                </small>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <div class="mr-3 d-flex align-items-center">
+                                <input type="checkbox" id="global_restaurant_status" checked>
+                                <label class="control-label mb-0 ml-2" for="global_restaurant_status">
+                                    <span class="status-text">All Open</span>
+                                </label>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-primary" id="apply_global_status">
+                                <i class="mdi mdi-check mr-1"></i>Apply to All Restaurants
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     @if(session('success'))
         <div class="alert alert-success">{!! session('success') !!}</div>
     @endif
@@ -1114,6 +1151,102 @@
                 });
             }
         }
+    });
+
+    // Global Restaurant Status Toggle Functionality
+    $(document).ready(function() {
+        // Update status text when toggle changes
+        $('#global_restaurant_status').change(function() {
+            var isChecked = $(this).is(':checked');
+            $('.status-text').text(isChecked ? 'All Open' : 'All Closed');
+        });
+
+        // Apply global status to all restaurants
+        $('#apply_global_status').click(async function() {
+            var isOpen = $('#global_restaurant_status').is(':checked');
+            var statusText = isOpen ? 'open' : 'closed';
+            
+            if (!confirm(`Are you sure you want to set ALL restaurants to ${statusText}? This action cannot be undone.`)) {
+                return;
+            }
+
+            // Show loading state
+            var $btn = $(this);
+            var originalText = $btn.html();
+            $btn.html('<i class="mdi mdi-loading mdi-spin mr-1"></i>Updating...').prop('disabled', true);
+
+            try {
+                // Get all restaurant IDs from the current filtered data
+                var table = $('#storeTable').DataTable();
+                var filteredData = table.ajax.json().filteredData || [];
+                
+                if (filteredData.length === 0) {
+                    alert('No restaurants found to update. Please check your filters.');
+                    return;
+                }
+
+                // Update all restaurants in batches
+                const batchSize = 500; // Firestore batch limit
+                const restaurantIds = filteredData.map(restaurant => restaurant.id);
+                
+                let updatedCount = 0;
+                let totalCount = restaurantIds.length;
+
+                // Process in batches
+                for (let i = 0; i < restaurantIds.length; i += batchSize) {
+                    const batch = restaurantIds.slice(i, i + batchSize);
+                    const batchRef = database.batch();
+                    
+                    batch.forEach(restaurantId => {
+                        const restaurantRef = database.collection('vendors').doc(restaurantId);
+                        batchRef.update(restaurantRef, { isOpen: isOpen });
+                    });
+                    
+                    await batchRef.commit();
+                    updatedCount += batch.length;
+                    
+                    // Update progress
+                    $btn.html(`<i class="mdi mdi-loading mdi-spin mr-1"></i>Updated ${updatedCount}/${totalCount}...`);
+                }
+
+                // Show success message
+                $btn.html('<i class="mdi mdi-check mr-1"></i>Success!').removeClass('btn-primary').addClass('btn-success');
+                
+                // Log activity if function exists
+                try {
+                    if (typeof logActivity === 'function') {
+                        await logActivity('restaurants', 'bulk_update', `Set ${updatedCount} restaurants to ${statusText}`);
+                    }
+                } catch (error) {
+                    console.error('Error logging activity:', error);
+                }
+
+                // Reload the table to reflect changes
+                setTimeout(() => {
+                    table.ajax.reload();
+                    $btn.html(originalText).prop('disabled', false).removeClass('btn-success').addClass('btn-primary');
+                }, 2000);
+
+            } catch (error) {
+                console.error('Error updating restaurants:', error);
+                alert('Error updating restaurants: ' + error.message);
+                $btn.html(originalText).prop('disabled', false);
+            }
+        });
+
+        // Simple styling for the status text
+        $('<style>')
+            .prop('type', 'text/css')
+            .html(`
+                .status-text {
+                    font-weight: 500;
+                    color: #333;
+                    font-size: 13px;
+                    display: inline-block;
+                    white-space: nowrap;
+                }
+            `)
+            .appendTo('head');
     });
 </script>
 @endsection

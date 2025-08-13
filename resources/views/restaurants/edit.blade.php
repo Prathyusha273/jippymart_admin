@@ -1316,6 +1316,7 @@ foreach ($countries as $keycountry => $valuecountry) {
             var rescountryCode = '+' + jQuery("#country_selector1").val();
             var phonenumber = $(".restaurant_phone").val();
             var enabledDiveInFuture = $("#dine_in_feature").is(':checked');
+            var isOpen = $("#is_open").is(':checked');
             var reststatus = true;
             var specialDiscountEnable = false;
             var restaurantCost = $(".restaurant_cost").val();
@@ -1583,6 +1584,7 @@ foreach ($countries as $keycountry => $valuecountry) {
                                         'coordinates': coordinates,
                                         'filters': filters_new,
                                         'reststatus': reststatus,
+                                        'isOpen': isOpen,
                                         'enabledDiveInFuture': enabledDiveInFuture,
                                         'restaurantMenuPhotos': MenuIMG,
                                         'restaurantCost': restaurantCost,
