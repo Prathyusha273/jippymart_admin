@@ -9,27 +9,27 @@ use Google\Cloud\Firestore\FirestoreClient;
 class FoodController extends Controller
 {
 
-   public function __construct()
+    public function __construct()
     {
         $this->middleware('auth');
     }
-	 public function index($id='')
+    public function index($id='')
     {
-   		return view("foods.index")->with('id',$id);   		
+        return view("foods.index")->with('id',$id);
     }
 
-      public function edit($id)
+    public function edit($id)
     {
-    	return view('foods.edit')->with('id',$id);
+        return view('foods.edit')->with('id',$id);
     }
 
     public function create($id='')
     {
-      return view('foods.create')->with('id',$id);
+        return view('foods.create')->with('id',$id);
     }
     public function createfood()
     {
-      return view('foods.create');
+        return view('foods.create');
     }
 
     /**
@@ -42,7 +42,7 @@ class FoodController extends Controller
                 ->where('title', '==', trim($vendorName))
                 ->limit(1)
                 ->documents();
-            
+
             foreach ($vendors as $vendor) {
                 return $vendor->id();
             }
@@ -62,7 +62,7 @@ class FoodController extends Controller
                 ->where('title', '==', trim($categoryName))
                 ->limit(1)
                 ->documents();
-            
+
             foreach ($categories as $category) {
                 return $category->id();
             }
@@ -124,13 +124,13 @@ class FoodController extends Controller
         }
 
         $headers = array_map('trim', array_shift($rows));
-        
+
         // Initialize Firestore client
         $firestore = new FirestoreClient([
             'projectId' => config('firestore.project_id'),
             'keyFilePath' => config('firestore.credentials'),
         ]);
-        
+
         $collection = $firestore->collection('vendor_products');
         $imported = 0;
         $errors = [];
@@ -138,7 +138,7 @@ class FoodController extends Controller
         foreach ($rows as $index => $row) {
             $rowNumber = $index + 2; // +2 because we removed header and arrays are 0-indexed
             $data = array_combine($headers, $row);
-            
+
             // Skip empty rows
             if (empty($data['name'])) {
                 continue;
@@ -203,10 +203,10 @@ class FoodController extends Controller
 
                 // Create document with auto-generated ID
                 $docRef = $collection->add($foodData);
-                
+
                 // Set the internal 'id' field to match the Firestore document ID
                 $docRef->set(['id' => $docRef->id()], ['merge' => true]);
-                
+
                 $imported++;
             } catch (\Exception $e) {
                 $errors[] = "Row $rowNumber: " . $e->getMessage();
@@ -228,15 +228,109 @@ class FoodController extends Controller
     public function downloadTemplate()
     {
         $filePath = storage_path('app/templates/foods_import_template.xlsx');
-        
+
         if (!file_exists($filePath)) {
             abort(404, 'Template file not found');
         }
-        
+
         return response()->download($filePath, 'foods_import_template.xlsx', [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Content-Disposition' => 'attachment; filename="foods_import_template.xlsx"'
         ]);
+    }
+
+    /**
+     * Inline update for food prices - ensures data consistency
+     */
+    public function inlineUpdate(Request $request, $id)
+    {
+        try {
+            // Initialize Firestore client
+            $firestore = new FirestoreClient([
+                'projectId' => config('firestore.project_id'),
+                'keyFilePath' => config('firestore.credentials'),
+            ]);
+
+            $collection = $firestore->collection('vendor_products');
+            $document = $collection->document($id);
+            $snapshot = $document->snapshot();
+
+            if (!$snapshot->exists()) {
+                return response()->json(['success' => false, 'message' => 'Product not found'], 404);
+            }
+
+            $currentData = $snapshot->data();
+            $field = $request->input('field');
+            $value = $request->input('value');
+
+            // Validate field
+            if (!in_array($field, ['price', 'disPrice'])) {
+                return response()->json(['success' => false, 'message' => 'Invalid field'], 400);
+            }
+
+            // Validate value
+            if (!is_numeric($value) || $value < 0) {
+                return response()->json(['success' => false, 'message' => 'Invalid price value'], 400);
+            }
+
+            // Prepare update data with proper data types (matching edit page)
+            $updateData = [];
+
+            if ($field === 'price') {
+                $updateData[] = ['path' => 'price', 'value' => (string) $value]; // Convert to string like edit page
+
+                // If discount price is higher than new price, reset it
+                if (isset($currentData['disPrice']) && !empty($currentData['disPrice']) && (float)$currentData['disPrice'] > (float)$value) {
+                    $updateData[] = ['path' => 'disPrice', 'value' => ''];
+                }
+            } elseif ($field === 'disPrice') {
+                // If setting discount price to 0 or empty, remove it
+                if ($value == 0 || empty($value)) {
+                    $updateData[] = ['path' => 'disPrice', 'value' => ''];
+                } else {
+                    $updateData[] = ['path' => 'disPrice', 'value' => (string) $value]; // Convert to string like edit page
+
+                    // Validate discount price is not higher than original price
+                    if ((float)$value > (float)$currentData['price']) {
+                        return response()->json(['success' => false, 'message' => 'Discount price cannot be higher than original price'], 400);
+                    }
+                }
+            }
+
+            // Update the document with proper Firestore format
+            $document->update($updateData);
+
+            // Prepare response message
+            $message = 'Price updated successfully';
+            $hasDiscountReset = false;
+
+            // Check if discount was reset
+            foreach ($updateData as $update) {
+                if ($update['path'] === 'disPrice' && $update['value'] === '') {
+                    $hasDiscountReset = true;
+                    break;
+                }
+            }
+
+            if ($field === 'price' && $hasDiscountReset) {
+                $message .= ' (discount price was reset as it was higher than the new price)';
+            }
+
+            // Convert updateData back to associative array for response
+            $responseData = [];
+            foreach ($updateData as $update) {
+                $responseData[$update['path']] = $update['value'];
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'data' => $responseData
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Update failed: ' . $e->getMessage()], 500);
+        }
     }
 
 }
