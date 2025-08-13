@@ -1,5 +1,48 @@
 @extends('layouts.app')
 @section('content')
+<style>
+    /* .description-cell {
+        position: relative;
+    }
+    .description-cell .text-wrap {
+        transition: all 0.3s ease;
+    }
+    .expand-description {
+        padding: 0;
+        font-size: 0.8rem;
+        color: #007bff;
+        text-decoration: none;
+    }
+    .expand-description:hover {
+        color: #0056b3;
+        text-decoration: none;
+    } */
+    .avatar-sm {
+        width: 32px;
+        height: 32px;
+    }
+    .avatar-title {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+    }
+    .badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+    }
+    .table-responsive {
+        overflow-x: auto;
+    }
+    .dataTables_wrapper .dataTables_filter {
+        margin-bottom: 1rem;
+    }
+    .dt-buttons {
+        margin-left: 1rem;
+    }
+</style>
 <div class="page-wrapper">
     <div class="row page-titles">
         <div class="col-md-5 align-self-center">
@@ -87,8 +130,10 @@
                         </div>
                     </div>
                     <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-hover table-striped" id="activity-logs-table">
+                        <div class="table-responsive m-t-10">
+                            <table id="activityLogsTable"
+                                   class="display nowrap table table-hover table-striped table-bordered table table-striped"
+                                   cellspacing="0" width="100%">
                                 <thead>
                                     <tr>                                 
                                         <th>User ID</th>
@@ -98,24 +143,11 @@
                                         <th>Module</th>
                                         <th>Action</th>
                                         <th>Description</th>
-                                        <th>IP Address</th>
+                                        <!-- <th>IP Address</th> -->
                                         <th>Timestamp</th>
                                     </tr>
                                 </thead>
-                                <tbody id="logs-tbody">
-                                    <!-- Logs will be populated here -->
-                                </tbody>
                             </table>
-                        </div>
-                        <div id="loading" class="text-center py-4">
-                            <div class="spinner-border text-primary" role="status">
-                                <span class="sr-only">Loading...</span>
-                            </div>
-                            <p class="mt-2">Loading activity logs...</p>
-                        </div>
-                        <div id="no-logs" class="text-center py-4" style="display: none;">
-                            <i class="mdi mdi-information-outline text-muted" style="font-size: 48px;"></i>
-                            <p class="mt-2 text-muted">No activity logs found</p>
                         </div>
                     </div>
                 </div>
@@ -148,113 +180,222 @@ $(document).ready(function() {
         console.log('Firebase initialized successfully');
     } catch (error) {
         console.error('Firebase initialization error:', error);
-        $('#loading').hide();
-        $('#no-logs').show().html('<p class="text-danger">Error connecting to Firebase. Please check your configuration.</p>');
         return;
     }
 
     let currentModule = '';
-    let logsListener = null;
-
-    // Initialize with all logs
-    loadActivityLogs();
+    let initialRef = db.collection('activity_logs').orderBy('created_at', 'desc');
     
     // Module filter change
     $('#module-filter').on('change', function() {
         currentModule = $(this).val();
-        loadActivityLogs();
+        $('#activityLogsTable').DataTable().ajax.reload();
     });
     
     // Refresh button
     $('#refresh-logs').on('click', function() {
-        loadActivityLogs();
+        $('#activityLogsTable').DataTable().ajax.reload();
     });
 
-    function loadActivityLogs() {
-        $('#loading').show();
-        $('#no-logs').hide();
-        $('#logs-tbody').empty();
-        
-        // Clear existing listener
-        if (logsListener) {
-            logsListener();
-        }
-        
-        let query = db.collection('activity_logs').orderBy('created_at', 'desc').limit(1000);
-        
-        if (currentModule) {
-            query = query.where('module', '==', currentModule);
-        }
-        
-        logsListener = query.onSnapshot(function(snapshot) {
-            $('#loading').hide();
+    // Initialize DataTable with server-side processing
+    const table = $('#activityLogsTable').DataTable({
+        pageLength: 10,
+        processing: false,
+        serverSide: true,
+        responsive: true,
+        ajax: async function(data, callback, settings) {
+            const start = data.start;
+            const length = data.length;
+            const searchValue = data.search.value.toLowerCase();
+            const orderColumnIndex = data.order[0].column;
+            const orderDirection = data.order[0].dir;
             
-            if (snapshot.empty) {
-                $('#no-logs').show();
-                $('#logs-count').text('0');
+                         const orderableColumns = ['user_name', 'user_type', 'role', 'module', 'action', 'description', 'ip_address', 'timestamp'];
+             const orderByField = orderableColumns[orderColumnIndex];
+
+            let ref = initialRef;
+        if (currentModule) {
+                ref = ref.where('module', '==', currentModule);
+            }
+
+            await ref.get().then(async function(querySnapshot) {
+                if (querySnapshot.empty) {
+                    $('#logs-count').text(0);
+                    callback({
+                        draw: data.draw,
+                        recordsTotal: 0,
+                        recordsFiltered: 0,
+                        data: []
+                    });
                 return;
             }
             
-            $('#logs-tbody').empty();
-            $('#logs-count').text(snapshot.docs.length);
-            
-            snapshot.docs.forEach(function(doc) {
-                const data = doc.data();
-                const timestamp = data.created_at ? new Date(data.created_at.toDate()).toLocaleString() : 'N/A';
-                
-                const row = `
-                    <tr>
-                        <td>
-                            <div class="d-flex align-items-center">
-                                <input type="checkbox" class="log-checkbox" value="${doc.id}">
-                                <small class="font-weight-bold">ID: ${data.user_id}</small>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="d-flex align-items-center">
-                                <div class="avatar-sm mr-3">
-                                    <div class="avatar-title bg-light rounded-circle">
-                                        <i class="mdi mdi-account"></i>
-                                    </div>
-                                </div>
-                                <div>
-                                    <div class="font-weight-bold">${data.user_name || 'Unknown User'}</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td>
-                            <span class="badge badge-${getUserTypeBadge(data.user_type)}">${data.user_type}</span>
-                        </td>
-                        <td>
-                            <span class="badge badge-info">${data.role}</span>
-                        </td>
-                        <td>
-                            <span class="badge badge-secondary">${data.module}</span>
-                        </td>
-                        <td>
-                            <span class="badge badge-${getActionBadge(data.action)}">${data.action}</span>
-                        </td>
-                        <td>
-                            <div class="text-wrap" style="max-width: 300px;">
-                                ${data.description}
-                            </div>
-                        </td>
-                        <td>
-                            <small class="font-weight-semibold">${data.ip_address}</small>
-                        </td>
-                        <td>
-                            <small class="font-weight-semibold">${timestamp}</small>
-                        </td>
-                    </tr>
-                `;
-                
-                $('#logs-tbody').append(row);
+                let records = [];
+                let filteredRecords = [];
+
+                await Promise.all(querySnapshot.docs.map(async (doc) => {
+                    let logData = doc.data();
+                    logData.id = doc.id;
+
+                    if (searchValue) {
+                        if (
+                            (logData.user_id && logData.user_id.toString().toLowerCase().includes(searchValue)) ||
+                            (logData.user_name && logData.user_name.toString().toLowerCase().includes(searchValue)) ||
+                            (logData.user_type && logData.user_type.toString().toLowerCase().includes(searchValue)) ||
+                            (logData.role && logData.role.toString().toLowerCase().includes(searchValue)) ||
+                            (logData.module && logData.module.toString().toLowerCase().includes(searchValue)) ||
+                            (logData.action && logData.action.toString().toLowerCase().includes(searchValue)) ||
+                            (logData.description && logData.description.toString().toLowerCase().includes(searchValue)) ||
+                            (logData.ip_address && logData.ip_address.toString().toLowerCase().includes(searchValue))
+                        ) {
+                            filteredRecords.push(logData);
+                        }
+                    } else {
+                        filteredRecords.push(logData);
+                    }
+                }));
+
+                // Sort records
+                filteredRecords.sort((a, b) => {
+                    let aValue = a[orderByField];
+                    let bValue = b[orderByField];
+                    
+                    if (orderByField === 'timestamp') {
+                        aValue = a.created_at ? a.created_at.toDate() : new Date(0);
+                        bValue = b.created_at ? b.created_at.toDate() : new Date(0);
+                    } else {
+                        aValue = aValue ? aValue.toString().toLowerCase() : '';
+                        bValue = bValue ? bValue.toString().toLowerCase() : '';
+                    }
+
+                    if (orderDirection === 'asc') {
+                        return aValue > bValue ? 1 : -1;
+                    } else {
+                        return aValue < bValue ? 1 : -1;
+                    }
+                });
+
+                const totalRecords = filteredRecords.length;
+                $('#logs-count').text(totalRecords);
+                const paginatedRecords = filteredRecords.slice(start, start + length);
+
+                await Promise.all(paginatedRecords.map(async (logData) => {
+                    const rowData = await buildLogRow(logData);
+                    records.push(rowData);
+                }));
+
+                callback({
+                    draw: data.draw,
+                    recordsTotal: totalRecords,
+                    recordsFiltered: totalRecords,
+                    data: records
+                });
+            }).catch(function(error) {
+                console.error("Error fetching activity logs:", error);
+                callback({
+                    draw: data.draw,
+                    recordsTotal: 0,
+                    recordsFiltered: 0,
+                    data: []
+                });
             });
-        }, function(error) {
-            $('#loading').hide();
-            console.error('Error loading activity logs:', error);
-            $('#no-logs').show().html('<p class="text-danger">Error loading activity logs. Please try again.</p>');
-        });
+        },
+                 order: [7, 'desc'], // Sort by timestamp descending
+         columnDefs: [
+             {
+                 orderable: false,
+                 targets: [] // No non-orderable columns
+             }
+         ],
+        "language": {
+            "zeroRecords": "{{trans('lang.no_record_found')}}",
+            "emptyTable": "{{trans('lang.no_record_found')}}",
+            "processing": ""
+        },
+        dom: 'lfrtipB',
+        buttons: [
+            {
+                extend: 'collection',
+                text: '<i class="mdi mdi-cloud-download"></i> Export as',
+                className: 'btn btn-info',
+                buttons: [
+                    {
+                        extend: 'excelHtml5',
+                        text: 'Export Excel',
+                        title: 'Activity Logs',
+                        exportOptions: {
+                            columns: [0, 1, 2, 3, 4, 5, 6, 7]
+                        }
+                    },
+                    {
+                        extend: 'pdfHtml5',
+                        text: 'Export PDF',
+                        title: 'Activity Logs',
+                        exportOptions: {
+                            columns: [0, 1, 2, 3, 4, 5, 6, 7]
+                        }
+                    },
+                    {
+                        extend: 'csvHtml5',
+                        text: 'Export CSV',
+                        title: 'Activity Logs',
+                        exportOptions: {
+                            columns: [0, 1, 2, 3, 4, 5, 6, 7]
+                        }
+                    }
+                ]
+            }
+        ],
+        initComplete: function() {
+            $(".dataTables_filter").append($(".dt-buttons").detach());
+            $('.dataTables_filter input').attr('placeholder', 'Search logs...').attr('autocomplete','new-password').val('');
+            $('.dataTables_filter label').contents().filter(function() {
+                return this.nodeType === 3;
+            }).remove();
+        }
+    });
+
+    async function buildLogRow(logData) {
+        const timestamp = logData.created_at ? new Date(logData.created_at.toDate()).toLocaleString() : 'N/A';
+        
+        return [
+            // User ID column
+            `<div class="d-flex align-items-center">
+            <div class="bg-light rounded-circle">
+                 <div class="font-weight-bold">${logData.user_id}</div>
+                  </div>
+            </div>`,
+
+            `<div class="d-flex align-items-center">
+               <div class="avatar-sm mr-3">
+                <i class="mdi mdi-account"></i>
+                <div class="font-weight-bold">${logData.user_name || 'Unknown User'}</div>
+               </div>
+                </div>`,
+                
+            // User Type column
+            `<span class="badge badge-${getUserTypeBadge(logData.user_type)}">${logData.user_type}</span>`,
+            
+            // Role column
+            `<span class="badge badge-info">${logData.role}</span>`,
+            
+            // Module column
+            `<span class="badge badge-secondary">${logData.module}</span>`,
+            
+            // Action column
+            `<span class="badge badge-${getActionBadge(logData.action)}">${logData.action}</span>`,
+            
+            // Description column with content
+                `<span class="text-wrap" style="max-width: 500px;">
+                    ${logData.description}
+                </span>`,
+            
+            // IP Address column
+            // `<small class="font-weight-semibold">${logData.ip_address}</small>`,
+            
+            // Timestamp column
+            `<span class="font-weight-semibold">${timestamp}</span>`
+        ];
     }
 
     function getUserTypeBadge(userType) {
@@ -277,89 +418,33 @@ $(document).ready(function() {
         }
     }
 
-    // Global logActivity function is now available from global-activity-logger.js
-    // No need to redefine it here
-
-    // Handle select all functionality
-    $('#select-all-logs').on('change', function() {
-        $('.log-checkbox').prop('checked', $(this).prop('checked'));
-        updateBulkDeleteButton();
-    });
-
-    // Handle individual checkbox changes
-    $(document).on('change', '.log-checkbox', function() {
-        updateBulkDeleteButton();
+    // Handle expandable description
+    $(document).on('click', '.expand-description', function() {
+        const button = $(this);
+        const description = button.data('description');
+        const cell = button.closest('.description-cell');
+        const textDiv = cell.find('.text-wrap');
         
-        // Update select all checkbox
-        var totalCheckboxes = $('.log-checkbox').length;
-        var checkedCheckboxes = $('.log-checkbox:checked').length;
-        
-        if (checkedCheckboxes === 0) {
-            $('#select-all-logs').prop('indeterminate', false).prop('checked', false);
-        } else if (checkedCheckboxes === totalCheckboxes) {
-            $('#select-all-logs').prop('indeterminate', false).prop('checked', true);
-        } else {
-            $('#select-all-logs').prop('indeterminate', true);
-        }
-    });
-
-    // Handle bulk delete
-    $(document).on('click', '.bulk-delete-logs', function() {
-        var selectedLogs = $('.log-checkbox:checked');
-        
-        if (selectedLogs.length === 0) {
-            alert('Please select logs to delete');
-            return;
-        }
-        
-        if (confirm('Are you sure you want to delete ' + selectedLogs.length + ' selected log(s)?')) {
-            var logIds = [];
-            selectedLogs.each(function() {
-                logIds.push($(this).val());
+        if (button.find('i').hasClass('mdi-plus')) {
+            // Expand
+            textDiv.css({
+                'max-width': 'none',
+                'overflow': 'visible',
+                'text-overflow': 'unset'
             });
-            
-            // Delete selected logs from Firestore
-            deleteSelectedLogs(logIds);
+            button.find('i').removeClass('mdi-plus').addClass('mdi-minus');
+            button.html('<i class="mdi mdi-minus"></i> Show Less');
+        } else {
+            // Collapse
+            textDiv.css({
+                'max-width': '200px',
+                'overflow': 'hidden',
+                'text-overflow': 'ellipsis'
+            });
+            button.find('i').removeClass('mdi-minus').addClass('mdi-plus');
+            button.html('<i class="mdi mdi-plus"></i> Show More');
         }
     });
-
-    function updateBulkDeleteButton() {
-        var selectedCount = $('.log-checkbox:checked').length;
-        if (selectedCount > 0) {
-            if (!$('.bulk-delete-logs').length) {
-                $('.card-header-right').append(`
-                    <button class="btn btn-danger rounded-full bulk-delete-logs">
-                        <i class="fa fa-trash mr-2"></i>Delete Selected (${selectedCount})
-                    </button>
-                `);
-            } else {
-                $('.bulk-delete-logs').html(`<i class="fa fa-trash mr-2"></i>Delete Selected (${selectedCount})`);
-            }
-        } else {
-            $('.bulk-delete-logs').remove();
-        }
-    }
-
-    function deleteSelectedLogs(logIds) {
-        // Show loading
-        $('.bulk-delete-logs').prop('disabled', true).html('<i class="fa fa-spinner fa-spin mr-2"></i>Deleting...');
-        
-        // Delete logs from Firestore
-        var deletePromises = logIds.map(function(logId) {
-            return db.collection('activity_logs').doc(logId).delete();
-        });
-        
-        Promise.all(deletePromises).then(function() {
-            // Refresh the logs
-            loadActivityLogs();
-            alert('Selected logs deleted successfully');
-        }).catch(function(error) {
-            console.error('Error deleting logs:', error);
-            alert('Error deleting logs. Please try again.');
-        }).finally(function() {
-            $('.bulk-delete-logs').prop('disabled', false);
-        });
-    }
 });
 </script>
 @endsection
