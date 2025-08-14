@@ -441,6 +441,36 @@
                                                 </tr>
                                                 <tr>
                                                     <td>
+                                                        <strong>{{ trans('lang.cuisines_plural') }}</strong>
+                                                    </td>
+                                                    <td>
+                                                        <input type="checkbox" id="cuisines-list" value="cuisines"
+                                                            name="cuisines[]" class="permission"
+                                                            {{ in_array('cuisines', $permissions) ? 'checked' : '' }}>
+                                                        <label class="contol-label2"
+                                                            for="cuisines-list">{{ trans('lang.list') }}</label>
+                                                        <input type="checkbox" id="cuisines-create"
+                                                            value="cuisines.create" name="cuisines[]"
+                                                            class="permission"
+                                                            {{ in_array('cuisines.create', $permissions) ? 'checked' : '' }}>
+                                                        <label class="contol-label2"
+                                                            for="cuisines-create">{{ trans('lang.create') }}</label>
+                                                        <input type="checkbox" id="cuisines-edit"
+                                                            value="cuisines.edit" name="cuisines[]"
+                                                            class="permission"
+                                                            {{ in_array('cuisines.edit', $permissions) ? 'checked' : '' }}>
+                                                        <label class="contol-label2"
+                                                            for="cuisines-edit">{{ trans('lang.edit') }}</label>
+                                                        <input type="checkbox" id="cuisines-delete"
+                                                            value="cuisines.delete" name="cuisines[]"
+                                                            class="permission"
+                                                            {{ in_array('cuisines.delete', $permissions) ? 'checked' : '' }}>
+                                                        <label class=" control-label2"
+                                                            for="cuisines-delete">{{ trans('lang.delete') }}</label>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
                                                         <strong>{{ trans('lang.food_plural') }}</strong>
                                                     </td>
                                                     <td>
@@ -627,6 +657,36 @@
                                                             {{ in_array('gift-card.delete', $permissions) ? 'checked' : '' }}>
                                                         <label class=" control-label2"
                                                             for="gift-card-delete">{{ trans('lang.delete') }}</label>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <strong>{{ trans('lang.promotions_plural') }}</strong>
+                                                    </td>
+                                                    <td>
+                                                        <input type="checkbox" id="promotions-list" value="promotions"
+                                                            name="promotions[]" class="permission"
+                                                            {{ in_array('promotions', $permissions) ? 'checked' : '' }}>
+                                                        <label class="contol-label2"
+                                                            for="promotions-list">{{ trans('lang.list') }}</label>
+                                                        <input type="checkbox" id="promotions-create"
+                                                            value="promotions.create" name="promotions[]"
+                                                            class="permission"
+                                                            {{ in_array('promotions.create', $permissions) ? 'checked' : '' }}>
+                                                        <label class="contol-label2"
+                                                            for="promotions-create">{{ trans('lang.create') }}</label>
+                                                        <input type="checkbox" id="promotions-edit"
+                                                            value="promotions.edit" name="promotions[]"
+                                                            class="permission"
+                                                            {{ in_array('promotions.edit', $permissions) ? 'checked' : '' }}>
+                                                        <label class="contol-label2"
+                                                            for="promotions-edit">{{ trans('lang.edit') }}</label>
+                                                        <input type="checkbox" id="promotions-delete"
+                                                            value="promotions.delete" name="promotions[]"
+                                                            class="permission"
+                                                            {{ in_array('promotions.delete', $permissions) ? 'checked' : '' }}>
+                                                        <label class=" control-label2"
+                                                            for="promotions-delete">{{ trans('lang.delete') }}</label>
                                                     </td>
                                                 </tr>
                                                 <tr>
@@ -917,6 +977,48 @@
                                                             {{ in_array('email-templates.edit', $permissions) ? 'checked' : '' }}>
                                                         <label class="contol-label2"
                                                             for="email-template-edit">{{ trans('lang.edit') }}</label>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <strong>Media</strong>
+                                                    </td>
+                                                    <td>
+                                                        <input type="checkbox" id="media-list" value="media"
+                                                            name="media[]" class="permission"
+                                                            {{ in_array('media', $permissions) ? 'checked' : '' }}>
+                                                        <label class="contol-label2"
+                                                            for="media-list">{{ trans('lang.list') }}</label>
+                                                        <input type="checkbox" id="media-create"
+                                                            value="media.create" name="media[]"
+                                                            class="permission"
+                                                            {{ in_array('media.create', $permissions) ? 'checked' : '' }}>
+                                                        <label class="contol-label2"
+                                                            for="media-create">{{ trans('lang.create') }}</label>
+                                                        <input type="checkbox" id="media-edit"
+                                                            value="media.edit" name="media[]"
+                                                            class="permission"
+                                                            {{ in_array('media.edit', $permissions) ? 'checked' : '' }}>
+                                                        <label class="contol-label2"
+                                                            for="media-edit">{{ trans('lang.edit') }}</label>
+                                                        <input type="checkbox" id="media-delete"
+                                                            value="media.delete" name="media[]"
+                                                            class="permission"
+                                                            {{ in_array('media.delete', $permissions) ? 'checked' : '' }}>
+                                                        <label class=" control-label2"
+                                                            for="media-delete">{{ trans('lang.delete') }}</label>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <strong>Activity Logs</strong>
+                                                    </td>
+                                                    <td>
+                                                        <input type="checkbox" id="activity-logs-list" value="activity-logs"
+                                                            name="activity-logs[]" class="permission"
+                                                            {{ in_array('activity-logs', $permissions) ? 'checked' : '' }}>
+                                                        <label class="contol-label2"
+                                                            for="activity-logs-list">{{ trans('lang.list') }}</label>
                                                     </td>
                                                 </tr>
                                                 <tr>

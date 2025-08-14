@@ -123,22 +123,17 @@ $role_has_permission = App\Models\Permission::where('role_id', $user->role_id)->
             </ul>
         </li>
         @endif
-        @if(in_array('category', $role_has_permission) || in_array('foods', $role_has_permission) || in_array('item-attribute', $role_has_permission) || in_array('review-attribute', $role_has_permission))
+        @if(in_array('category', $role_has_permission) || in_array('foods', $role_has_permission) || in_array('item-attribute', $role_has_permission) || in_array('review-attribute', $role_has_permission) || in_array('cuisines', $role_has_permission) || $user->role_id == 1)
         <li class="nav-subtitle"><span class="nav-subtitle-span">{{trans('lang.menu_and_food_management')}}</span></li>
         @endif
 
-        <!-- @if(in_array('cuisines', $role_has_permission))
-            <li><a class="waves-effect waves-dark" href="{!! url('cuisines') !!}" aria-expanded="false">
-                    <i class="mdi mdi-clipboard-text"></i>
-                    <span class="hide-menu">{{trans('lang.cuisines_plural')}}</span>
-                </a>
-            </li>
-        @endif -->
+        @if(in_array('cuisines', $role_has_permission) || $user->role_id == 1)
         <li><a class="waves-effect waves-dark" href="{!! url('cuisines') !!}" aria-expanded="false">
                     <i class="mdi mdi-clipboard-text"></i>
                     <span class="hide-menu">{{trans('lang.cuisines_plural')}}</span>
                 </a>
             </li>
+        @endif
         @if(in_array('category', $role_has_permission))
         <li><a class="waves-effect waves-dark" href="{!! url('categories') !!}" aria-expanded="false">
                 <i class="mdi mdi-clipboard-text"></i>
@@ -172,12 +167,14 @@ $role_has_permission = App\Models\Permission::where('role_id', $user->role_id)->
         </li>
         @endif
 
+        @if(in_array('promotions', $role_has_permission) || $user->role_id == 1)
         <li class="nav-subtitle"><span class="nav-subtitle-span">{{trans('lang.promotions_and_offers')}}</span></li>
         <li><a class="waves-effect waves-dark" href="{!! url('promotions') !!}" aria-expanded="false">
                 <i class="mdi mdi-clipboard-text"></i>
                 <span class="hide-menu">{{trans('lang.promotions_plural')}}</span>
             </a>
         </li>
+        @endif
 
         <li class="nav-subtitle"><span class="nav-subtitle-span">{{trans('lang.business_setup')}}</span></li>
         <li><a class="has-arrow waves-effect waves-dark" href="#" aria-expanded="false">
@@ -301,16 +298,20 @@ $role_has_permission = App\Models\Permission::where('role_id', $user->role_id)->
             </a>
         </li>
         @endif
+        @if(in_array('media', $role_has_permission) || $user->role_id == 1)
         <li><a class="waves-effect waves-dark" href="{!! url('media') !!}" aria-expanded="false">
                 <i class="mdi mdi-clipboard-text"></i>
                 <span class="hide-menu">{{trans('Media')}}</span>
             </a>
         </li>
+        @endif
+        @if(in_array('activity-logs', $role_has_permission) || $user->role_id == 1)
         <li><a class="waves-effect waves-dark" href="{!! url('activity-logs') !!}" aria-expanded="false">
                 <i class="mdi mdi-history"></i>
                 <span class="hide-menu">Activity Logs</span>
             </a>
         </li>
+        @endif
         @if(in_array('global-setting', $role_has_permission) || in_array('currency', $role_has_permission) || in_array('payment-method', $role_has_permission)
         || in_array('admin-commission', $role_has_permission) || in_array('radius', $role_has_permission) || in_array('dinein', $role_has_permission)
         || in_array('tax', $role_has_permission) || in_array('delivery-charge', $role_has_permission) || in_array('language', $role_has_permission)

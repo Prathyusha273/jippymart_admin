@@ -94,6 +94,32 @@ class CuisineController extends Controller
             'Content-Disposition' => 'attachment; filename="cuisines_import_template.xlsx"'
         ]);
     }
+
+    public function delete($id)
+    {
+        try {
+            // Initialize Firestore client
+            $firestore = new FirestoreClient([
+                'projectId' => config('firestore.project_id'),
+                'keyFilePath' => config('firestore.credentials'),
+            ]);
+            
+            $collection = $firestore->collection('vendor_cuisines');
+            $document = $collection->document($id);
+            
+            // Check if document exists
+            if (!$document->snapshot()->exists()) {
+                return redirect()->back()->with('error', 'Cuisine not found.');
+            }
+            
+            // Delete the document
+            $document->delete();
+            
+            return redirect()->back()->with('success', 'Cuisine deleted successfully.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error deleting cuisine: ' . $e->getMessage());
+        }
+    }
 }
 
 
