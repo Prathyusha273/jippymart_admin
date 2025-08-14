@@ -14,5 +14,15 @@ class DatabaseSeeder extends Seeder
     public function run()
     {
         // \App\Models\User::factory(10)->create();
+        
+        // Add cuisines permissions to super admin
+        $this->call([
+            CuisinesPermissionsSeeder::class,
+        ]);
+        
+        // Add promotions, media, and activity-logs permissions to super admin
+        $this->call([
+            PromotionsMediaActivityLogsPermissionsSeeder::class,
+        ]);
     }
 }

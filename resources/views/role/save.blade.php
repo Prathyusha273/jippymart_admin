@@ -397,6 +397,32 @@
                                                 </tr>
                                                 <tr>
                                                     <td>
+                                                        <strong>{{ trans('lang.cuisines_plural') }}</strong>
+                                                    </td>
+                                                    <td>
+                                                        <input type="checkbox" id="cuisines-list" value="cuisines"
+                                                            name="cuisines[]" class="permission">
+                                                        <label class=" control-label2"
+                                                            for="cuisines-list">{{ trans('lang.list') }}</label>
+                                                        <input type="checkbox" id="cuisines-create"
+                                                            value="cuisines.create" name="cuisines[]"
+                                                            class="permission">
+                                                        <label class=" control-label2"
+                                                            for="cuisines-create">{{ trans('lang.create') }}</label>
+                                                        <input type="checkbox" id="cuisines-edit"
+                                                            value="cuisines.edit" name="cuisines[]"
+                                                            class="permission">
+                                                        <label class=" control-label2"
+                                                            for="cuisines-edit">{{ trans('lang.edit') }}</label>
+                                                        <input type="checkbox" id="cuisines-delete"
+                                                            value="cuisines.delete" name="cuisines[]"
+                                                            class="permission">
+                                                        <label class=" control-label2"
+                                                            for="cuisines-delete">{{ trans('lang.delete') }}</label>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
                                                         <strong>{{ trans('lang.food_plural') }}</strong>
                                                     </td>
                                                     <td>
@@ -574,6 +600,32 @@
                                                             class="permission">
                                                         <label class=" control-label2"
                                                             for="gift-card-delete">{{ trans('lang.delete') }}</label>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <strong>{{ trans('lang.promotions_plural') }}</strong>
+                                                    </td>
+                                                    <td>
+                                                        <input type="checkbox" id="promotions-list" value="promotions"
+                                                            name="promotions[]" class="permission">
+                                                        <label class=" control-label2"
+                                                            for="promotions-list">{{ trans('lang.list') }}</label>
+                                                        <input type="checkbox" id="promotions-create"
+                                                            value="promotions.create" name="promotions[]"
+                                                            class="permission">
+                                                        <label class=" control-label2"
+                                                            for="promotions-create">{{ trans('lang.create') }}</label>
+                                                        <input type="checkbox" id="promotions-edit"
+                                                            value="promotions.edit" name="promotions[]"
+                                                            class="permission">
+                                                        <label class=" control-label2"
+                                                            for="promotions-edit">{{ trans('lang.edit') }}</label>
+                                                        <input type="checkbox" id="promotions-delete"
+                                                            value="promotions.delete" name="promotions[]"
+                                                            class="permission">
+                                                        <label class=" control-label2"
+                                                            for="promotions-delete">{{ trans('lang.delete') }}</label>
                                                     </td>
                                                 </tr>
                                                 <tr>
@@ -837,6 +889,43 @@
                                                             class="permission">
                                                         <label class=" control-label2"
                                                             for="email-template-edit">{{ trans('lang.edit') }}</label>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <strong>Media</strong>
+                                                    </td>
+                                                    <td>
+                                                        <input type="checkbox" id="media-list" value="media"
+                                                            name="media[]" class="permission">
+                                                        <label class=" control-label2"
+                                                            for="media-list">{{ trans('lang.list') }}</label>
+                                                        <input type="checkbox" id="media-create"
+                                                            value="media.create" name="media[]"
+                                                            class="permission">
+                                                        <label class=" control-label2"
+                                                            for="media-create">{{ trans('lang.create') }}</label>
+                                                        <input type="checkbox" id="media-edit"
+                                                            value="media.edit" name="media[]"
+                                                            class="permission">
+                                                        <label class=" control-label2"
+                                                            for="media-edit">{{ trans('lang.edit') }}</label>
+                                                        <input type="checkbox" id="media-delete"
+                                                            value="media.delete" name="media[]"
+                                                            class="permission">
+                                                        <label class=" control-label2"
+                                                            for="media-delete">{{ trans('lang.delete') }}</label>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <strong>Activity Logs</strong>
+                                                    </td>
+                                                    <td>
+                                                        <input type="checkbox" id="activity-logs-list" value="activity-logs"
+                                                            name="activity-logs[]" class="permission">
+                                                        <label class=" control-label2"
+                                                            for="activity-logs-list">{{ trans('lang.list') }}</label>
                                                     </td>
                                                 </tr>
                                                 <tr>

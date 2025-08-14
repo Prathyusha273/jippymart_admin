@@ -243,8 +243,9 @@
                         if (currencyData.decimal_degits) {
                             decimal_degits = currencyData.decimal_degits;
                         }
-                    });
-                    ref.get().then(async function (snapshots) {
+                        
+                        // Now load order data after currency is loaded
+                        ref.get().then(async function (snapshots) {
                         var order = snapshots.docs[0].data();
                         $(".customerName").text(order.author.firstName + " " + order.author.lastName);
                         $(".orderId").text(id);
@@ -378,9 +379,15 @@
                                 }
                             });
                         }
+                        // Debug: Log order data to see delivery charge
+                        console.log('Order data for print:', order);
+                        console.log('Delivery charge from order:', order.deliveryCharge);
+                        console.log('Tip amount from order:', order.tip_amount);
+                        
                         fillPrintOrderSummary(order);
                         jQuery("#data-table_processing").hide();
-                    })
+                        });
+                    });
 
                     function buildHTMLProductsList(snapshotsProducts) {
                         var html = '';
@@ -494,16 +501,16 @@
                         var deliveryCharge = snapshotsProducts.deliveryCharge;
                         var specialDiscount = snapshotsProducts.specialDiscount;
                         var intRegex = /^\d+$/;
-                        var floatRegex = /^((\d+(\.\d )?)|((\d\.)?\d+))$/;
+                        var floatRegex = /^((\d+(\.\d+)?)|((\d+\.)?\d+))$/;
                         var baseDeliveryCharge = 23; // default, override with settings if available
                         var gstRate = 18;
                         var sgstRate = 5;
                         var subtotal = 0;
-                        var decimal_degits = 2;
-                        var currencyAtRight = false;
-                        var currentCurrency = '₹';
-                        if (typeof currencyAtRightSetting !== 'undefined') currencyAtRight = currencyAtRightSetting;
-                        if (typeof currentCurrencySetting !== 'undefined') currentCurrency = currentCurrencySetting;
+                        var decimal_degits = decimal_degits || 2;
+                        var currencyAtRight = currencyAtRight || false;
+                        var currentCurrency = currentCurrency || '₹';
+                        
+                        // Calculate subtotal from products
                         if (products) {
                             products.forEach((product) => {
                                 var price = (product.discountPrice && parseFloat(product.discountPrice) > 0)
@@ -512,19 +519,15 @@
                                 subtotal += price * (parseInt(product.quantity) || 1);
                             });
                         }
-                        var sgst = subtotal * (sgstRate / 100); // 5% of subtotal only
-                        var gst = 0;
-                        if (parseFloat(deliveryCharge) > 0) {
-                            gst = parseFloat(deliveryCharge) * (gstRate / 100); // 18% of delivery charge
-                        } else {
-                            gst = baseDeliveryCharge * (gstRate / 100); // 18% of base if delivery free
-                        }
-                        // Calculate total price (subtotal + delivery + tips + extras)
+                        
+                        // Calculate total price including extras
                         var total_price = subtotal;
                         if (intRegex.test(extras_price) || floatRegex.test(extras_price)) {
                             total_price += parseFloat(extras_price);
                         }
                         var priceWithCommision = total_price;
+                        
+                        // Apply discounts
                         if (intRegex.test(discount) || floatRegex.test(discount)) {
                             discount = parseFloat(discount).toFixed(decimal_degits);
                             total_price -= parseFloat(discount);
@@ -533,13 +536,34 @@
                             var special_discount = parseFloat(specialDiscount.special_discount).toFixed(decimal_degits);
                             total_price -= parseFloat(special_discount);
                         }
+                        
+                        // Calculate taxes
+                        var sgst = subtotal * (sgstRate / 100); // SGST on subtotal only
+                        var gst = 0;
+                        if (parseFloat(deliveryCharge) > 0) {
+                            // If delivery charge equals base delivery charge (₹23), only calculate GST once
+                            if (parseFloat(deliveryCharge) === baseDeliveryCharge) {
+                                gst = baseDeliveryCharge * (gstRate / 100); // 18% of base delivery charge only
+                            } else {
+                                // If delivery charge is different from base delivery charge, calculate GST on actual delivery charge + base delivery charge
+                                gst = (parseFloat(deliveryCharge) * (gstRate / 100)) + (baseDeliveryCharge * (gstRate / 100)); // 18% of delivery charge + 18% of base delivery charge
+                            }
+                        } else {
+                            gst = baseDeliveryCharge * (gstRate / 100); // 18% of base delivery charge only
+                        }
+                        
                         var total_tax_amount = sgst + gst;
-                        total_price = parseFloat(total_price) + parseFloat(total_tax_amount);
-                        var totalAmount = total_price;
+                        
+                        // Calculate final total
+                        var totalAmount = parseFloat(total_price) + parseFloat(total_tax_amount);
+                        
+                        // Add delivery charge to total
                         if (intRegex.test(deliveryCharge) || floatRegex.test(deliveryCharge)) {
                             deliveryCharge = parseFloat(deliveryCharge).toFixed(decimal_degits);
                             totalAmount += parseFloat(deliveryCharge);
                         }
+                        
+                        // Add tip amount to total
                         if (intRegex.test(tip_amount) || floatRegex.test(tip_amount)) {
                             tip_amount = parseFloat(tip_amount).toFixed(decimal_degits);
                             totalAmount += parseFloat(tip_amount);
@@ -614,15 +638,17 @@
                     function fillPrintOrderSummary(order) {
                         // Reference: buildHTMLProductstotal from edit.blade.php
                         var intRegex = /^\d+$/;
-                        var floatRegex = /^((\d+(\.\d )?)|((\d\.)?\d+))$/;
+                        var floatRegex = /^((\d+(\.\d+)?)|((\d+\.)?\d+))$/;
                         var baseDeliveryCharge = 23;
                         var gstRate = 18;
                         var sgstRate = 5;
                         var subtotal = 0;
-                        var decimal_degits = window.decimal_degits || 2;
-                        var currencyAtRight = window.currencyAtRight || false;
-                        var currentCurrency = window.currentCurrency || '₹';
+                        var decimal_degits = decimal_degits || 2;
+                        var currencyAtRight = currencyAtRight || false;
+                        var currentCurrency = currentCurrency || '₹';
                         var products = order.products;
+                        
+                        // Calculate subtotal from products
                         if (products) {
                             products.forEach(function (product) {
                                 var price = (product.discountPrice && parseFloat(product.discountPrice) > 0)
@@ -631,41 +657,119 @@
                                 subtotal += price * (parseInt(product.quantity) || 1);
                             });
                         }
-                        var sgst = subtotal * (sgstRate / 100);
-                        var gst = 0;
-                        var deliveryCharge = order.deliveryCharge;
-                        if (parseFloat(deliveryCharge) > 0) {
-                            gst = parseFloat(deliveryCharge) * (gstRate / 100);
-                        } else {
-                            gst = baseDeliveryCharge * (gstRate / 100);
-                        }
+                        
+                        // Calculate total price including extras
                         var total_price = subtotal;
                         if (intRegex.test(order.extras_price) || floatRegex.test(order.extras_price)) {
                             total_price += parseFloat(order.extras_price);
                         }
                         var priceWithCommision = total_price;
+                        
+                        // Apply discounts
                         var discount = order.discount;
                         if (intRegex.test(discount) || floatRegex.test(discount)) {
                             discount = parseFloat(discount).toFixed(decimal_degits);
                             total_price -= parseFloat(discount);
                         }
+                        
                         var specialDiscount = order.specialDiscount;
                         var special_discount = 0;
                         if (specialDiscount && specialDiscount.special_discount) {
                             special_discount = parseFloat(specialDiscount.special_discount).toFixed(decimal_degits);
                             total_price -= parseFloat(special_discount);
                         }
-                        var total_tax_amount = sgst + gst;
-                        total_price = parseFloat(total_price) + parseFloat(total_tax_amount);
-                        var totalAmount = total_price;
-                        if (intRegex.test(deliveryCharge) || floatRegex.test(deliveryCharge)) {
-                            deliveryCharge = parseFloat(deliveryCharge).toFixed(decimal_degits);
-                            totalAmount += parseFloat(deliveryCharge);
+                        
+                        // Calculate taxes
+                        var sgst = subtotal * (sgstRate / 100); // SGST on subtotal only
+                        
+                        // Calculate delivery charge based on vendor settings
+                        var deliveryCharge = order.deliveryCharge || 0;
+                        var distance = order.distance || 0;
+                        var baseDeliveryCharge = 23; // Default from vendor settings
+                        var freeDeliveryDistance = 7; // km
+                        var perKmCharge = 7; // per km above free distance
+                        
+                        // If delivery charge is not set, calculate it based on distance
+                        if (!deliveryCharge || deliveryCharge == 0) {
+                            if (distance > freeDeliveryDistance) {
+                                var extraDistance = distance - freeDeliveryDistance;
+                                deliveryCharge = baseDeliveryCharge + (extraDistance * perKmCharge);
+                            } else {
+                                deliveryCharge = baseDeliveryCharge;
+                            }
                         }
+                        
+                        var gst = 0;
+                        
+                        // Debug delivery charge
+                        console.log('=== fillPrintOrderSummary Debug ===');
+                        console.log('Order deliveryCharge:', order.deliveryCharge);
+                        console.log('Order distance:', order.distance);
+                        console.log('Calculated deliveryCharge:', deliveryCharge);
+                        console.log('Base delivery charge:', baseDeliveryCharge);
+                        console.log('Free delivery distance:', freeDeliveryDistance);
+                        console.log('Per km charge:', perKmCharge);
+                        console.log('GST calculation logic:');
+                        console.log('- Delivery charge:', deliveryCharge);
+                        console.log('- Base delivery charge:', baseDeliveryCharge);
+                        console.log('- GST rate:', gstRate + '%');
+                        
+                        if (parseFloat(deliveryCharge) > 0) {
+                            // If delivery charge equals base delivery charge (₹23), only calculate GST once
+                            if (parseFloat(deliveryCharge) === baseDeliveryCharge) {
+                                gst = baseDeliveryCharge * (gstRate / 100); // 18% of base delivery charge only
+                            } else {
+                                // If delivery charge is different from base delivery charge, calculate GST on actual delivery charge + base delivery charge
+                                gst = (parseFloat(deliveryCharge) * (gstRate / 100)) + (baseDeliveryCharge * (gstRate / 100)); // 18% of delivery charge + 18% of base delivery charge
+                            }
+                        } else {
+                            gst = baseDeliveryCharge * (gstRate / 100); // 18% of base delivery charge only
+                        }
+                        
+                        var total_tax_amount = sgst + gst;
+                        console.log('GST calculation result:');
+                        console.log('- SGST (5% on subtotal):', sgst.toFixed(2));
+                        console.log('- GST (18% on delivery):', gst.toFixed(2));
+                        console.log('- Total tax amount:', total_tax_amount.toFixed(2));
+                        
+                        // Calculate final total
+                        var totalAmount = parseFloat(total_price) + parseFloat(total_tax_amount);
+                        console.log('Total after taxes:', totalAmount);
+                        console.log('Subtotal:', subtotal);
+                        console.log('Total price after discounts:', total_price);
+                        console.log('SGST:', sgst);
+                        console.log('GST:', gst);
+                        console.log('Total tax amount:', total_tax_amount);
+                        
+                        // Add delivery charge to total
+                        console.log('Delivery charge before adding:', deliveryCharge);
+                        console.log('Delivery charge type:', typeof deliveryCharge);
+                        console.log('Is delivery charge valid number?', intRegex.test(deliveryCharge) || floatRegex.test(deliveryCharge));
+                        
+                        // Check if delivery charge is a valid number (either by regex or parseFloat)
+                        var deliveryChargeNum = parseFloat(deliveryCharge);
+                        if ((intRegex.test(deliveryCharge) || floatRegex.test(deliveryCharge)) && !isNaN(deliveryChargeNum) && deliveryChargeNum > 0) {
+                            deliveryCharge = deliveryChargeNum.toFixed(decimal_degits);
+                            totalAmount += deliveryChargeNum;
+                            console.log('Total after adding delivery charge:', totalAmount);
+                        } else {
+                            console.log('Delivery charge not added - invalid format or zero');
+                        }
+                        
+                        // Add tip amount to total
                         var tip_amount = order.tip_amount;
-                        if (intRegex.test(tip_amount) || floatRegex.test(tip_amount)) {
-                            tip_amount = parseFloat(tip_amount).toFixed(decimal_degits);
-                            totalAmount += parseFloat(tip_amount);
+                        console.log('Tip amount before adding:', tip_amount);
+                        console.log('Tip amount type:', typeof tip_amount);
+                        console.log('Is tip amount valid number?', intRegex.test(tip_amount) || floatRegex.test(tip_amount));
+                        
+                        // Check if tip amount is a valid number
+                        var tipAmountNum = parseFloat(tip_amount);
+                        if ((intRegex.test(tip_amount) || floatRegex.test(tip_amount)) && !isNaN(tipAmountNum) && tipAmountNum > 0) {
+                            tip_amount = tipAmountNum.toFixed(decimal_degits);
+                            totalAmount += tipAmountNum;
+                            console.log('Total after adding tip amount:', totalAmount);
+                        } else {
+                            console.log('Tip amount not added - invalid format or zero');
                         }
 
                         // Format helpers
@@ -684,6 +788,8 @@
                         document.querySelector('.delivery_charge_val').textContent = fmt(deliveryCharge || '0.00');
                         document.querySelector('.tip_amount_val').textContent = fmt(tip_amount || '0.00');
                         document.querySelector('.total_amount_val').textContent = fmt(parseFloat(totalAmount).toFixed(decimal_degits));
+                        console.log('Final total amount displayed:', totalAmount);
+                        console.log('Final total amount formatted:', fmt(parseFloat(totalAmount).toFixed(decimal_degits)));
                         // Admin Commission
                         var adminCommission = order.adminCommission;
                         var adminCommissionType = order.adminCommissionType;

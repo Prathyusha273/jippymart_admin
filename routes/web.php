@@ -160,25 +160,33 @@ Route::get('/categories/download-template', [CategoryController::class, 'downloa
 Route::post('/cuisines/import', [CuisineController::class, 'import'])->name('cuisines.import');
 Route::get('/cuisines/download-template', [CuisineController::class, 'downloadTemplate'])->name('cuisines.download-template');
 
+Route::middleware(['permission:cuisines,cuisines'])->group(function () {
+    Route::get('/cuisines', [App\Http\Controllers\CuisineController::class, 'index'])->name('cuisines');
+});
+Route::middleware(['permission:cuisines,cuisines.edit'])->group(function () {
+    Route::get('/cuisines/edit/{id}', [App\Http\Controllers\CuisineController::class, 'edit'])->name('cuisines.edit');
+});
+Route::middleware(['permission:cuisines,cuisines.create'])->group(function () {
+    Route::get('/cuisines/create', [App\Http\Controllers\CuisineController::class, 'create'])->name('cuisines.create');
+});
+Route::middleware(['permission:cuisines,cuisines.delete'])->group(function () {
+    Route::get('/cuisines/delete/{id}', [App\Http\Controllers\CuisineController::class, 'delete'])->name('cuisines.delete');
+});
 
-Route::get('/cuisines', [App\Http\Controllers\CuisineController::class, 'index'])->name('cuisines');
-Route::get('/cuisines/edit/{id}', [App\Http\Controllers\CuisineController::class, 'edit'])->name('cuisines.edit');
-Route::get('/cuisines/create', [App\Http\Controllers\CuisineController::class, 'create'])->name('cuisines.create');
+Route::middleware(['permission:promotions,promotions'])->group(function () {
+    Route::get('/promotions', [App\Http\Controllers\PromotionController::class, 'index'])->name('promotions');
+});
+Route::middleware(['permission:promotions,promotions.edit'])->group(function () {
+    Route::get('/promotions/edit/{id}', [App\Http\Controllers\PromotionController::class, 'edit'])->name('promotions.edit');
+});
+Route::middleware(['permission:promotions,promotions.create'])->group(function () {
+    Route::get('/promotions/create', [App\Http\Controllers\PromotionController::class, 'create'])->name('promotions.create');
+});
+Route::middleware(['permission:promotions,promotions.delete'])->group(function () {
+    Route::get('/promotions/delete/{id}', [App\Http\Controllers\PromotionController::class, 'delete'])->name('promotions.delete');
+});
 
-Route::get('/promotions', [App\Http\Controllers\PromotionController::class, 'index'])->name('promotions');
-Route::get('/promotions/edit/{id}', [App\Http\Controllers\PromotionController::class, 'edit'])->name('promotions.edit');
-Route::get('/promotions/create', [App\Http\Controllers\PromotionController::class, 'create'])->name('promotions.create');
 
-// Route::middleware(['permission:cuisine,cuisines'])->group(function () {
-
-//     Route::get('/cuisines', [App\Http\Controllers\CuisineController::class, 'index'])->name('cuisines');
-// });
-// Route::middleware(['permission:cuisine,cuisines.edit'])->group(function () {
-//     Route::get('/cuisines/edit/{id}', [App\Http\Controllers\CuisineController::class, 'edit'])->name('cuisines.edit');
-// });
-// Route::middleware(['permission:cuisine,cuisines.create'])->group(function () {
-//     Route::get('/cuisines/create', [App\Http\Controllers\CuisineController::class, 'create'])->name('cuisines.create');
-// });
 
 Route::middleware(['permission:drivers,drivers'])->group(function () {
 
@@ -357,7 +365,7 @@ Route::get('/order_transactions/{id}', [App\Http\Controllers\PaymentController::
 
 
 // Activity Log Routes
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['permission:activity-logs,activity-logs'])->group(function () {
     Route::get('/activity-logs', [App\Http\Controllers\ActivityLogController::class, 'index'])->name('activity-logs');
     Route::get('/test-activity-log', function() {
         return view('test_activity_log_page');
@@ -564,9 +572,18 @@ Route::get('/restaurantFilters/create', [App\Http\Controllers\RestaurantFiltersC
 Route::get('/restaurantFilters/edit/{id}', [App\Http\Controllers\RestaurantFiltersController::class, 'edit'])->name('restaurantFilters.edit');
 
 
-Route::get('/media', [App\Http\Controllers\MediaController::class, 'index'])->name('media.index');
-Route::get('/media/edit/{id}', [App\Http\Controllers\MediaController::class, 'edit'])->name('media.edit');
-Route::get('/media/create', [App\Http\Controllers\MediaController::class, 'create'])->name('media.create');
+Route::middleware(['permission:media,media'])->group(function () {
+    Route::get('/media', [App\Http\Controllers\MediaController::class, 'index'])->name('media.index');
+});
+Route::middleware(['permission:media,media.edit'])->group(function () {
+    Route::get('/media/edit/{id}', [App\Http\Controllers\MediaController::class, 'edit'])->name('media.edit');
+});
+Route::middleware(['permission:media,media.create'])->group(function () {
+    Route::get('/media/create', [App\Http\Controllers\MediaController::class, 'create'])->name('media.create');
+});
+Route::middleware(['permission:media,media.delete'])->group(function () {
+    Route::get('/media/delete/{id}', [App\Http\Controllers\MediaController::class, 'delete'])->name('media.delete');
+});
 
 
 

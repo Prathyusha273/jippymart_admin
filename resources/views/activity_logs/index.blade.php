@@ -363,14 +363,14 @@ $(document).ready(function() {
             `<div class="d-flex align-items-center">
             <div class="bg-light rounded-circle">
                  <div class="font-weight-bold">${logData.user_id}</div>
-                  </div>
+                            </div>
             </div>`,
 
             `<div class="d-flex align-items-center">
-               <div class="avatar-sm mr-3">
-                <i class="mdi mdi-account"></i>
-                <div class="font-weight-bold">${logData.user_name || 'Unknown User'}</div>
-               </div>
+               <span class="avatar-sm mr-3">
+                                        <i class="mdi mdi-account"></i>
+                <span class="font-weight-bold">${logData.user_name || 'Unknown User'}</span>
+               </span>
                 </div>`,
                 
             // User Type column
