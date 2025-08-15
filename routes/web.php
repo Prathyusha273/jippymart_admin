@@ -91,6 +91,13 @@ Route::middleware(['permission:restaurants,restaurants.view'])->group(function (
 });
 Route::get('/restaurants/promos/{id}', [App\Http\Controllers\RestaurantController::class, 'promos'])->name('restaurants.promos');
 
+// Restaurant Schedule Routes (Temporarily without middleware for testing)
+Route::get('/restaurants/schedule', [App\Http\Controllers\RestaurantScheduleController::class, 'getSchedule'])->name('restaurants.schedule.get');
+Route::post('/restaurants/schedule', [App\Http\Controllers\RestaurantScheduleController::class, 'updateSchedule'])->name('restaurants.schedule.update');
+Route::get('/restaurants/schedule/next-action', [App\Http\Controllers\RestaurantScheduleController::class, 'getNextAction'])->name('restaurants.schedule.next-action');
+Route::post('/restaurants/schedule/trigger', [App\Http\Controllers\RestaurantScheduleController::class, 'triggerAction'])->name('restaurants.schedule.trigger');
+Route::get('/restaurants/schedule/status', [App\Http\Controllers\RestaurantScheduleController::class, 'getStatus'])->name('restaurants.schedule.status');
+
 Route::middleware(['permission:coupons,coupons'])->group(function () {
     Route::get('/coupons', [App\Http\Controllers\CouponController::class, 'index'])->name('coupons');
     Route::get('/coupon/{id}', [App\Http\Controllers\CouponController::class, 'index'])->name('restaurants.coupons');

@@ -1,4 +1,4 @@
-@extends('layouts.app') 
+@extends('layouts.app')
 @section('content')
     <div class="page-wrapper">
         <div class="row page-titles">
@@ -51,19 +51,28 @@
                                         <div class="form-group row width-100">
                                             <label class="col-3 control-label">Special Price</label>
                                             <div class="col-7">
-                                                <input type="number" class="form-control" id="promotion_special_price" min="0">
+                                                <input type="text" class="form-control" id="promotion_special_price" min="0" step="0.01">
+                                            </div>
+                                        </div>
+                                        <div class="form-group row width-100">
+                                            <label class="col-3 control-label">Item Limit</label>
+                                            <div class="col-7">
+                                                <input type="text" class="form-control" id="promotion_item_limit" min="1" value="2">
+                                                <div class="form-text text-muted">Maximum number of items that can be ordered with this promotion. Default: 2</div>
                                             </div>
                                         </div>
                                         <div class="form-group row width-100">
                                             <label class="col-3 control-label">Extra KM Charge</label>
                                             <div class="col-7">
-                                                <input type="number" class="form-control" id="promotion_extra_km_charge" min="0">
+                                                <input type="text" class="form-control" id="promotion_extra_km_charge" min="0" value="7">
+                                                <div class="form-text text-muted">Additional charge per kilometer beyond free delivery distance. Default: 7</div>
                                             </div>
                                         </div>
                                         <div class="form-group row width-100">
                                             <label class="col-3 control-label">Free Delivery KM</label>
                                             <div class="col-7">
-                                                <input type="number" class="form-control" id="promotion_free_delivery_km" min="0">
+                                                <input type="text" class="form-control" id="promotion_free_delivery_km" min="0" value="3">
+                                                <div class="form-text text-muted">Distance in kilometers for free delivery. Default: 3</div>
                                             </div>
                                         </div>
                                         <div class="form-group row width-100">
@@ -146,11 +155,25 @@ function populateProducts(restaurantId) {
 
 $(document).ready(function () {
     populateRestaurants();
+    
+    // Input validation for numeric fields
+    $('#promotion_special_price, #promotion_item_limit, #promotion_extra_km_charge, #promotion_free_delivery_km').on('input', function() {
+        var value = $(this).val();
+        // Remove non-numeric characters except decimal point
+        value = value.replace(/[^0-9.]/g, '');
+        // Ensure only one decimal point
+        var parts = value.split('.');
+        if (parts.length > 2) {
+            value = parts[0] + '.' + parts.slice(1).join('');
+        }
+        $(this).val(value);
+    });
+    
     restaurantSelect.on('change', function() {
         var restId = $(this).val();
         populateProducts(restId);
     });
-    
+
     productSelect.on('change', function() {
         var selectedOption = $(this).find('option:selected');
         var price = selectedOption.data('price');
@@ -164,23 +187,34 @@ $(document).ready(function () {
         var restaurant_id = restaurantSelect.val();
         var product_id = productSelect.val();
         var special_price = parseFloat($('#promotion_special_price').val()) || 0;
-        var extra_km_charge = parseFloat($('#promotion_extra_km_charge').val()) || 0;
-        var free_delivery_km = parseFloat($('#promotion_free_delivery_km').val()) || 0;
+        var item_limit = parseInt($('#promotion_item_limit').val()) || 2;
+        var extra_km_charge = parseFloat($('#promotion_extra_km_charge').val()) || 7;
+        var free_delivery_km = parseFloat($('#promotion_free_delivery_km').val()) || 3;
         var start_time = $('#promotion_start_time').val();
         var end_time = $('#promotion_end_time').val();
         var payment_mode = 'prepaid';
         var isAvailable = $('#promotion_is_available').is(':checked');
+
         if (!restaurant_id || !product_id || !start_time || !end_time) {
             $('.error_top').show().html('<p>Please fill all required fields.</p>');
             window.scrollTo(0, 0);
             return;
         }
+
+        // Check if end time is expired
+        var endDateTime = new Date(end_time);
+        var currentDateTime = new Date();
+        if (endDateTime < currentDateTime) {
+            isAvailable = false; // Force isAvailable to false if expired
+        }
+
         $('.error_top').hide();
         jQuery('#data-table_processing').show();
         await database.collection('promotions').add({
             restaurant_id,
             product_id,
             special_price,
+            item_limit,
             extra_km_charge,
             free_delivery_km,
             start_time: new Date(start_time),

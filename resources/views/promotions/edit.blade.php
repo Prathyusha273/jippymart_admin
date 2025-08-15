@@ -51,19 +51,28 @@
                                         <div class="form-group row width-100">
                                             <label class="col-3 control-label">Special Price</label>
                                             <div class="col-7">
-                                                <input type="number" class="form-control" id="promotion_special_price" min="0">
+                                                <input type="text" class="form-control" id="promotion_special_price" min="0" step="0.01">
+                                            </div>
+                                        </div>
+                                        <div class="form-group row width-100">
+                                            <label class="col-3 control-label">Item Limit</label>
+                                            <div class="col-7">
+                                                <input type="text" class="form-control" id="promotion_item_limit" min="1" value="2">
+                                                <div class="form-text text-muted">Maximum number of items that can be ordered with this promotion. Default: 2</div>
                                             </div>
                                         </div>
                                         <div class="form-group row width-100">
                                             <label class="col-3 control-label">Extra KM Charge</label>
                                             <div class="col-7">
-                                                <input type="number" class="form-control" id="promotion_extra_km_charge" min="0">
+                                                <input type="text" class="form-control" id="promotion_extra_km_charge" min="0" value="7">
+                                                <div class="form-text text-muted">Additional charge per kilometer beyond free delivery distance. Default: 7</div>
                                             </div>
                                         </div>
                                         <div class="form-group row width-100">
                                             <label class="col-3 control-label">Free Delivery KM</label>
                                             <div class="col-7">
-                                                <input type="number" class="form-control" id="promotion_free_delivery_km" min="0">
+                                                <input type="text" class="form-control" id="promotion_free_delivery_km" min="0" value="3">
+                                                <div class="form-text text-muted">Distance in kilometers for free delivery. Default: 3</div>
                                             </div>
                                         </div>
                                         <div class="form-group row width-100">
@@ -151,7 +160,7 @@ function populateProducts(restaurantId, selectedProductId) {
             var displayPrice = data.disPrice && data.disPrice > 0 ? data.disPrice : (data.price || 0);
             productSelect.append('<option value="' + data.id + '" data-price="' + displayPrice + '" ' + selected + '>' + data.name + '</option>');
         });
-        
+
         // If there's a selected product, show its price
         if (selectedProductId) {
             var selectedOption = productSelect.find('option[value="' + selectedProductId + '"]');
@@ -165,13 +174,47 @@ function populateProducts(restaurantId, selectedProductId) {
     });
 }
 
+function formatDateTimeForInput(timestamp) {
+    if (!timestamp) return '';
+    
+    let date;
+    if (timestamp.seconds) {
+        // Firebase Timestamp
+        date = new Date(timestamp.seconds * 1000);
+    } else if (timestamp.toDate) {
+        // Firebase Timestamp with toDate method
+        date = timestamp.toDate();
+    } else if (timestamp instanceof Date) {
+        // Already a Date object
+        date = timestamp;
+    } else {
+        // Try to parse as regular date
+        date = new Date(timestamp);
+    }
+    
+    console.log('Original timestamp:', timestamp);
+    console.log('Parsed date:', date);
+    
+    // Format for datetime-local input (YYYY-MM-DDTHH:MM)
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    
+    const formatted = `${year}-${month}-${day}T${hours}:${minutes}`;
+    console.log('Formatted for input:', formatted);
+    
+    return formatted;
+}
+
 function loadPromotionData() {
     if (!promotionId) {
         console.log('No promotion ID provided');
         return;
     }
     console.log('Loading promotion data for ID:', promotionId);
-    
+
     // First, let's check if there are any promotions in the database
     database.collection('promotions').get().then(function(snapshot) {
         console.log('Total promotions in database:', snapshot.docs.length);
@@ -179,7 +222,7 @@ function loadPromotionData() {
             console.log('Promotion ID:', doc.id, 'Data:', doc.data());
         });
     });
-    
+
     database.collection('promotions').doc(promotionId).get().then(function(doc) {
         if (doc.exists) {
             var data = doc.data();
@@ -190,16 +233,15 @@ function loadPromotionData() {
                 populateProducts(data.restaurant_id, data.product_id);
             }, 400); // Wait for restaurant dropdown to populate
             $('#promotion_special_price').val(data.special_price || 0);
-            $('#promotion_extra_km_charge').val(data.extra_km_charge || 0);
-            $('#promotion_free_delivery_km').val(data.free_delivery_km || 0);
+            $('#promotion_item_limit').val(data.item_limit || 2);
+            $('#promotion_extra_km_charge').val(data.extra_km_charge || 7);
+            $('#promotion_free_delivery_km').val(data.free_delivery_km || 3);
             $('#promotion_is_available').prop('checked', data.isAvailable !== false);
             if (data.start_time) {
-                var st = new Date(data.start_time.seconds ? data.start_time.seconds * 1000 : data.start_time);
-                $('#promotion_start_time').val(st.toISOString().slice(0,16));
+                $('#promotion_start_time').val(formatDateTimeForInput(data.start_time));
             }
             if (data.end_time) {
-                var et = new Date(data.end_time.seconds ? data.end_time.seconds * 1000 : data.end_time);
-                $('#promotion_end_time').val(et.toISOString().slice(0,16));
+                $('#promotion_end_time').val(formatDateTimeForInput(data.end_time));
             }
         } else {
             console.log('Promotion not found with ID:', promotionId);
@@ -211,6 +253,20 @@ function loadPromotionData() {
 
 $(document).ready(function () {
     console.log('Document ready, promotionId:', promotionId);
+    
+    // Input validation for numeric fields
+    $('#promotion_special_price, #promotion_item_limit, #promotion_extra_km_charge, #promotion_free_delivery_km').on('input', function() {
+        var value = $(this).val();
+        // Remove non-numeric characters except decimal point
+        value = value.replace(/[^0-9.]/g, '');
+        // Ensure only one decimal point
+        var parts = value.split('.');
+        if (parts.length > 2) {
+            value = parts[0] + '.' + parts.slice(1).join('');
+        }
+        $(this).val(value);
+    });
+    
     if (promotionId) {
         loadPromotionData();
     } else {
@@ -221,7 +277,7 @@ $(document).ready(function () {
         var restId = $(this).val();
         populateProducts(restId);
     });
-    
+
     productSelect.on('change', function() {
         var selectedOption = $(this).find('option:selected');
         var price = selectedOption.data('price');
@@ -235,23 +291,34 @@ $(document).ready(function () {
         var restaurant_id = restaurantSelect.val();
         var product_id = productSelect.val();
         var special_price = parseFloat($('#promotion_special_price').val()) || 0;
-        var extra_km_charge = parseFloat($('#promotion_extra_km_charge').val()) || 0;
-        var free_delivery_km = parseFloat($('#promotion_free_delivery_km').val()) || 0;
+        var item_limit = parseInt($('#promotion_item_limit').val()) || 2;
+        var extra_km_charge = parseFloat($('#promotion_extra_km_charge').val()) || 7;
+        var free_delivery_km = parseFloat($('#promotion_free_delivery_km').val()) || 3;
         var start_time = $('#promotion_start_time').val();
         var end_time = $('#promotion_end_time').val();
         var payment_mode = 'prepaid';
         var isAvailable = $('#promotion_is_available').is(':checked');
+
         if (!restaurant_id || !product_id || !start_time || !end_time) {
             $('.error_top').show().html('<p>Please fill all required fields.</p>');
             window.scrollTo(0, 0);
             return;
         }
+
+        // Check if end time is expired
+        var endDateTime = new Date(end_time);
+        var currentDateTime = new Date();
+        if (endDateTime < currentDateTime) {
+            isAvailable = false; // Force isAvailable to false if expired
+        }
+
         $('.error_top').hide();
         jQuery('#data-table_processing').show();
         await database.collection('promotions').doc(promotionId).update({
             restaurant_id,
             product_id,
             special_price,
+            item_limit,
             extra_km_charge,
             free_delivery_km,
             start_time: new Date(start_time),

@@ -1,5 +1,18 @@
 @extends('layouts.app')
 @section('content')
+<style>
+.badge-danger {
+    background-color: #dc3545;
+    color: white;
+    font-size: 0.75em;
+    font-weight: bold;
+    padding: 0.25em 0.5em;
+    border-radius: 0.25rem;
+}
+.table-danger {
+    background-color: #f8d7da !important;
+}
+</style>
 <div class="page-wrapper">
     <div class="row page-titles">
         <div class="col-md-5 align-self-center">
@@ -111,6 +124,7 @@
                                             <th>Restaurant</th>
                                             <th>Product</th>
                                             <th>Special Price</th>
+                                            <th>Item Limit</th>
                                             <th>Extra KM Charge</th>
                                             <th>Free Delivery KM</th>
                                             <th>Start Time</th>
@@ -162,18 +176,30 @@ function formatDateTime(ts) {
     return date.toLocaleString();
 }
 
+function isExpired(endTime) {
+    if (!endTime) return false;
+    var endDate = endTime.seconds ? new Date(endTime.seconds * 1000) : new Date(endTime);
+    var currentDate = new Date();
+    return endDate < currentDate;
+}
+
 function renderTable(promotions) {
     var tbody = '';
     promotions.forEach(function(promo) {
-        tbody += '<tr>' +
+        var isExpiredPromo = isExpired(promo.end_time);
+        var expiredText = isExpiredPromo ? '<br><span class="badge badge-danger">EXPIRED</span>' : '';
+
+        var rowClass = isExpiredPromo ? 'table-danger' : '';
+        tbody += '<tr class="' + rowClass + '">' +
             '<td class="delete-all"><input type="checkbox" id="is_open_' + promo.id + '" class="is_open" dataId="' + promo.id + '"><label class="col-3 control-label" for="is_open_' + promo.id + '" ></label></td>' +
             '<td>' + (vendorsMap[promo.restaurant_id] || promo.restaurant_id || '-') + '</td>' +
             '<td>' + (productsMap[promo.product_id] || promo.product_id || '-') + '</td>' +
-            '<td>' + (promo.special_price !== undefined ? promo.special_price : '-') + '</td>' +
+            '<td>' + (promo.special_price !== undefined ? '₹' + promo.special_price : '-') + '</td>' +
+            '<td>' + (promo.item_limit !== undefined ? promo.item_limit : '2') + '</td>' +
             '<td>' + (promo.extra_km_charge !== undefined ? promo.extra_km_charge : '-') + '</td>' +
             '<td>' + (promo.free_delivery_km !== undefined ? promo.free_delivery_km : '-') + '</td>' +
             '<td>' + formatDateTime(promo.start_time) + '</td>' +
-            '<td>' + formatDateTime(promo.end_time) + '</td>' +
+            '<td>' + formatDateTime(promo.end_time) + expiredText + '</td>' +
             '<td>' + (promo.payment_mode || '-') + '</td>' +
             '<td>' + (promo.isAvailable ? '<label class="switch"><input type="checkbox" checked id="'+promo.id+'" name="isAvailable"><span class="slider round"></span></label>' : '<label class="switch"><input type="checkbox" id="'+promo.id+'" name="isAvailable"><span class="slider round"></span></label>') + '</td>' +
             '<td>' +
@@ -197,11 +223,29 @@ function loadPromotions() {
     fetchVendorsAndProducts().then(function() {
         promotionsRef.get().then(function(snapshot) {
             var promotions = [];
+            var updatePromises = [];
+
             snapshot.forEach(function(doc) {
                 var data = doc.data();
                 data.id = doc.id;
+
+                // Check if promotion is expired and update isAvailable if needed
+                if (isExpired(data.end_time) && data.isAvailable !== false) {
+                    updatePromises.push(promotionsRef.doc(doc.id).update({isAvailable: false}));
+                }
+
                 promotions.push(data);
             });
+
+            // Update expired promotions in database
+            if (updatePromises.length > 0) {
+                Promise.all(updatePromises).then(function() {
+                    console.log('Updated ' + updatePromises.length + ' expired promotions');
+                }).catch(function(error) {
+                    console.error('Error updating expired promotions:', error);
+                });
+            }
+
             renderTable(promotions);
             jQuery('#data-table_processing').hide();
             $('#promotionsTable').DataTable({
@@ -212,7 +256,7 @@ function loadPromotions() {
                 ordering: true,
                 order: [[1, 'asc']],
                 columnDefs: [
-                    { orderable: false, targets: [0, 9, 10] }
+                    { orderable: false, targets: [0, 10, 11] }
                 ],
                 "language": {
                     "zeroRecords": "No records found",
@@ -226,12 +270,12 @@ function loadPromotions() {
 
 $(document).ready(function() {
     loadPromotions();
-    
+
     // Select all checkboxes
     $("#is_active").click(function () {
         $("#promotionsTable .is_open").prop('checked', $(this).prop('checked'));
     });
-    
+
     // Delete selected
     $("#deleteAll").click(async function () {
         if ($('#promotionsTable .is_open:checked').length) {
@@ -271,7 +315,7 @@ $(document).ready(function() {
             alert("Please select promotions to delete");
         }
     });
-    
+
     // Single delete
     $(document).on("click", "a[name='promotion-delete']", async function() {
         var id = this.id;
@@ -303,7 +347,7 @@ $(document).ready(function() {
             });
         }
     });
-    
+
     // Toggle isAvailable
     $(document).on("click", "input[name='isAvailable']", async function(e) {
         var ischeck = $(this).is(':checked');
