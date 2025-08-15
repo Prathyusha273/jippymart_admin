@@ -639,7 +639,7 @@
                         // Reference: buildHTMLProductstotal from edit.blade.php
                         var intRegex = /^\d+$/;
                         var floatRegex = /^((\d+(\.\d+)?)|((\d+\.)?\d+))$/;
-                        var baseDeliveryCharge = 23;
+                        var baseDeliveryCharge = 23; // default, same as edit.blade.php
                         var gstRate = 18;
                         var sgstRate = 5;
                         var subtotal = 0;
@@ -682,33 +682,16 @@
                         // Calculate taxes
                         var sgst = subtotal * (sgstRate / 100); // SGST on subtotal only
                         
-                        // Calculate delivery charge based on vendor settings
+                        // Use delivery charge from order data (same as edit.blade.php)
                         var deliveryCharge = order.deliveryCharge || 0;
-                        var distance = order.distance || 0;
-                        var baseDeliveryCharge = 23; // Default from vendor settings
-                        var freeDeliveryDistance = 7; // km
-                        var perKmCharge = 7; // per km above free distance
-                        
-                        // If delivery charge is not set, calculate it based on distance
-                        if (!deliveryCharge || deliveryCharge == 0) {
-                            if (distance > freeDeliveryDistance) {
-                                var extraDistance = distance - freeDeliveryDistance;
-                                deliveryCharge = baseDeliveryCharge + (extraDistance * perKmCharge);
-                            } else {
-                                deliveryCharge = baseDeliveryCharge;
-                            }
-                        }
                         
                         var gst = 0;
                         
                         // Debug delivery charge
                         console.log('=== fillPrintOrderSummary Debug ===');
                         console.log('Order deliveryCharge:', order.deliveryCharge);
-                        console.log('Order distance:', order.distance);
-                        console.log('Calculated deliveryCharge:', deliveryCharge);
+                        console.log('Final deliveryCharge:', deliveryCharge);
                         console.log('Base delivery charge:', baseDeliveryCharge);
-                        console.log('Free delivery distance:', freeDeliveryDistance);
-                        console.log('Per km charge:', perKmCharge);
                         console.log('GST calculation logic:');
                         console.log('- Delivery charge:', deliveryCharge);
                         console.log('- Base delivery charge:', baseDeliveryCharge);
