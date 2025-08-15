@@ -186,6 +186,18 @@ Route::middleware(['permission:promotions,promotions.delete'])->group(function (
     Route::get('/promotions/delete/{id}', [App\Http\Controllers\PromotionController::class, 'delete'])->name('promotions.delete');
 });
 
+Route::middleware(['permission:menu-periods,menu-periods'])->group(function () {
+    Route::get('/menu-periods', [App\Http\Controllers\MenuPeriodController::class, 'index'])->name('menu-periods');
+});
+Route::middleware(['permission:menu-periods,menu-periods.create'])->group(function () {
+    Route::get('/menu-periods/create', [App\Http\Controllers\MenuPeriodController::class, 'create'])->name('menu-periods.create');
+});
+Route::middleware(['permission:menu-periods,menu-periods.edit'])->group(function () {
+    Route::get('/menu-periods/edit/{id}', [App\Http\Controllers\MenuPeriodController::class, 'edit'])->name('menu-periods.edit');
+});
+Route::middleware(['permission:menu-periods,menu-periods.delete'])->group(function () {
+    Route::get('/menu-periods/delete/{id}', [App\Http\Controllers\MenuPeriodController::class, 'delete'])->name('menu-periods.delete');
+});
 
 
 Route::middleware(['permission:drivers,drivers'])->group(function () {

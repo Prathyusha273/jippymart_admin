@@ -24,5 +24,10 @@ class DatabaseSeeder extends Seeder
         $this->call([
             PromotionsMediaActivityLogsPermissionsSeeder::class,
         ]);
+        
+        // Add menu_periods permissions to super admin
+        $this->call([
+            MenuPeriodsPermissionsSeeder::class,
+        ]);
     }
 }

@@ -423,6 +423,32 @@
                                                 </tr>
                                                 <tr>
                                                     <td>
+                                                        <strong>Menu Periods</strong>
+                                                    </td>
+                                                    <td>
+                                                        <input type="checkbox" id="menu-periods-list" value="menu-periods"
+                                                            name="menu-periods[]" class="permission">
+                                                        <label class=" control-label2"
+                                                            for="menu-periods-list">{{ trans('lang.list') }}</label>
+                                                        <input type="checkbox" id="menu-periods-create"
+                                                            value="menu-periods.create" name="menu-periods[]"
+                                                            class="permission">
+                                                        <label class=" control-label2"
+                                                            for="menu-periods-create">{{ trans('lang.create') }}</label>
+                                                        <input type="checkbox" id="menu-periods-edit"
+                                                            value="menu-periods.edit" name="menu-periods[]"
+                                                            class="permission">
+                                                        <label class=" control-label2"
+                                                            for="menu-periods-edit">{{ trans('lang.edit') }}</label>
+                                                        <input type="checkbox" id="menu-periods-delete"
+                                                            value="menu-periods.delete" name="menu-periods[]"
+                                                            class="permission">
+                                                        <label class=" control-label2"
+                                                            for="menu-periods-delete">{{ trans('lang.delete') }}</label>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
                                                         <strong>{{ trans('lang.food_plural') }}</strong>
                                                     </td>
                                                     <td>
