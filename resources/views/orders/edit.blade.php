@@ -93,6 +93,30 @@
                                                 </button>
                                             </div>
                                         </div>
+                                        
+                                        <!-- Manual Driver Assignment Section -->
+                                        <div class="form-group row width-100" id="manual_driver_assignment_section">
+                                            <label class="col-3 control-label">{{ trans('lang.assign_driver') }}:</label>
+                                            <div class="col-7">
+                                                <select id="driver_selector" class="form-control">
+                                                    <option value="">{{ trans('lang.select_driver') }}</option>
+                                                </select>
+                                                <div class="form-text text-muted">
+                                                    {{ trans('lang.manual_driver_assignment_help') }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group row width-100" id="assign_driver_button_section">
+                                            <label class="col-3 control-label"></label>
+                                            <div class="col-7 text-right">
+                                                <button type="button" class="btn btn-success assign-driver-btn" id="assign_driver_btn">
+                                                    <i class="fa fa-user-plus"></i> {{ trans('lang.assign_driver') }}
+                                                </button>
+                                                <button type="button" class="btn btn-warning remove-driver-btn" id="remove_driver_btn" style="display: none;">
+                                                    <i class="fa fa-user-times"></i> {{ trans('lang.remove_driver') }}
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -284,6 +308,37 @@
 </div>
 @endsection
 @section('style')
+<style>
+    #manual_driver_assignment_section {
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 5px;
+        padding: 15px;
+        margin-top: 15px;
+    }
+    
+    #manual_driver_assignment_section label {
+        font-weight: bold;
+        color: #495057;
+    }
+    
+    .assign-driver-btn {
+        margin-right: 10px;
+    }
+    
+    .remove-driver-btn {
+        background-color: #ffc107;
+        border-color: #ffc107;
+        color: #212529;
+    }
+    
+    .remove-driver-btn:hover {
+        background-color: #e0a800;
+        border-color: #d39e00;
+        color: #212529;
+    }
+</style>
+@endsection
 @section('scripts')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/printThis/1.15.0/printThis.js"></script>
 <script>
@@ -336,6 +391,8 @@
     var basePrice=0;
     var total_tax_amount=0;
     var subscriptionModel=false;
+    var availableDrivers = [];
+    var currentDriverId = '';
 
     database.collection('settings').doc("restaurant").get().then(async function(snapshots) {
         var subscriptionSetting=snapshots.data();
@@ -343,6 +400,125 @@
             subscriptionModel=true;
         }
     });
+    
+    // Load available drivers for manual assignment
+    function loadAvailableDrivers() {
+        database.collection('users').where('role', '==', 'driver').where('isActive', '==', true).get().then(async function(snapshots) {
+            availableDrivers = [];
+            $('#driver_selector').empty();
+            $('#driver_selector').append('<option value="">{{ trans("lang.select_driver") }}</option>');
+            
+            snapshots.docs.forEach((doc) => {
+                var driverData = doc.data();
+                availableDrivers.push(driverData);
+                var driverName = (driverData.firstName || '') + ' ' + (driverData.lastName || '');
+                var driverPhone = driverData.phoneNumber || '';
+                var displayText = driverName + ' (' + driverPhone + ')';
+                
+                $('#driver_selector').append($("<option></option>")
+                    .attr("value", driverData.id)
+                    .text(displayText));
+            });
+        });
+    }
+    
+    // Initialize driver assignment functionality
+    function initializeDriverAssignment() {
+        loadAvailableDrivers();
+        
+        // Handle driver assignment
+        $('#assign_driver_btn').click(async function() {
+            var selectedDriverId = $('#driver_selector').val();
+            if (!selectedDriverId) {
+                alert('{{ trans("lang.please_select_driver") }}');
+                return;
+            }
+            
+            if (confirm('{{ trans("lang.confirm_assign_driver") }}')) {
+                await assignDriverToOrder(selectedDriverId);
+            }
+        });
+        
+        // Handle driver removal
+        $('#remove_driver_btn').click(async function() {
+            if (confirm('{{ trans("lang.confirm_remove_driver") }}')) {
+                await removeDriverFromOrder();
+            }
+        });
+    }
+    
+    // Assign driver to order
+    async function assignDriverToOrder(driverId) {
+        try {
+            // Get driver data
+            const driverDoc = await database.collection('users').doc(driverId).get();
+            if (!driverDoc.exists) {
+                alert('{{ trans("lang.driver_not_found") }}');
+                return;
+            }
+            
+            const driverData = driverDoc.data();
+            
+            // Update order with driver information
+            await database.collection('restaurant_orders').doc(id).update({
+                'driverID': driverId,
+                'driver': {
+                    'id': driverId,
+                    'firstName': driverData.firstName || '',
+                    'lastName': driverData.lastName || '',
+                    'email': driverData.email || '',
+                    'phoneNumber': driverData.phoneNumber || '',
+                    'carName': driverData.carName || '',
+                    'carNumber': driverData.carNumber || '',
+                    'zoneId': driverData.zoneId || ''
+                },
+                'status': 'Driver Pending'
+            });
+            
+            // Log activity
+            try {
+                if (typeof logActivity === 'function') {
+                    await logActivity('orders', 'driver_assigned', 'Manually assigned driver ' + driverData.firstName + ' ' + driverData.lastName + ' to order #' + id);
+                }
+            } catch (error) {
+                console.error('Error logging activity:', error);
+            }
+            
+            alert('{{ trans("lang.driver_assigned_successfully") }}');
+            window.location.reload();
+            
+        } catch (error) {
+            console.error('Error assigning driver:', error);
+            alert('{{ trans("lang.error_assigning_driver") }}');
+        }
+    }
+    
+    // Remove driver from order
+    async function removeDriverFromOrder() {
+        try {
+            await database.collection('restaurant_orders').doc(id).update({
+                'driverID': '',
+                'driver': null,
+                'status': 'Order Accepted'
+            });
+            
+            // Log activity
+            try {
+                if (typeof logActivity === 'function') {
+                    await logActivity('orders', 'driver_removed', 'Removed driver from order #' + id);
+                }
+            } catch (error) {
+                console.error('Error logging activity:', error);
+            }
+            
+            alert('{{ trans("lang.driver_removed_successfully") }}');
+            window.location.reload();
+            
+        } catch (error) {
+            console.error('Error removing driver:', error);
+            alert('{{ trans("lang.error_removing_driver") }}');
+        }
+    }
     database.collection('dynamic_notification').get().then(async function(snapshot) {
         if(snapshot.docs.length>0) {
             snapshot.docs.map(async (listval) => {
@@ -382,6 +558,9 @@
         place_image=placeHolderImage.image;
     });
     $(document).ready(function() {
+        // Initialize driver assignment functionality
+        initializeDriverAssignment();
+        
         $('.time-picker').timepicker({
             timeFormat: "HH:mm",
             showMeridian: false,
@@ -553,10 +732,20 @@
                         $("#zone_name").text(zone.name);
                     });
                 }
+                
+                // Hide manual assignment section when driver is already assigned
+                $('#manual_driver_assignment_section').hide();
+                $('#assign_driver_button_section').hide();
             } else {
                 $('.order_edit-genrl').removeClass('col-md-7').addClass('col-md-7');
                 $('.order_addre-edit').removeClass('col-md-5').addClass('col-md-5');
                 $('.driver_details_hide').empty();
+                
+                // Show manual assignment section when no driver is assigned
+                $('#manual_driver_assignment_section').show();
+                $('#assign_driver_button_section').show();
+                $('#assign_driver_btn').show();
+                $('#remove_driver_btn').hide();
             }
             if(order.driverID!=''&&order.driverID!=undefined) {
                 driverId=order.driverID;

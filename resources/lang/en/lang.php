@@ -1073,6 +1073,30 @@ return [
     'billing_details' => "Billing Details",
 
     'driver_detail' => "Driver Detail",
+    
+    'assign_driver' => 'Assign Driver',
+    
+    'select_driver' => 'Select Driver',
+    
+    'manual_driver_assignment_help' => 'Manually assign a driver to this order when automatic assignment is not working',
+    
+    'remove_driver' => 'Remove Driver',
+    
+    'please_select_driver' => 'Please select a driver to assign',
+    
+    'confirm_assign_driver' => 'Are you sure you want to assign this driver to the order?',
+    
+    'confirm_remove_driver' => 'Are you sure you want to remove the driver from this order?',
+    
+    'driver_not_found' => 'Driver not found',
+    
+    'driver_assigned_successfully' => 'Driver assigned successfully',
+    
+    'driver_removed_successfully' => 'Driver removed successfully',
+    
+    'error_assigning_driver' => 'Error assigning driver to order',
+    
+    'error_removing_driver' => 'Error removing driver from order',
 
     'date_created' => "Date Created",
 

@@ -43,6 +43,7 @@
         margin-left: 1rem;
     }
 </style>
+
 <div class="page-wrapper">
     <div class="row page-titles">
         <div class="col-md-5 align-self-center">
@@ -55,7 +56,7 @@
             </ol>
         </div>
     </div>
-    
+
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show" role="alert">
             {{ session('success') }}
@@ -112,7 +113,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="row">
             <div class="col-12">
                 <div class="card border">
@@ -135,7 +136,7 @@
                                    class="display nowrap table table-hover table-striped table-bordered table table-striped"
                                    cellspacing="0" width="100%">
                                 <thead>
-                                    <tr>                                 
+                                    <tr>
                                         <th>User ID</th>
                                         <th>User Name</th>
                                         <th>User Type</th>
@@ -155,7 +156,6 @@
         </div>
     </div>
 </div>
-
 <script>
 // Wait for jQuery to be available
 $(document).ready(function() {
@@ -185,13 +185,13 @@ $(document).ready(function() {
 
     let currentModule = '';
     let initialRef = db.collection('activity_logs').orderBy('created_at', 'desc');
-    
+
     // Module filter change
     $('#module-filter').on('change', function() {
         currentModule = $(this).val();
         $('#activityLogsTable').DataTable().ajax.reload();
     });
-    
+
     // Refresh button
     $('#refresh-logs').on('click', function() {
         $('#activityLogsTable').DataTable().ajax.reload();
@@ -209,7 +209,7 @@ $(document).ready(function() {
             const searchValue = data.search.value.toLowerCase();
             const orderColumnIndex = data.order[0].column;
             const orderDirection = data.order[0].dir;
-            
+
                          const orderableColumns = ['user_name', 'user_type', 'role', 'module', 'action', 'description', 'ip_address', 'timestamp'];
              const orderByField = orderableColumns[orderColumnIndex];
 
@@ -229,7 +229,7 @@ $(document).ready(function() {
                     });
                 return;
             }
-            
+
                 let records = [];
                 let filteredRecords = [];
 
@@ -259,7 +259,7 @@ $(document).ready(function() {
                 filteredRecords.sort((a, b) => {
                     let aValue = a[orderByField];
                     let bValue = b[orderByField];
-                    
+
                     if (orderByField === 'timestamp') {
                         aValue = a.created_at ? a.created_at.toDate() : new Date(0);
                         bValue = b.created_at ? b.created_at.toDate() : new Date(0);
@@ -357,7 +357,7 @@ $(document).ready(function() {
 
     async function buildLogRow(logData) {
         const timestamp = logData.created_at ? new Date(logData.created_at.toDate()).toLocaleString() : 'N/A';
-        
+
         return [
             // User ID column
             `<div class="d-flex align-items-center">
@@ -372,27 +372,27 @@ $(document).ready(function() {
                 <span class="font-weight-bold">${logData.user_name || 'Unknown User'}</span>
                </span>
                 </div>`,
-                
+
             // User Type column
             `<span class="badge badge-${getUserTypeBadge(logData.user_type)}">${logData.user_type}</span>`,
-            
+
             // Role column
             `<span class="badge badge-info">${logData.role}</span>`,
-            
+
             // Module column
             `<span class="badge badge-secondary">${logData.module}</span>`,
-            
+
             // Action column
             `<span class="badge badge-${getActionBadge(logData.action)}">${logData.action}</span>`,
-            
+
             // Description column with content
                 `<span class="text-wrap" style="max-width: 500px;">
                     ${logData.description}
                 </span>`,
-            
+
             // IP Address column
             // `<small class="font-weight-semibold">${logData.ip_address}</small>`,
-            
+
             // Timestamp column
             `<span class="font-weight-semibold">${timestamp}</span>`
         ];
@@ -424,7 +424,7 @@ $(document).ready(function() {
         const description = button.data('description');
         const cell = button.closest('.description-cell');
         const textDiv = cell.find('.text-wrap');
-        
+
         if (button.find('i').hasClass('mdi-plus')) {
             // Expand
             textDiv.css({

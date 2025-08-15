@@ -194,6 +194,39 @@
         </div>
     </div>
 </div>
+
+<!-- Quick Driver Assignment Modal -->
+<div class="modal fade" id="quickDriverAssignmentModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{ trans('lang.assign_driver') }}</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                        <label for="quick_driver_selector">{{ trans('lang.select_driver') }}</label>
+                        <select id="quick_driver_selector" class="form-control">
+                            <option value="">{{ trans('lang.select_driver') }}</option>
+                        </select>
+                        <div class="form-text text-muted">
+                            {{ trans('lang.manual_driver_assignment_help') }}
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ trans('lang.cancel') }}</button>
+                <button type="button" class="btn btn-success" id="quick_assign_driver_btn">
+                    <i class="fa fa-user-plus"></i> {{ trans('lang.assign_driver') }}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 @section('scripts')
 <script type="text/javascript">
@@ -857,6 +890,12 @@
         }
         var actionHtml='';
         actionHtml+='<span class="action-btn"><a href="'+printRoute+'"><i class="fa fa-print" style="font-size:20px;"></i></a><a href="'+route1+'"><i class="mdi mdi-lead-pencil" title="Edit"></i></a>';
+        
+        // Add manual driver assignment button for delivery orders without assigned drivers
+        if(!val.takeAway && (!val.driver || !val.driver.id)) {
+            actionHtml+='<a href="'+route1+'#manual_driver_assignment_section" title="Manual Assign Driver"><i class="fa fa-user-plus" style="color: #28a745;"></i></a>';
+        }
+        
         if(checkDeletePermission) {
             actionHtml+='<a id="'+val.id+'" class="delete-btn" name="order-delete" href="javascript:void(0)"><i class="mdi mdi-delete"></i></a>';
         }
@@ -866,6 +905,99 @@
     }
     $("#is_active").click(function() {
         $("#orderTable .is_open").prop('checked',$(this).prop('checked'));
+    });
+    
+    // Quick Driver Assignment Modal Functionality
+    var currentOrderId = '';
+    
+    // Load available drivers for quick assignment
+    function loadQuickDrivers() {
+        database.collection('users').where('role', '==', 'driver').where('isActive', '==', true).get().then(async function(snapshots) {
+            $('#quick_driver_selector').empty();
+            $('#quick_driver_selector').append('<option value="">{{ trans("lang.select_driver") }}</option>');
+            
+            snapshots.docs.forEach((doc) => {
+                var driverData = doc.data();
+                var driverName = (driverData.firstName || '') + ' ' + (driverData.lastName || '');
+                var driverPhone = driverData.phoneNumber || '';
+                var displayText = driverName + ' (' + driverPhone + ')';
+                
+                $('#quick_driver_selector').append($("<option></option>")
+                    .attr("value", driverData.id)
+                    .text(displayText));
+            });
+        });
+    }
+    
+    // Handle quick driver assignment
+    $('#quick_assign_driver_btn').click(async function() {
+        var selectedDriverId = $('#quick_driver_selector').val();
+        if (!selectedDriverId) {
+            alert('{{ trans("lang.please_select_driver") }}');
+            return;
+        }
+        
+        if (confirm('{{ trans("lang.confirm_assign_driver") }}')) {
+            await quickAssignDriverToOrder(currentOrderId, selectedDriverId);
+        }
+    });
+    
+    // Quick assign driver to order
+    async function quickAssignDriverToOrder(orderId, driverId) {
+        try {
+            // Get driver data
+            const driverDoc = await database.collection('users').doc(driverId).get();
+            if (!driverDoc.exists) {
+                alert('{{ trans("lang.driver_not_found") }}');
+                return;
+            }
+            
+            const driverData = driverDoc.data();
+            
+            // Update order with driver information
+            await database.collection('restaurant_orders').doc(orderId).update({
+                'driverID': driverId,
+                'driver': {
+                    'id': driverId,
+                    'firstName': driverData.firstName || '',
+                    'lastName': driverData.lastName || '',
+                    'email': driverData.email || '',
+                    'phoneNumber': driverData.phoneNumber || '',
+                    'carName': driverData.carName || '',
+                    'carNumber': driverData.carNumber || '',
+                    'zoneId': driverData.zoneId || ''
+                },
+                'status': 'Driver Pending'
+            });
+            
+            // Log activity
+            try {
+                if (typeof logActivity === 'function') {
+                    await logActivity('orders', 'driver_assigned', 'Quick assigned driver ' + driverData.firstName + ' ' + driverData.lastName + ' to order #' + orderId);
+                }
+            } catch (error) {
+                console.error('Error logging activity:', error);
+            }
+            
+            alert('{{ trans("lang.driver_assigned_successfully") }}');
+            $('#quickDriverAssignmentModal').modal('hide');
+            $('#orderTable').DataTable().ajax.reload();
+            
+        } catch (error) {
+            console.error('Error assigning driver:', error);
+            alert('{{ trans("lang.error_assigning_driver") }}');
+        }
+    }
+    
+    // Initialize quick driver assignment
+    loadQuickDrivers();
+    
+    // Handle quick assign button clicks
+    $(document).on('click', 'a[href*="#manual_driver_assignment_section"]', function(e) {
+        e.preventDefault();
+        var orderId = $(this).closest('tr').find('a[href*="/orders/edit/"]').attr('href').split('/').pop();
+        currentOrderId = orderId;
+        $('#quickDriverAssignmentModal').modal('show');
     });
     $("#deleteAll").click(async function() {
         if($('#orderTable .is_open:checked').length) {
