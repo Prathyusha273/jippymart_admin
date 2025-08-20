@@ -910,23 +910,65 @@
     // Quick Driver Assignment Modal Functionality
     var currentOrderId = '';
     
-    // Load available drivers for quick assignment
-    function loadQuickDrivers() {
-        database.collection('users').where('role', '==', 'driver').where('isActive', '==', true).get().then(async function(snapshots) {
-            $('#quick_driver_selector').empty();
-            $('#quick_driver_selector').append('<option value="">{{ trans("lang.select_driver") }}</option>');
+    // Enhanced load available drivers for quick assignment
+    async function loadQuickDrivers() {
+        try {
+            // Show loading state
+            $('#quick_driver_selector').html('<option value="">{{ trans("lang.select_driver") }}</option><option value="" disabled>Loading drivers...</option>');
             
-            snapshots.docs.forEach((doc) => {
-                var driverData = doc.data();
-                var driverName = (driverData.firstName || '') + ' ' + (driverData.lastName || '');
-                var driverPhone = driverData.phoneNumber || '';
-                var displayText = driverName + ' (' + driverPhone + ')';
-                
-                $('#quick_driver_selector').append($("<option></option>")
-                    .attr("value", driverData.id)
-                    .text(displayText));
+            // Call the Cloud Function to get available drivers
+            const getDriversFunction = firebase.functions().httpsCallable('getAvailableDriversForOrder');
+            const result = await getDriversFunction({
+                orderId: currentOrderId || 'temp',
+                zoneId: null // Get all drivers, can be filtered by zone later
             });
-        });
+            
+            if (result.data.success) {
+                $('#quick_driver_selector').empty();
+                $('#quick_driver_selector').append('<option value="">{{ trans("lang.select_driver") }}</option>');
+                
+                result.data.drivers.forEach((driverData) => {
+                    var driverName = (driverData.firstName || '') + ' ' + (driverData.lastName || '');
+                    var driverPhone = driverData.phoneNumber || '';
+                    var walletAmount = driverData.wallet_amount || 0;
+                    var isOnline = driverData.isOnline ? '🟢' : '🔴';
+                    var displayText = `${isOnline} ${driverName} (${driverPhone}) - ₹${walletAmount}`;
+                    
+                    $('#quick_driver_selector').append($("<option></option>")
+                        .attr("value", driverData.id)
+                        .text(displayText));
+                });
+                
+                console.log(`✅ Loaded ${result.data.total} available drivers for quick assignment`);
+            } else {
+                console.error('Failed to load drivers:', result.data);
+                $('#quick_driver_selector').html('<option value="">{{ trans("lang.select_driver") }}</option><option value="" disabled>Error loading drivers</option>');
+            }
+            
+        } catch (error) {
+            console.error('Error loading available drivers:', error);
+            $('#quick_driver_selector').html('<option value="">{{ trans("lang.select_driver") }}</option><option value="" disabled>Error loading drivers</option>');
+            
+            // Fallback to direct Firestore query
+            try {
+                const snapshots = await database.collection('users').where('role', '==', 'driver').where('isActive', '==', true).get();
+                $('#quick_driver_selector').empty();
+                $('#quick_driver_selector').append('<option value="">{{ trans("lang.select_driver") }}</option>');
+                
+                snapshots.docs.forEach((doc) => {
+                    var driverData = doc.data();
+                    var driverName = (driverData.firstName || '') + ' ' + (driverData.lastName || '');
+                    var driverPhone = driverData.phoneNumber || '';
+                    var displayText = driverName + ' (' + driverPhone + ')';
+                    
+                    $('#quick_driver_selector').append($("<option></option>")
+                        .attr("value", driverData.id)
+                        .text(displayText));
+                });
+            } catch (fallbackError) {
+                console.error('Fallback driver loading also failed:', fallbackError);
+            }
+        }
     }
     
     // Handle quick driver assignment
@@ -942,50 +984,48 @@
         }
     });
     
-    // Quick assign driver to order
+    // Enhanced quick assign driver to order using Cloud Function
     async function quickAssignDriverToOrder(orderId, driverId) {
         try {
-            // Get driver data
-            const driverDoc = await database.collection('users').doc(driverId).get();
-            if (!driverDoc.exists) {
-                alert('{{ trans("lang.driver_not_found") }}');
-                return;
-            }
+            // Show loading state
+            $('#quick_assign_driver_btn').prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Assigning...');
             
-            const driverData = driverDoc.data();
-            
-            // Update order with driver information
-            await database.collection('restaurant_orders').doc(orderId).update({
-                'driverID': driverId,
-                'driver': {
-                    'id': driverId,
-                    'firstName': driverData.firstName || '',
-                    'lastName': driverData.lastName || '',
-                    'email': driverData.email || '',
-                    'phoneNumber': driverData.phoneNumber || '',
-                    'carName': driverData.carName || '',
-                    'carNumber': driverData.carNumber || '',
-                    'zoneId': driverData.zoneId || ''
-                },
-                'status': 'Driver Pending'
+            // Call the Cloud Function for manual assignment
+            const manualAssignFunction = firebase.functions().httpsCallable('manualAssignDriverToOrder');
+            const result = await manualAssignFunction({
+                orderId: orderId,
+                driverId: driverId,
+                assignedBy: '{{ auth()->user()->name ?? "Admin" }}',
+                reason: 'Quick assignment from orders list'
             });
             
-            // Log activity
-            try {
-                if (typeof logActivity === 'function') {
-                    await logActivity('orders', 'driver_assigned', 'Quick assigned driver ' + driverData.firstName + ' ' + driverData.lastName + ' to order #' + orderId);
-                }
-            } catch (error) {
-                console.error('Error logging activity:', error);
+            if (result.data.success) {
+                alert('{{ trans("lang.driver_assigned_successfully") }}');
+                $('#quickDriverAssignmentModal').modal('hide');
+                $('#orderTable').DataTable().ajax.reload();
+            } else {
+                alert('Failed to assign driver: ' + (result.data.message || 'Unknown error'));
             }
-            
-            alert('{{ trans("lang.driver_assigned_successfully") }}');
-            $('#quickDriverAssignmentModal').modal('hide');
-            $('#orderTable').DataTable().ajax.reload();
             
         } catch (error) {
             console.error('Error assigning driver:', error);
-            alert('{{ trans("lang.error_assigning_driver") }}');
+            
+            // Handle specific error types
+            let errorMessage = '{{ trans("lang.error_assigning_driver") }}';
+            if (error.code === 'functions/unauthenticated') {
+                errorMessage = 'Authentication required. Please log in again.';
+            } else if (error.code === 'functions/not-found') {
+                errorMessage = 'Order or driver not found.';
+            } else if (error.code === 'functions/failed-precondition') {
+                errorMessage = error.message || 'Order is not eligible for manual assignment.';
+            } else if (error.code === 'functions/invalid-argument') {
+                errorMessage = error.message || 'Invalid driver selected.';
+            }
+            
+            alert(errorMessage);
+        } finally {
+            // Reset button state
+            $('#quick_assign_driver_btn').prop('disabled', false).html('<i class="fa fa-user-plus"></i> {{ trans("lang.assign_driver") }}');
         }
     }
     

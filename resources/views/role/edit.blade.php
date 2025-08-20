@@ -441,6 +441,34 @@
                                                 </tr>
                                                 <tr>
                                                     <td>
+                                                        <strong>{{ trans('lang.mart_category_plural') }}</strong>
+                                                    </td>
+                                                    <td>
+                                                        <input type="checkbox" id="mart-categories-list" value="mart-categories"
+                                                            name="mart-categories[]" class="permission"
+                                                            {{ in_array('mart-categories', $permissions) ? 'checked' : '' }}>
+                                                        <label class="contol-label2"
+                                                            for="mart-categories-list">{{ trans('lang.list') }}</label>
+                                                        <input type="checkbox" id="mart-categories-create"
+                                                            value="mart-categories.create" name="mart-categories[]"
+                                                            class="permission"
+                                                            {{ in_array('mart-categories.create', $permissions) ? 'checked' : '' }}>
+                                                        <label class="contol-label2"
+                                                            for="mart-categories-create">{{ trans('lang.create') }}</label>
+                                                        <input type="checkbox" id="mart-categories-edit"
+                                                            value="mart-categories.edit" name="mart-categories[]" class="permission"
+                                                            {{ in_array('mart-categories.edit', $permissions) ? 'checked' : '' }}>
+                                                        <label class="contol-label2"
+                                                            for="mart-categories-edit">{{ trans('lang.edit') }}</label>
+                                                        <input type="checkbox" id="mart-categories-delete"
+                                                            value="mart-categories.delete" name="mart-categories[]" class="permission"
+                                                            {{ in_array('mart-categories.delete', $permissions) ? 'checked' : '' }}>
+                                                        <label class=" control-label2"
+                                                            for="mart-categories-delete">{{ trans('lang.delete') }}</label>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
                                                         <strong>{{ trans('lang.cuisines_plural') }}</strong>
                                                     </td>
                                                     <td>
@@ -524,6 +552,33 @@
                                                             {{ in_array('foods.delete', $permissions) ? 'checked' : '' }}>
                                                         <label class=" control-label2"
                                                             for="foods-delete">{{ trans('lang.delete') }}</label>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <strong>{{ trans('lang.mart_item_plural') }}</strong>
+                                                    </td>
+                                                    <td>
+                                                        <input type="checkbox" id="mart-items-list" value="mart-items"
+                                                            name="mart-items[]" class="permission"
+                                                            {{ in_array('mart-items', $permissions) ? 'checked' : '' }}>
+                                                        <label class="contol-label2"
+                                                            for="mart-items-list">{{ trans('lang.list') }}</label>
+                                                        <input type="checkbox" id="mart-items-create" value="mart-items.create"
+                                                            name="mart-items[]" class="permission"
+                                                            {{ in_array('mart-items.create', $permissions) ? 'checked' : '' }}>
+                                                        <label class="contol-label2"
+                                                            for="mart-items-create">{{ trans('lang.create') }}</label>
+                                                        <input type="checkbox" id="mart-items-edit" value="mart-items.edit"
+                                                            name="mart-items[]" class="permission"
+                                                            {{ in_array('mart-items.edit', $permissions) ? 'checked' : '' }}>
+                                                        <label class="contol-label2"
+                                                            for="mart-items-edit">{{ trans('lang.edit') }}</label>
+                                                        <input type="checkbox" id="mart-items-delete" value="mart-items.delete"
+                                                            name="mart-items[]" class="permission"
+                                                            {{ in_array('mart-items.delete', $permissions) ? 'checked' : '' }}>
+                                                        <label class=" control-label2"
+                                                            for="mart-items-delete">{{ trans('lang.delete') }}</label>
                                                     </td>
                                                 </tr>
                                                 <tr>

@@ -141,11 +141,26 @@ $role_has_permission = App\Models\Permission::where('role_id', $user->role_id)->
             </a>
         </li>
         @endif
+        @if(in_array('mart-categories', $role_has_permission))
+        <li><a class="waves-effect waves-dark" href="{!! url('mart-categories') !!}" aria-expanded="false">
+                <i class="mdi mdi-store"></i>
+                <span class="hide-menu">{{trans('lang.mart_category_plural')}}</span>
+            </a>
+        </li>
+        @endif
         @if(in_array('foods', $role_has_permission))
         <li>
             <a class="waves-effect waves-dark" href="{!! url('foods') !!}" aria-expanded="false">
                 <i class="mdi mdi-food"></i>
                 <span class="hide-menu">{{trans('lang.food_plural')}}</span>
+            </a>
+        </li>
+        @endif
+        @if(in_array('mart-items', $role_has_permission))
+        <li>
+            <a class="waves-effect waves-dark" href="{!! url('mart-items') !!}" aria-expanded="false">
+                <i class="mdi mdi-package-variant"></i>
+                <span class="hide-menu">{{trans('lang.mart_item_plural')}}</span>
             </a>
         </li>
         @endif

@@ -322,6 +322,20 @@ return [
     'category_create' => 'Create Category',
 
     'category_table' => 'Category List',
+    
+    // Mart Categories
+    'mart_category_plural' => 'Mart Categories',
+    'mart_category_create' => 'Create Mart Category',
+    'mart_category_edit' => 'Edit Mart Category',
+    'mart_category_table' => 'Mart Category List',
+    'mart_category_table_text' => 'Manage your mart product categories',
+
+    // Mart Items
+    'mart_item_plural' => 'Mart Items',
+    'mart_item_create' => 'Create Mart Item',
+    'mart_item_edit' => 'Edit Mart Item',
+    'mart_item_table' => 'Mart Items List',
+    'mart_item_table_text' => 'Manage your mart products and items',
 
     'cuisine_name' => 'Name',
 
@@ -1097,6 +1111,32 @@ return [
     'error_assigning_driver' => 'Error assigning driver to order',
     
     'error_removing_driver' => 'Error removing driver from order',
+    
+    'driver_assignment_loading' => 'Loading available drivers...',
+    
+    'driver_assignment_error' => 'Error loading drivers',
+    
+    'driver_online_status' => 'Online',
+    
+    'driver_offline_status' => 'Offline',
+    
+    'driver_wallet_amount' => 'Wallet Amount',
+    
+    'manual_assignment_reason' => 'Manual assignment by admin',
+    
+    'quick_assignment_reason' => 'Quick assignment from orders list',
+    
+    'manual_removal_reason' => 'Manual removal by admin',
+    
+    'driver_assignment_success' => 'Driver assigned successfully',
+    
+    'driver_removal_success' => 'Driver removed successfully',
+    
+    'order_not_eligible_assignment' => 'Order is not eligible for manual assignment',
+    
+    'driver_not_active' => 'Driver is not active',
+    
+    'takeaway_no_driver_needed' => 'Takeaway orders do not require driver assignment',
 
     'date_created' => "Date Created",
 

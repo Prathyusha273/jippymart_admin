@@ -401,25 +401,68 @@
         }
     });
     
-    // Load available drivers for manual assignment
-    function loadAvailableDrivers() {
-        database.collection('users').where('role', '==', 'driver').where('isActive', '==', true).get().then(async function(snapshots) {
-            availableDrivers = [];
-            $('#driver_selector').empty();
-            $('#driver_selector').append('<option value="">{{ trans("lang.select_driver") }}</option>');
+    // Enhanced load available drivers for manual assignment
+    async function loadAvailableDrivers() {
+        try {
+            // Show loading state
+            $('#driver_selector').html('<option value="">{{ trans("lang.select_driver") }}</option><option value="" disabled>Loading drivers...</option>');
             
-            snapshots.docs.forEach((doc) => {
-                var driverData = doc.data();
-                availableDrivers.push(driverData);
-                var driverName = (driverData.firstName || '') + ' ' + (driverData.lastName || '');
-                var driverPhone = driverData.phoneNumber || '';
-                var displayText = driverName + ' (' + driverPhone + ')';
-                
-                $('#driver_selector').append($("<option></option>")
-                    .attr("value", driverData.id)
-                    .text(displayText));
+            // Call the Cloud Function to get available drivers
+            const getDriversFunction = firebase.functions().httpsCallable('getAvailableDriversForOrder');
+            const result = await getDriversFunction({
+                orderId: id,
+                zoneId: null // Get all drivers, can be filtered by zone later
             });
-        });
+            
+            if (result.data.success) {
+                availableDrivers = result.data.drivers;
+                $('#driver_selector').empty();
+                $('#driver_selector').append('<option value="">{{ trans("lang.select_driver") }}</option>');
+                
+                result.data.drivers.forEach((driverData) => {
+                    var driverName = (driverData.firstName || '') + ' ' + (driverData.lastName || '');
+                    var driverPhone = driverData.phoneNumber || '';
+                    var walletAmount = driverData.wallet_amount || 0;
+                    var isOnline = driverData.isOnline ? '🟢' : '🔴';
+                    var displayText = `${isOnline} ${driverName} (${driverPhone}) - ₹${walletAmount}`;
+                    
+                    $('#driver_selector').append($("<option></option>")
+                        .attr("value", driverData.id)
+                        .text(displayText));
+                });
+                
+                console.log(`✅ Loaded ${result.data.total} available drivers for order ${id}`);
+            } else {
+                console.error('Failed to load drivers:', result.data);
+                $('#driver_selector').html('<option value="">{{ trans("lang.select_driver") }}</option><option value="" disabled>Error loading drivers</option>');
+            }
+            
+        } catch (error) {
+            console.error('Error loading available drivers:', error);
+            $('#driver_selector').html('<option value="">{{ trans("lang.select_driver") }}</option><option value="" disabled>Error loading drivers</option>');
+            
+            // Fallback to direct Firestore query
+            try {
+                const snapshots = await database.collection('users').where('role', '==', 'driver').where('isActive', '==', true).get();
+                availableDrivers = [];
+                $('#driver_selector').empty();
+                $('#driver_selector').append('<option value="">{{ trans("lang.select_driver") }}</option>');
+                
+                snapshots.docs.forEach((doc) => {
+                    var driverData = doc.data();
+                    availableDrivers.push(driverData);
+                    var driverName = (driverData.firstName || '') + ' ' + (driverData.lastName || '');
+                    var driverPhone = driverData.phoneNumber || '';
+                    var displayText = driverName + ' (' + driverPhone + ')';
+                    
+                    $('#driver_selector').append($("<option></option>")
+                        .attr("value", driverData.id)
+                        .text(displayText));
+                });
+            } catch (fallbackError) {
+                console.error('Fallback driver loading also failed:', fallbackError);
+            }
+        }
     }
     
     // Initialize driver assignment functionality
@@ -447,76 +490,87 @@
         });
     }
     
-    // Assign driver to order
+    // Enhanced assign driver to order using Cloud Function
     async function assignDriverToOrder(driverId) {
         try {
-            // Get driver data
-            const driverDoc = await database.collection('users').doc(driverId).get();
-            if (!driverDoc.exists) {
-                alert('{{ trans("lang.driver_not_found") }}');
-                return;
-            }
+            // Show loading state
+            $('#assign_driver_btn').prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Assigning...');
             
-            const driverData = driverDoc.data();
-            
-            // Update order with driver information
-            await database.collection('restaurant_orders').doc(id).update({
-                'driverID': driverId,
-                'driver': {
-                    'id': driverId,
-                    'firstName': driverData.firstName || '',
-                    'lastName': driverData.lastName || '',
-                    'email': driverData.email || '',
-                    'phoneNumber': driverData.phoneNumber || '',
-                    'carName': driverData.carName || '',
-                    'carNumber': driverData.carNumber || '',
-                    'zoneId': driverData.zoneId || ''
-                },
-                'status': 'Driver Pending'
+            // Call the Cloud Function for manual assignment
+            const manualAssignFunction = firebase.functions().httpsCallable('manualAssignDriverToOrder');
+            const result = await manualAssignFunction({
+                orderId: id,
+                driverId: driverId,
+                assignedBy: '{{ auth()->user()->name ?? "Admin" }}',
+                reason: 'Manual assignment from order edit page'
             });
             
-            // Log activity
-            try {
-                if (typeof logActivity === 'function') {
-                    await logActivity('orders', 'driver_assigned', 'Manually assigned driver ' + driverData.firstName + ' ' + driverData.lastName + ' to order #' + id);
-                }
-            } catch (error) {
-                console.error('Error logging activity:', error);
+            if (result.data.success) {
+                alert('{{ trans("lang.driver_assigned_successfully") }}');
+                window.location.reload();
+            } else {
+                alert('Failed to assign driver: ' + (result.data.message || 'Unknown error'));
             }
-            
-            alert('{{ trans("lang.driver_assigned_successfully") }}');
-            window.location.reload();
             
         } catch (error) {
             console.error('Error assigning driver:', error);
-            alert('{{ trans("lang.error_assigning_driver") }}');
+            
+            // Handle specific error types
+            let errorMessage = '{{ trans("lang.error_assigning_driver") }}';
+            if (error.code === 'functions/unauthenticated') {
+                errorMessage = 'Authentication required. Please log in again.';
+            } else if (error.code === 'functions/not-found') {
+                errorMessage = 'Order or driver not found.';
+            } else if (error.code === 'functions/failed-precondition') {
+                errorMessage = error.message || 'Order is not eligible for manual assignment.';
+            } else if (error.code === 'functions/invalid-argument') {
+                errorMessage = error.message || 'Invalid driver selected.';
+            }
+            
+            alert(errorMessage);
+        } finally {
+            // Reset button state
+            $('#assign_driver_btn').prop('disabled', false).html('<i class="fa fa-user-plus"></i> {{ trans("lang.assign_driver") }}');
         }
     }
     
-    // Remove driver from order
+    // Enhanced remove driver from order using Cloud Function
     async function removeDriverFromOrder() {
         try {
-            await database.collection('restaurant_orders').doc(id).update({
-                'driverID': '',
-                'driver': null,
-                'status': 'Order Accepted'
+            // Show loading state
+            $('#remove_driver_btn').prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Removing...');
+            
+            // Call the Cloud Function for manual driver removal
+            const manualRemoveFunction = firebase.functions().httpsCallable('manualRemoveDriverFromOrder');
+            const result = await manualRemoveFunction({
+                orderId: id,
+                reason: 'Manual removal from order edit page'
             });
             
-            // Log activity
-            try {
-                if (typeof logActivity === 'function') {
-                    await logActivity('orders', 'driver_removed', 'Removed driver from order #' + id);
-                }
-            } catch (error) {
-                console.error('Error logging activity:', error);
+            if (result.data.success) {
+                alert('{{ trans("lang.driver_removed_successfully") }}');
+                window.location.reload();
+            } else {
+                alert('Failed to remove driver: ' + (result.data.message || 'Unknown error'));
             }
-            
-            alert('{{ trans("lang.driver_removed_successfully") }}');
-            window.location.reload();
             
         } catch (error) {
             console.error('Error removing driver:', error);
-            alert('{{ trans("lang.error_removing_driver") }}');
+            
+            // Handle specific error types
+            let errorMessage = '{{ trans("lang.error_removing_driver") }}';
+            if (error.code === 'functions/unauthenticated') {
+                errorMessage = 'Authentication required. Please log in again.';
+            } else if (error.code === 'functions/not-found') {
+                errorMessage = 'Order not found.';
+            } else if (error.code === 'functions/failed-precondition') {
+                errorMessage = error.message || 'Cannot remove driver from order in current status.';
+            }
+            
+            alert(errorMessage);
+        } finally {
+            // Reset button state
+            $('#remove_driver_btn').prop('disabled', false).html('<i class="fa fa-user-times"></i> {{ trans("lang.remove_driver") }}');
         }
     }
     database.collection('dynamic_notification').get().then(async function(snapshot) {

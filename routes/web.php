@@ -136,6 +136,29 @@ Route::middleware(['permission:foods,foods.create'])->group(function () {
 
 });
 
+// Mart Items Routes
+Route::middleware(['permission:mart-items,mart-items'])->group(function () {
+    Route::get('/mart-items', [App\Http\Controllers\MartItemController::class, 'index'])->name('mart-items');
+});
+
+// Mart items import routes - must be before /mart-items/{id} route to avoid conflicts
+Route::post('/mart-items/import', [App\Http\Controllers\MartItemController::class, 'import'])->name('mart-items.import');
+Route::get('/mart-items/download-template', [App\Http\Controllers\MartItemController::class, 'downloadTemplate'])->name('mart-items.download-template');
+
+Route::middleware(['permission:mart-items,mart-items'])->group(function () {
+    Route::get('/mart-items/{id}', [App\Http\Controllers\MartItemController::class, 'index'])->name('marts.mart-items');
+});
+
+Route::middleware(['permission:mart-items,mart-items.edit'])->group(function () {
+    Route::get('/mart-items/edit/{id}', [App\Http\Controllers\MartItemController::class, 'edit'])->name('mart-items.edit');
+    Route::patch('/mart-items/inline-update/{id}', [App\Http\Controllers\MartItemController::class, 'inlineUpdate'])->name('mart-items.inlineUpdate');
+});
+
+Route::middleware(['permission:mart-items,mart-items.create'])->group(function () {
+    Route::get('/mart-item/create', [App\Http\Controllers\MartItemController::class, 'create'])->name('mart-items.create');
+    Route::get('/mart-item/create/{id}', [App\Http\Controllers\MartItemController::class, 'create']);
+});
+
 Route::middleware(['permission:orders,orders'])->group(function () {
     Route::get('/orders/', [App\Http\Controllers\OrderController::class, 'index'])->name('orders');
     Route::get('/orders/{id}', [App\Http\Controllers\OrderController::class, 'index'])->name('restaurants.orders');
@@ -164,6 +187,19 @@ Route::middleware(['permission:category,categories.create'])->group(function () 
 });
 Route::post('/categories/import', [CategoryController::class, 'import'])->name('categories.import');
 Route::get('/categories/download-template', [CategoryController::class, 'downloadTemplate'])->name('categories.download-template');
+
+// Mart Categories Routes
+Route::middleware(['permission:mart-categories,mart-categories'])->group(function () {
+    Route::get('/mart-categories', [App\Http\Controllers\MartCategoryController::class, 'index'])->name('mart-categories');
+});
+Route::middleware(['permission:mart-categories,mart-categories.edit'])->group(function () {
+    Route::get('/mart-categories/edit/{id}', [App\Http\Controllers\MartCategoryController::class, 'edit'])->name('mart-categories.edit');
+});
+Route::middleware(['permission:mart-categories,mart-categories.create'])->group(function () {
+    Route::get('/mart-categories/create', [App\Http\Controllers\MartCategoryController::class, 'create'])->name('mart-categories.create');
+});
+Route::post('/mart-categories/import', [App\Http\Controllers\MartCategoryController::class, 'import'])->name('mart-categories.import');
+Route::get('/mart-categories/download-template', [App\Http\Controllers\MartCategoryController::class, 'downloadTemplate'])->name('mart-categories.download-template');
 Route::post('/cuisines/import', [CuisineController::class, 'import'])->name('cuisines.import');
 Route::get('/cuisines/download-template', [CuisineController::class, 'downloadTemplate'])->name('cuisines.download-template');
 
