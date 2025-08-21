@@ -91,6 +91,22 @@ Route::middleware(['permission:restaurants,restaurants.view'])->group(function (
 });
 Route::get('/restaurants/promos/{id}', [App\Http\Controllers\RestaurantController::class, 'promos'])->name('restaurants.promos');
 
+// Mart Routes
+Route::middleware(['permission:marts,marts'])->group(function () {
+    Route::get('/marts', [App\Http\Controllers\MartController::class, 'index'])->name('marts');
+});
+Route::middleware(['permission:marts,marts.create'])->group(function () {
+    Route::get('/marts/create', [App\Http\Controllers\MartController::class, 'create'])->name('marts.create');
+});
+Route::middleware(['permission:marts,marts.edit'])->group(function () {
+    Route::get('/marts/edit/{id}', [App\Http\Controllers\MartController::class, 'edit'])->name('marts.edit');
+});
+Route::middleware(['permission:marts,marts.view'])->group(function () {
+    Route::get('/marts/view/{id}', [App\Http\Controllers\MartController::class, 'view'])->name('marts.view');
+});
+Route::get('/marts/foods/{id}', [App\Http\Controllers\MartController::class, 'foods'])->name('marts.foods');
+Route::get('/marts/orders/{id}', [App\Http\Controllers\MartController::class, 'orders'])->name('marts.orders');
+
 // Restaurant Schedule Routes (Temporarily without middleware for testing)
 Route::get('/restaurants/schedule', [App\Http\Controllers\RestaurantScheduleController::class, 'getSchedule'])->name('restaurants.schedule.get');
 Route::post('/restaurants/schedule', [App\Http\Controllers\RestaurantScheduleController::class, 'updateSchedule'])->name('restaurants.schedule.update');

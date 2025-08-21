@@ -104,6 +104,20 @@ foreach ($countries as $keycountry => $valuecountry) {
                                 </div>
                             </div>
 
+                            <div class="form-group row width-50">
+                                <label class="col-3 control-label">{{trans('lang.vendor_type')}}</label>
+                                <div class="col-7">
+                                    <select class="form-control" id="vendor_type">
+                                        <option value="" selected>{{trans('lang.select_vendor_type')}}</option>
+                                        <option value="restaurant">{{trans('lang.restaurant')}}</option>
+                                        <option value="mart">{{trans('lang.mart')}}</option>
+                                    </select>
+                                    <div class="form-text text-muted">
+                                        {{ trans("lang.vendor_type_help") }}
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="form-group row width-100">
                                 <label class="col-3 control-label">{{trans('lang.restaurant_image')}}</label>
                                 <input type="file" onChange="handleFileSelectowner(event)" class="col-7">
@@ -240,6 +254,7 @@ foreach ($countries as $keycountry => $valuecountry) {
         var password=$(".user_password").val();
         var country_code=$("#country_selector").val();
         var userPhone=$(".user_phone").val();
+        var vendorType=$("#vendor_type").val();
         var reststatus=true;
 
         var restaurant_active=false;
@@ -289,6 +304,11 @@ foreach ($countries as $keycountry => $valuecountry) {
             $(".error_top").html("");
             $(".error_top").append("<p>{{trans('lang.enter_owners_phone')}}</p>");
             window.scrollTo(0,0);
+        } else if(vendorType=='') {
+            $(".error_top").show();
+            $(".error_top").html("");
+            $(".error_top").append("<p>{{trans('lang.select_vendor_type_error')}}</p>");
+            window.scrollTo(0,0);
         } else {
             jQuery("#data-table_processing").show();
             if(subscriptionPlanId&&subscriptionPlanId!='') {
@@ -310,6 +330,7 @@ foreach ($countries as $keycountry => $valuecountry) {
                                     'profilePictureURL': IMG.ownerImage,
                                     'provider': 'email',
                                     'role': 'vendor',
+                                    'vType': vendorType,
                                     'id': user_id,
                                     'vendorID': null,
                                     'active': restaurant_active,

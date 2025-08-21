@@ -145,8 +145,9 @@ class SettingsController extends Controller
     public function menuItems()
     {
         return view('settings.menu_items.index');
-        
+
     }
+
 
     public function menuItemsCreate()
     {
@@ -178,7 +179,7 @@ class SettingsController extends Controller
 
     public function emailTemplatesIndex()
     {
-        return view('email_templates.index');        
+        return view('email_templates.index');
     }
 
     public function emailTemplatesSave($id = '')

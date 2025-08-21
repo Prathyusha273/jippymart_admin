@@ -791,6 +791,70 @@ return [
 
     'restaurant_users' => 'Restaurant Owner',
 
+    // Mart (Vendors)
+    'mart_plural' => 'المتاجر',
+    'mart' => 'متجر',
+    'mart_create' => 'إنشاء متجر',
+    'mart_edit' => 'تعديل المتجر',
+    'mart_details' => 'تفاصيل المتجر',
+    'mart_table' => 'قائمة المتاجر',
+    'mart_table_text' => 'عرض وإدارة جميع المتاجر',
+    'mart_name' => 'اسم المتجر',
+    'mart_name_help' => 'أدخل اسم المتجر',
+    'mart_type' => 'نوع المتجر',
+    'mart_info' => 'معلومات المتجر',
+    'create_mart' => 'إنشاء متجر',
+    'dashboard_total_marts' => 'إجمالي المتاجر',
+    'active_marts' => 'المتاجر النشطة',
+    'inactive_marts' => 'المتاجر غير النشطة',
+    'new_joined_marts' => 'المتاجر الجديدة المنضمة',
+
+    // Mart-specific translations (for use in mart views)
+    'mart_details' => 'تفاصيل المتجر',
+    'mart_name' => 'اسم المتجر',
+    'mart_name_help' => 'أدخل اسم المتجر',
+    'mart_phone' => 'هاتف المتجر',
+    'mart_phone_help' => 'أدخل رقم هاتف المتجر',
+    'mart_address' => 'عنوان المتجر',
+    'mart_address_help' => 'أدخل عنوان المتجر',
+    'mart_latitude' => 'خط عرض المتجر',
+    'mart_latitude_help' => 'أدخل خط عرض المتجر',
+    'mart_longitude' => 'خط طول المتجر',
+    'mart_longitude_help' => 'أدخل خط طول المتجر',
+    'mart_description' => 'وصف المتجر',
+    'mart_description_help' => 'أدخل وصف المتجر',
+    'mart_image' => 'صورة المتجر',
+    'mart_image_help' => 'أدخل صورة المتجر',
+    'mart_admin_commission_details' => 'تفاصيل عمولة إدارة المتجر',
+    'mart_status' => 'حالة المتجر',
+    'mart_cuisines' => 'فئات المتجر',
+    'mart_cuisines_help' => 'اختر الفئات لهذا المتجر',
+    'mart_table_text' => 'عرض وإدارة جميع المتاجر',
+    'mart_type' => 'نوع المتجر',
+    'mart_name_error' => 'يرجى إدخال اسم المتجر',
+    'mart_phone_error' => 'يرجى إدخال رقم هاتف المتجر',
+    'mart_address_error' => 'أدخل عنوان المتجر!',
+    'mart_latitude_error' => 'يرجى إدخال خط عرض المتجر',
+    'mart_latitude_limit_error' => 'يرجى إدخال خط عرض المتجر بين -90 إلى 90',
+    'mart_longitude_error' => 'يرجى إدخال خط طول المتجر',
+    'mart_longitude_limit_error' => 'يرجى إدخال خط طول المتجر بين -180 إلى 180',
+    'mart_description_error' => 'أدخل وصف المتجر!',
+    'mart_cuisine_error' => 'اختر فئات المتجر!',
+
+    // Mart Categories
+    'mart_category_plural' => 'فئات المتاجر',
+    'mart_category_create' => 'إنشاء فئة متجر',
+    'mart_category_edit' => 'تعديل فئة المتجر',
+    'mart_category_table' => 'قائمة فئات المتاجر',
+    'mart_category_table_text' => 'إدارة فئات منتجات المتاجر',
+
+    // Mart Items
+    'mart_item_plural' => 'منتجات المتاجر',
+    'mart_item_create' => 'إنشاء منتج متجر',
+    'mart_item_edit' => 'تعديل منتج المتجر',
+    'mart_item_table' => 'قائمة منتجات المتاجر',
+    'mart_item_table_text' => 'إدارة منتجات وأغراض المتاجر',
+
     'role' => 'Role',
 
     'restaurant_payout_request' => 'Restaurants Payouts Request',
@@ -912,6 +976,10 @@ return [
     'vendor' => "Vendor",
 
     'vendor_edit' => 'Edit Vendor',
+    'vendor_type' => 'نوع البائع',
+    'select_vendor_type' => 'اختر نوع البائع',
+    'vendor_type_help' => 'اختر نوع البائع (مطعم أو مارت)',
+    'select_vendor_type_error' => 'يرجى اختيار نوع البائع',
 
     'external_link' => "External Link",
 

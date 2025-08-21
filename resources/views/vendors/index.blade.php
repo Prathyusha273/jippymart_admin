@@ -37,6 +37,13 @@
                         </div>
                         <div class="d-flex top-title-right align-self-center">
                             <div class="select-box pl-3">
+                                <select class="form-control vendor_type_selector filteredRecords">
+                                    <option value="" selected>{{trans("lang.vendor_type")}}</option>
+                                    <option value="restaurant">{{trans("lang.restaurant")}}</option>
+                                    <option value="mart">{{trans("lang.mart")}}</option>
+                                </select>
+                            </div>
+                            <div class="select-box pl-3">
                                 <select class="form-control status_selector filteredRecords">
                                     <option value="" selected>{{trans("lang.status")}}</option>
                                     <option value="active">{{trans("lang.active")}}</option>
@@ -156,6 +163,7 @@
                                             <th>{{trans('lang.vendor_info')}}</th>
                                             <th>{{trans('lang.email')}}</th>
                                             <th>{{trans('lang.zone')}}</th>
+                                            <th>{{trans('lang.vendor_type')}}</th>
                                             <th>{{trans('lang.current_plan')}}</th>
                                             <th>{{trans('lang.expiry_date')}}</th>
                                             <th>{{trans('lang.date')}}</th>
@@ -270,7 +278,7 @@
                 const searchValue=data.search.value.toLowerCase();
                 const orderColumnIndex=data.order[0].column;
                 const orderDirection=data.order[0].dir;
-                const orderableColumns=(checkDeletePermission)? ['','fullName','email','zoneName','subscription_plan.name','subscriptionExpiryDate','createdAt','','','','']:['fullName','email','zoneName','subscription_plan.name','subscriptionExpiryDate','createdAt','','','','']; // Ensure this matches the actual column names
+                const orderableColumns=(checkDeletePermission)? ['','fullName','email','zoneName','vType','subscription_plan.name','subscriptionExpiryDate','createdAt','','','','']:['fullName','email','zoneName','vType','subscription_plan.name','subscriptionExpiryDate','createdAt','','','','']; // Ensure this matches the actual column names
                 const orderByField=orderableColumns[orderColumnIndex]; // Adjust the index to match your table
                 if(searchValue.length>=3||searchValue.length===0) {
                     $('#data-table_processing').show();
@@ -533,6 +541,7 @@
     setDate();
     $('.filteredRecords').change(async function() {
         var status = $('.status_selector').val();
+        var vendorType = $('.vendor_type_selector').val();
         var zone = $('.zone_selector').val();
         var zoneSort = $('.zone_sort_selector').val();
         var daterangepicker = $('#daterange').data('daterangepicker');
@@ -542,6 +551,10 @@
             refData = (status === "active")
                 ? refData.where('active','==',true)
                 : refData.where('active','==',false);
+        }
+        
+        if(vendorType) {
+            refData = refData.where('vType','==',vendorType);
         }
         
         if ($('#daterange span').html() != '{{trans("lang.select_range")}}' && daterangepicker) {
@@ -597,6 +610,11 @@
             html.push(window.zoneIdToName[val.zoneId]);
         } else {
             html.push('<span class="text-muted">No Zone</span>');
+        }
+        if(val.hasOwnProperty('vType') && val.vType) {
+            html.push(val.vType.charAt(0).toUpperCase() + val.vType.slice(1));
+        } else {
+            html.push('<span class="text-muted">Not Set</span>');
         }
         if(val.hasOwnProperty('subscription_plan') && val.subscription_plan && val.subscription_plan.name) {
             html.push(val.subscription_plan.name);

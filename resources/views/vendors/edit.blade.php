@@ -92,6 +92,20 @@
                                             {{ trans('lang.user_phone_help') }}
                                         </div>
                                     </div>
+                                    <div class="form-group row width-50">
+                                        <label class="col-3 control-label">{{ trans('lang.vendor_type') }}</label>
+                                        <div class="col-7">
+                                            <select class="form-control" id="vendor_type">
+                                                <option value="" selected>{{ trans('lang.select_vendor_type') }}</option>
+                                                <option value="restaurant">{{ trans('lang.restaurant') }}</option>
+                                                <option value="mart">{{ trans('lang.mart') }}</option>
+                                            </select>
+                                            <div class="form-text text-muted">
+                                                {{ trans("lang.vendor_type_help") }}
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <div class="form-group row width-100">
                                         <label class="col-3 control-label">{{ trans('lang.restaurant_image') }}</label>
                                         <input type="file" onChange="handleFileSelectowner(event,'vendor')"
@@ -321,6 +335,9 @@
                     restaurant_active = true;
                     $("#is_active").prop("checked", true);
                 }
+                if (user.vType) {
+                    $("#vendor_type").val(user.vType);
+                }
                 if (user.userBankDetails) {
                     const bankDetails = user.userBankDetails;
                     if (bankDetails.bankName) {
@@ -353,6 +370,7 @@
                 var email = $(".user_email").val();
                 var countryCode = '+' + jQuery("#country_selector").val();
                 var userPhone = $(".user_phone").val();
+                var vendorType = $("#vendor_type").val();
                 var subscriptionPlanId = $('#restaurant_subscription_model').val();
                 var subscriptionPlanData = '';
                 var change_expiry_date = $('#change_expiry_date').val();
@@ -388,6 +406,8 @@
                     showError("{{ trans('lang.enter_owners_last_name_error') }}");
                 } else if (userPhone == '') {
                     showError("{{ trans('lang.enter_owners_phone') }}");
+                } else if (vendorType == '') {
+                    showError("{{ trans('lang.select_vendor_type_error') }}");
                 } else if (subscriptionPlanId == '') {
                     showError("{{ trans('lang.subscriptionplan_error') }}");
                 } else {
@@ -410,6 +430,7 @@
                                         'email': email,
                                         'countryCode': countryCode,
                                         'phoneNumber': userPhone,
+                                        'vType': vendorType,
                                         'profilePictureURL': IMG.ownerImage,
                                         'active': restaurant_active,
                                         'userBankDetails': bankDetails,

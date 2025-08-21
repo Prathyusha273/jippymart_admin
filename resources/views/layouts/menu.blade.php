@@ -92,6 +92,13 @@ $role_has_permission = App\Models\Permission::where('role_id', $user->role_id)->
             </a>
         </li>
         @endif
+        @if(in_array('marts', $role_has_permission))
+        <li><a class="waves-effect waves-dark" href="{!! url('marts') !!}" aria-expanded="false">
+                <i class="mdi mdi-store"></i>
+                <span class="hide-menu">{{trans('lang.mart_plural')}}</span>
+            </a>
+        </li>
+        @endif
         @if(in_array('drivers',$role_has_permission) || in_array('approve_drivers',$role_has_permission) ||
         in_array('pending_drivers',$role_has_permission))
         <li>

@@ -19,7 +19,7 @@ class RazorPayController extends Controller
 
     public function __init()
     {
-        
+
     }
 
     public function createOrderid(Request $request)
@@ -33,7 +33,7 @@ class RazorPayController extends Controller
         $client = new Api($razorpaykey, $razorPaySecret);
 
         try {
-            
+
             $order  = $client->order->create([
           'receipt'         => $receipt_id,
           'amount'          => $amount, // amount in the smallest currency unit
@@ -47,8 +47,7 @@ class RazorPayController extends Controller
             return response()->json(array('faild' => $e->getMessage()));
         }
 
-        
-        
+
     }
 
     public function getProtectedValue($obj, $name) {
