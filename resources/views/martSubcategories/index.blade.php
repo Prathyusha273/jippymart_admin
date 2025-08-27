@@ -155,7 +155,7 @@
 <script type="text/javascript">
     var database = firebase.firestore();
     var categoryId = "{{ $categoryId }}";
-    var ref = database.collection('mart_subcategories').where('parent_category_id', '==', categoryId).orderBy('subcategory_order');
+    var ref = database.collection('mart_subcategories').where('parent_category_id', '==', categoryId);
     var placeholderImage = '';
     var user_permissions = '<?php echo @session("user_permissions")?>';
     user_permissions = Object.values(JSON.parse(user_permissions));
@@ -165,14 +165,60 @@
     }
 
     $(document).ready(function () {
+        console.log('✅ Document ready - starting sub-categories index page initialization');
+        console.log('🔍 Category ID:', categoryId);
+        
         // Load parent category info
         loadParentCategoryInfo();
         
-        jQuery("#data-table_processing").show();
+        // Show loading if element exists
+        if ($("#data-table_processing").length) {
+            $("#data-table_processing").show();
+        }
+        
         var placeholder = database.collection('settings').doc('placeHolderImage');
         placeholder.get().then(async function (snapshotsimage) {
             var placeholderImageData = snapshotsimage.data();
             placeholderImage = placeholderImageData.image;
+            console.log('✅ Placeholder image loaded');
+        }).catch(function(error) {
+            console.error('❌ Error loading placeholder image:', error);
+        });
+
+        // Test query first
+        console.log('🔍 Testing query before DataTable initialization...');
+        console.log('🔍 Querying for parent_category_id:', categoryId);
+        
+        // First, let's check if the sub-category exists at all
+        database.collection('mart_subcategories').get().then(function(allSnapshot) {
+            console.log('🔍 Total sub-categories in collection:', allSnapshot.size);
+            if (allSnapshot.empty) {
+                console.log('❌ No sub-categories exist in the collection at all!');
+            } else {
+                allSnapshot.docs.forEach(function(doc) {
+                    var data = doc.data();
+                    console.log('📝 All sub-category:', data.title, 'ID:', doc.id, 'Parent ID:', data.parent_category_id);
+                    
+                    // Check if this matches our category ID
+                    if (data.parent_category_id === categoryId) {
+                        console.log('✅ MATCH FOUND! This sub-category belongs to our category');
+                    }
+                });
+            }
+        });
+        
+        ref.get().then(function(testSnapshot) {
+            console.log('✅ Test query result:', testSnapshot.size, 'sub-categories found');
+            if (testSnapshot.empty) {
+                console.log('❌ No sub-categories found in test query');
+            } else {
+                testSnapshot.docs.forEach(function(doc) {
+                    var data = doc.data();
+                    console.log('📝 Found sub-category:', data.title, 'ID:', doc.id, 'Parent ID:', data.parent_category_id);
+                });
+            }
+        }).catch(function(error) {
+            console.error('❌ Test query failed:', error);
         });
 
         const table = $('#subcategoriesTable').DataTable({
@@ -194,10 +240,14 @@
                 }
                 
                 ref.get().then(async function (querySnapshot) {
+                    console.log('🔍 DataTable query result:', querySnapshot.size, 'sub-categories found');
                     if (querySnapshot.empty) {
                         $('.subcategory_count').text(0);    
-                        console.log("No sub-categories found for this category.");
-                        $('#data-table_processing').hide();
+                        console.log("❌ No sub-categories found for this category in DataTable query.");
+                        console.log("🔍 Expected parent_category_id:", categoryId);
+                        if ($("#data-table_processing").length) {
+                            $("#data-table_processing").hide();
+                        }
                         callback({
                             draw: data.draw,
                             recordsTotal: 0,
@@ -244,8 +294,10 @@
 
                     const totalRecords = filteredRecords.length;
                     $('.subcategory_count').text(totalRecords);    
+                    console.log('📊 Total records to display:', totalRecords);
 
                     filteredRecords.slice(start, start + length).forEach(function (childData) {
+                        console.log('📝 Processing sub-category:', childData.title, 'ID:', childData.id);
                         var id = childData.id;
                         var route1 = '{{route("mart-subcategories.edit",":id")}}';
                         route1 = route1.replace(':id', id);
@@ -265,7 +317,10 @@
                         ]);
                     });
 
-                    $('#data-table_processing').hide();
+                    if ($("#data-table_processing").length) {
+                        $("#data-table_processing").hide();
+                    }
+                    console.log('✅ DataTable callback completed with', records.length, 'records');
                     callback({
                         draw: data.draw,
                         recordsTotal: totalRecords,
@@ -273,8 +328,10 @@
                         data: records
                     });
                 }).catch(function (error) {
-                    console.error("Error fetching sub-categories:", error);
-                    $('#data-table_processing').hide();
+                    console.error("❌ Error fetching sub-categories:", error);
+                    if ($("#data-table_processing").length) {
+                        $("#data-table_processing").hide();
+                    }
                     callback({
                         draw: data.draw,
                         recordsTotal: 0,
@@ -293,32 +350,40 @@
                 "processing": ""
             },
         });
+        console.log('✅ DataTable initialized successfully');
         table.columns.adjust().draw();
+        console.log('✅ DataTable draw completed');
     });
 
     // Load parent category information
     function loadParentCategoryInfo() {
+        console.log('🔍 Loading parent category info for ID:', categoryId);
         database.collection('mart_categories').doc(categoryId).get().then(function(doc) {
             if (doc.exists) {
                 var data = doc.data();
+                console.log('✅ Parent category data loaded:', data);
                 $('#parentCategoryTitle').text(data.title);
                 $('#sectionInfo').text(data.section || 'General');
                 $('.parent-category-info').html('<span class="badge badge-info">Section: ' + (data.section || 'General') + '</span>');
+            } else {
+                console.error('❌ Parent category not found');
             }
         }).catch(function(error) {
-            console.error('Error loading parent category:', error);
+            console.error('❌ Error loading parent category:', error);
         });
     }
 
     // Get product count for sub-category
     async function getProductTotal(subcategoryId) {
         try {
+            console.log('🔍 Getting product count for sub-category:', subcategoryId);
             const querySnapshot = await database.collection('mart_items')
                 .where('subcategoryID', '==', subcategoryId)
                 .get();
+            console.log('✅ Product count for sub-category', subcategoryId, ':', querySnapshot.size);
             return querySnapshot.size;
         } catch (error) {
-            console.error('Error getting product count:', error);
+            console.error('❌ Error getting product count for sub-category', subcategoryId, ':', error);
             return 0;
         }
     }

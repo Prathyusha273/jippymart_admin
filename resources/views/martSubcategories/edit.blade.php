@@ -131,14 +131,30 @@
     })
     
     $(document).ready(function () {
-        jQuery("#data-table_processing").show();
+        console.log('✅ Document ready - starting sub-category edit page initialization');
+        console.log('🔍 Sub-category ID:', subcategoryId);
+        
+        // Show loading if element exists
+        if ($("#data-table_processing").length) {
+            $("#data-table_processing").show();
+        }
+        
         // Load sub-category data
         loadSubCategoryData();
         
         // Load review attributes
         loadReviewAttributes();
         
+        // Hide loading after everything is loaded
+        setTimeout(function() {
+            if ($("#data-table_processing").length) {
+                $("#data-table_processing").hide();
+            }
+            console.log('✅ Page initialization completed');
+        }, 1000);
+        
         $(".save-setting-btn").click(async function () {
+            console.log('✅ Save button clicked');
             var title = $(".subcategory-name").val();
             var description = $(".subcategory_description").val();
             var item_publish = $("#item_publish").is(":checked");
@@ -149,13 +165,18 @@
                     review_attributes.push($(this).val());
                 }
             });
+            console.log('Form data:', { title, description, item_publish, show_in_homepage, review_attributes });
+            
             if (title == '') {
                 $(".error_top").show();
                 $(".error_top").html("");
                 $(".error_top").append("<p>Please enter a sub-category name</p>");
                 window.scrollTo(0, 0);
             } else {
-                jQuery("#data-table_processing").show();
+                console.log('✅ Validation passed, starting update process');
+                if ($("#data-table_processing").length) {
+                    $("#data-table_processing").show();
+                }
                 storeImageData().then(IMG => {
                     var updateData = {
                         'title': title,
@@ -191,14 +212,20 @@
                             }
                         }
                         
-                        jQuery("#data-table_processing").hide();
+                        if ($("#data-table_processing").length) {
+                            $("#data-table_processing").hide();
+                        }
+                        console.log('✅ Redirecting to sub-categories list');
                         var subcategoriesUrl = '{{ route("mart-subcategories.index", ["category_id" => ":category_id"]) }}'.replace(':category_id', subcategoryData.parent_category_id);
                         window.location.href = subcategoriesUrl;
                     }).catch(function (error) {
-                        jQuery("#data-table_processing").hide();
+                        if ($("#data-table_processing").length) {
+                            $("#data-table_processing").hide();
+                        }
                         $(".error_top").show();
                         $(".error_top").html("");
-                        $(".error_top").append("<p>" + error + "</p>");
+                        $(".error_top").append("<p>Error updating sub-category: " + error.message + "</p>");
+                        console.error("Error updating sub-category:", error);
                     });
                 });
             }
@@ -207,10 +234,12 @@
 
     // Load sub-category data
     function loadSubCategoryData() {
+        console.log('🔍 Loading sub-category data for ID:', subcategoryId);
         database.collection('mart_subcategories').doc(subcategoryId).get().then(function(doc) {
             if (doc.exists) {
                 subcategoryData = doc.data();
                 oldImageUrl = subcategoryData.photo;
+                console.log('✅ Sub-category data loaded:', subcategoryData);
                 
                 // Populate form fields
                 $('.subcategory-name').val(subcategoryData.title);
@@ -232,11 +261,12 @@
                 $('#backToSubcategories').attr('href', subcategoriesUrl);
                 
             } else {
+                console.error('❌ Sub-category not found');
                 alert('Sub-category not found');
                 window.history.back();
             }
         }).catch(function(error) {
-            console.error('Error loading sub-category:', error);
+            console.error('❌ Error loading sub-category:', error);
             alert('Error loading sub-category data');
         });
     }
@@ -254,6 +284,9 @@
                 ra_html += '</div>';
             });
             $('#review_attributes').html(ra_html);
+        }).catch(function(error) {
+            console.error('Error loading review attributes:', error);
+            $('#review_attributes').html('<p class="text-muted">Error loading review attributes</p>');
         });
     }
 
