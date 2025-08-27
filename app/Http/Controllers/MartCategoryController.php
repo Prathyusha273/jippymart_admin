@@ -68,6 +68,11 @@ class MartCategoryController extends Controller
                 'publish' => strtolower($data['publish'] ?? '') === 'true',
                 'show_in_homepage' => strtolower($data['show_in_homepage'] ?? '') === 'true',
                 'mart_id' => $data['mart_id'] ?? '',
+                'section' => $data['section'] ?? 'General',
+                'section_order' => intval($data['section_order'] ?? 1),
+                'category_order' => intval($data['category_order'] ?? 1),
+                'has_subcategories' => false,
+                'subcategories_count' => 0,
                 'review_attributes' => array_filter(array_map('trim', explode(',', $data['review_attributes'] ?? ''))),
                 'migratedBy' => 'migrate:mart-categories',
             ]);

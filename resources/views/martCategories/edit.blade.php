@@ -61,6 +61,40 @@
                                                 <div class="form-text text-muted w-50">Upload an image for this mart category</div>
                                             </div>
                                         </div>
+                                        <div class="form-group row width-100">
+                                            <label class="col-3 control-label">Section</label>
+                                            <div class="col-7">
+                                                <input type="text" class="form-control" id="category_section" placeholder="e.g., Grocery & Kitchen, Electronics" list="section-suggestions">
+                                                <datalist id="section-suggestions">
+                                                    <option value="Grocery & Kitchen">
+                                                    <option value="Fruits & Vegetables">
+                                                    <option value="Dairy, Bread & Eggs">
+                                                    <option value="Packaged Foods & Snacks">
+                                                    <option value="Beverages & Juices">
+                                                    <option value="Café (Ready-to-Eat)">
+                                                    <option value="Beauty & Personal Care">
+                                                    <option value="Apparel & Fashion">
+                                                    <option value="Electronics & Appliances">
+                                                    <option value="Toys & Baby">
+                                                    <option value="Pet Care">
+                                                    <option value="Pharmacy & Health">
+                                                    <option value="Home & Household Essentials">
+                                                    <option value="Cleaning & Laundry">
+                                                    <option value="Kitchenware & Storage">
+                                                    <option value="Stationery & Books">
+                                                    <option value="Sports & Fitness">
+                                                    <option value="Automotive & Tools">
+                                                </datalist>
+                                                <div class="form-text text-muted w-50">Group categories by sections for better organization</div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group row width-100">
+                                            <label class="col-3 control-label">Order</label>
+                                            <div class="col-7">
+                                                <input type="number" class="form-control" id="category_order" value="1" min="1">
+                                                <div class="form-text text-muted w-50">Display order within section</div>
+                                            </div>
+                                        </div>
                                        <div class="form-check row width-100">
                                         <input type="checkbox" class="item_publish" id="item_publish">
                                         <label class="col-3 control-label"
@@ -113,6 +147,8 @@ $(document).ready(function () {
         category = snapshots.docs[0].data();
         $(".cat-name").val(category.title);
         $(".category_description").val(category.description);
+        $("#category_section").val(category.section || 'General');
+        $("#category_order").val(category.category_order || 1);
         if (category.photo != '' && category.photo != null) {
               photo = category.photo;
               catImageFile=category.photo;
@@ -173,6 +209,9 @@ $(document).ready(function () {
                 'title': title,
                 'description': description,
                 'photo': IMG,
+                'section': $('#category_section').val() || 'General',
+                'section_order': parseInt($('#category_order').val()) || 1,
+                'category_order': parseInt($('#category_order').val()) || 1,
                 'review_attributes': review_attributes,
                 'publish': item_publish,
                 'show_in_homepage': show_in_homepage,

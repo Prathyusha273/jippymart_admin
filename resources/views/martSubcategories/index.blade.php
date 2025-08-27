@@ -3,12 +3,13 @@
 <div class="page-wrapper">
     <div class="row page-titles">
         <div class="col-md-5 align-self-center">
-                            <h3 class="text-themecolor">Mart Categories</h3>
+            <h3 class="text-themecolor">Mart Sub-Categories</h3>
         </div>
         <div class="col-md-7 align-self-center">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
-                <li class="breadcrumb-item active">Mart Categories</li>
+                <li class="breadcrumb-item"><a href="{{route('mart-categories')}}">Mart Categories</a></li>
+                <li class="breadcrumb-item active">Sub-Categories</li>
             </ol>
         </div>
         <div>
@@ -21,8 +22,9 @@
                 <div class="d-flex top-title-section pb-4 justify-content-between">
                     <div class="d-flex top-title-left align-self-center">
                         <span class="icon mr-3"><img src="{{ asset('images/category.png') }}"></span>
-                        <h3 class="mb-0">Mart Categories Table</h3>
-                        <span class="counter ml-3 category_count"></span>
+                        <h3 class="mb-0">Mart Sub-Categories Table</h3>
+                        <span class="counter ml-3 subcategory_count"></span>
+                        <span class="parent-category-info ml-3"></span>
                     </div>
                     <div class="d-flex top-title-right align-self-center">
                         <div class="select-box pl-3">
@@ -51,19 +53,19 @@
         <div class="card border">
             <div class="card-header d-flex justify-content-between align-items-center border-0">
                 <div class="card-header-title">
-                    <h3 class="text-dark-2 mb-2 h4">Bulk Import Mart Categories</h3>
-                    <p class="mb-0 text-dark-2">Upload Excel file to import multiple mart categories at once</p>
+                    <h3 class="text-dark-2 mb-2 h4">Bulk Import Mart Sub-Categories</h3>
+                    <p class="mb-0 text-dark-2">Upload Excel file to import multiple mart sub-categories at once</p>
                 </div>
                 <div class="card-header-right d-flex align-items-center">
                     <div class="card-header-btn mr-3">
-                        <a href="{{ route('mart-categories.download-template') }}" class="btn btn-outline-primary rounded-full">
+                        <a href="{{ route('mart-subcategories.download-template') }}" class="btn btn-outline-primary rounded-full">
                             <i class="mdi mdi-download mr-2"></i>Download Template
                         </a>
                     </div>
                 </div>
             </div>
             <div class="card-body">
-                <form action="{{ route('mart-categories.import') }}" method="POST" enctype="multipart/form-data">
+                <form action="{{ route('mart-subcategories.import') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <div class="row">
                         <div class="col-md-8">
@@ -72,13 +74,13 @@
                                 <input type="file" name="file" id="importFile" accept=".xls,.xlsx" class="form-control" required>
                                 <div class="form-text text-muted">
                                     <i class="mdi mdi-information-outline mr-1"></i>
-                                    File should contain: title, description, photo, publish, show_in_homepage, mart_id, review_attributes
+                                    File should contain: title, description, photo, parent_category_id, subcategory_order, publish, show_in_homepage, review_attributes
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-4 d-flex align-items-end">
                             <button type="submit" class="btn btn-primary rounded-full">
-                                <i class="mdi mdi-upload mr-2"></i>Import Mart Categories
+                                <i class="mdi mdi-upload mr-2"></i>Import Mart Sub-Categories
                             </button>
                         </div>
                     </div>
@@ -93,27 +95,47 @@
                <div class="card border">
                  <div class="card-header d-flex justify-content-between align-items-center border-0">
                    <div class="card-header-title">
-                    <h3 class="text-dark-2 mb-2 h4">Mart Categories Table</h3>
-                    <p class="mb-0 text-dark-2">Manage all mart categories in the system</p>
+                    <h3 class="text-dark-2 mb-2 h4">Mart Sub-Categories Table</h3>
+                    <p class="mb-0 text-dark-2">Manage all mart sub-categories in the system</p>
                    </div>
                    <div class="card-header-right d-flex align-items-center">
                     <div class="card-header-btn mr-3"> 
-                        <a class="btn-primary btn rounded-full" href="{!! route('mart-categories.create') !!}"><i class="mdi mdi-plus mr-2"></i>Create Mart Category</a>
+                        <?php if (in_array('mart-subcategories.create', json_decode(@session('user_permissions'),true))) { ?>
+                        <a href="{{ route('mart-subcategories.create', ['category_id' => $categoryId]) }}" class="btn btn-primary rounded-full">
+                            <i class="mdi mdi-plus mr-2"></i>Create Sub-Category
+                        </a>
+                        <?php } ?>
+                        <a href="{{ route('mart-categories') }}" class="btn btn-secondary rounded-full">
+                            <i class="mdi mdi-arrow-left mr-2"></i>Back to Categories
+                        </a>
                      </div>
                    </div>                
                  </div>
                  <div class="card-body">
+                     <div class="row mb-3">
+                         <div class="col-md-6">
+                             <div class="form-group">
+                                 <label class="font-weight-bold">Parent Category: <span id="parentCategoryTitle" class="text-primary">Loading...</span></label>
+                             </div>
+                         </div>
+                         <div class="col-md-6">
+                             <div class="form-group">
+                                 <label class="font-weight-bold">Section: <span id="sectionInfo" class="text-info">Loading...</span></label>
+                             </div>
+                         </div>
+                     </div>
                          <div class="table-responsive m-t-10">
-                            <table id="categoriesTable" class="display nowrap table table-hover table-striped table-bordered table table-striped" cellspacing="0" width="100%">
+                            <table id="subcategoriesTable" class="display nowrap table table-hover table-striped table-bordered table table-striped" cellspacing="0" width="100%">
                                 <thead>
                                 <tr>
-                                    <?php if (in_array('mart-categories.delete', json_decode(@session('user_permissions'),true))) { ?>
+                                    <?php if (in_array('mart-subcategories.delete', json_decode(@session('user_permissions'),true))) { ?>
                                     <th class="delete-all"><input type="checkbox" id="is_active"><label class="col-3 control-label" for="is_active">
                                             <a id="deleteAll" class="do_not_delete" href="javascript:void(0)"><i class="mdi mdi-delete"></i> {{trans('lang.all')}}</a></label></th>
                                     <?php } ?>
-                                    <th>Mart Category Name</th>
+                                    <th>Sub-Category Name</th>
+                                    <th>Parent Category</th>
                                     <th>Section</th>
-                                    <th>Sub-Categories</th>
+                                    <th>Order</th>
                                     <th>Mart Items</th>
                                     <th>Published</th>
                                     <th>{{trans('lang.actions')}}</th>
@@ -132,25 +154,31 @@
 @section('scripts')
 <script type="text/javascript">
     var database = firebase.firestore();
-    var ref = database.collection('mart_categories').orderBy('title');
+    var categoryId = "{{ $categoryId }}";
+    var ref = database.collection('mart_subcategories').where('parent_category_id', '==', categoryId).orderBy('subcategory_order');
     var placeholderImage = '';
     var user_permissions = '<?php echo @session("user_permissions")?>';
     user_permissions = Object.values(JSON.parse(user_permissions));
     var checkDeletePermission = false;
-                            if ($.inArray('mart-categories.delete', user_permissions) >= 0) {
+    if ($.inArray('mart-subcategories.delete', user_permissions) >= 0) {
         checkDeletePermission = true;
     }
+
     $(document).ready(function () {
+        // Load parent category info
+        loadParentCategoryInfo();
+        
         jQuery("#data-table_processing").show();
         var placeholder = database.collection('settings').doc('placeHolderImage');
         placeholder.get().then(async function (snapshotsimage) {
             var placeholderImageData = snapshotsimage.data();
             placeholderImage = placeholderImageData.image;
         });
-        const table = $('#categoriesTable').DataTable({
-            pageLength: 10, // Number of rows per page
-            processing: false, // Show processing indicator
-            serverSide: true, // Enable server-side processing
+
+        const table = $('#subcategoriesTable').DataTable({
+            pageLength: 10,
+            processing: false,
+            serverSide: true,
             responsive: true,
             ajax: function (data, callback, settings) {
                 const start = data.start;
@@ -158,41 +186,40 @@
                 const searchValue = data.search.value.toLowerCase();
                 const orderColumnIndex = data.order[0].column;
                 const orderDirection = data.order[0].dir;
-                const orderableColumns = (checkDeletePermission) ? ['','title', 'section', 'subcategories_count', 'totalProducts','',''] : ['title', 'section', 'subcategories_count', 'totalProducts','','']; // Ensure this matches the actual column names
-                const orderByField = orderableColumns[orderColumnIndex]; // Adjust the index to match your table
+                const orderableColumns = (checkDeletePermission) ? ['','title', 'parent_category_title', 'section', 'subcategory_order', 'totalProducts','',''] : ['title', 'parent_category_title', 'section', 'subcategory_order', 'totalProducts','',''];
+                const orderByField = orderableColumns[orderColumnIndex];
+                
                 if (searchValue.length >= 3 || searchValue.length === 0) {
                     $('#data-table_processing').show();
                 }
+                
                 ref.get().then(async function (querySnapshot) {
                     if (querySnapshot.empty) {
-                        $('.category_count').text(0);    
-                        console.error("No data found in Firestore.");
-                        $('#data-table_processing').hide(); // Hide loader
+                        $('.subcategory_count').text(0);    
+                        console.log("No sub-categories found for this category.");
+                        $('#data-table_processing').hide();
                         callback({
                             draw: data.draw,
                             recordsTotal: 0,
                             recordsFiltered: 0,
-                            data: [] // No data
+                            data: []
                         });
                         return;
                     }
+
                     let records = [];
                     let filteredRecords = [];    
+
                     await Promise.all(querySnapshot.docs.map(async (doc) => {
                         let childData = doc.data();
-                        childData.id = doc.id; // Ensure the document ID is included in the data
-                        if (childData.id) {
-                            childData.totalProducts = await getProductTotal(childData.id);
-                        }
-                        else {
-                            childData.totalProducts = 0;
-                        }
+                        childData.id = doc.id;
+                        childData.totalProducts = await getProductTotal(childData.id);
+                        
                         if (searchValue) {
                             if (
                                 (childData.title && childData.title.toString().toLowerCase().includes(searchValue)) ||
-                                (childData.section && childData.section.toString().toLowerCase().includes(searchValue)) ||
-                                (childData.subcategories_count && childData.subcategories_count.toString().includes(searchValue)) ||
-                                (childData.totalProducts && childData.totalProducts.toString().includes(searchValue))
+                                (childData.description && childData.description.toString().toLowerCase().includes(searchValue)) ||
+                                (childData.section && childData.section.toString().toLowerCase().includes(searchValue))
                             ) {
                                 filteredRecords.push(childData);
                             }
@@ -200,10 +227,11 @@
                             filteredRecords.push(childData);
                         }
                     }));
+
                     filteredRecords.sort((a, b) => {
                         let aValue = a[orderByField] ? a[orderByField].toString().toLowerCase() : '';
                         let bValue = b[orderByField] ? b[orderByField].toString().toLowerCase() : '';
-                        if (orderByField === 'totalProducts') {
+                        if (orderByField === 'totalProducts' || orderByField === 'subcategory_order') {
                             aValue = a[orderByField] ? parseInt(a[orderByField]) : 0;
                             bValue = b[orderByField] ? parseInt(b[orderByField]) : 0;
                         }                        
@@ -213,106 +241,105 @@
                             return (aValue < bValue) ? 1 : -1;
                         }
                     });
+
                     const totalRecords = filteredRecords.length;
-                    $('.category_count').text(totalRecords);    
+                    $('.subcategory_count').text(totalRecords);    
+
                     filteredRecords.slice(start, start + length).forEach(function (childData) {
                         var id = childData.id;
-                        var route1 = '{{route("mart-categories.edit",":id")}}';
+                        var route1 = '{{route("mart-subcategories.edit",":id")}}';
                         route1 = route1.replace(':id', id);
-                        var url = '{{url("mart-items?categoryID=id")}}';
+                        var url = '{{url("mart-items?subcategoryID=id")}}';
                         url = url.replace("id", id);
-                        var ImageHtml=childData.photo == '' || childData.photo == null ? '<img alt="" width="100%" style="width:70px;height:70px;" src="' + placeholderImage + '" alt="image">' : '<img onerror="this.onerror=null;this.src=\'' + placeholderImage + '\'" alt="" width="100%" style="width:70px;height:70px;" src="' + childData.photo + '" alt="image">'
-                        var subcategoryLink = '{{ route("mart-subcategories.index", ["category_id" => ":category_id"]) }}'.replace(':category_id', childData.id);
-                        var subcategoryCount = childData.subcategories_count || 0;
-                        var hasSubcategories = childData.has_subcategories || false;
-                        var subcategoryHtml = '<a href="' + subcategoryLink + '" class="text-primary">' + subcategoryCount + ' sub-categories</a>';
+                        var ImageHtml = childData.photo == '' || childData.photo == null ? '<img alt="" width="100%" style="width:70px;height:70px;" src="' + placeholderImage + '" alt="image">' : '<img onerror="this.onerror=null;this.src=\'' + placeholderImage + '\'" alt="" width="100%" style="width:70px;height:70px;" src="' + childData.photo + '" alt="image">'
                         
                         records.push([
                             checkDeletePermission ? '<td class="delete-all"><input type="checkbox" id="is_open_' + childData.id + '" class="is_open" dataId="' + childData.id + '"><label class="col-3 control-label"\n' + 'for="is_open_' + childData.id + '" ></label></td>' : '',
                             ImageHtml+'<a href="' + route1 + '">' + childData.title + '</a>',
+                            '<span class="badge badge-info">' + (childData.parent_category_title || 'Unknown') + '</span>',
                             '<span class="badge badge-secondary">' + (childData.section || 'General') + '</span>',
-                            subcategoryHtml,
+                            '<span class="badge badge-light">' + (childData.subcategory_order || 1) + '</span>',
                             '<a href="' + url + '">'+childData.totalProducts+'</a>',
                             childData.publish ? '<label class="switch"><input type="checkbox" checked id="' + childData.id + '" name="isSwitch"><span class="slider round"></span></label>' : '<label class="switch"><input type="checkbox" id="' + childData.id + '" name="isSwitch"><span class="slider round"></span></label>',
-                            '<span class="action-btn"><a href="' + route1 + '"><i class="mdi mdi-lead-pencil" title="Edit"></i></a> <a href="' + subcategoryLink + '" class="btn btn-sm btn-info mr-1"><i class="mdi mdi-folder-multiple"></i> Manage</a><?php if(in_array('mart-categories.delete', json_decode(@session('user_permissions'),true))){ ?> <a id="' + childData.id + '" name="category-delete" class="delete-btn" href="javascript:void(0)"><i class="mdi mdi-delete"></i></a><?php } ?></span>'                           
+                            '<span class="action-btn"><a href="' + route1 + '"><i class="mdi mdi-lead-pencil" title="Edit"></i></a><?php if(in_array('mart-subcategories.delete', json_decode(@session('user_permissions'),true))){ ?> <a id="' + childData.id + '" name="subcategory-delete" class="delete-btn" href="javascript:void(0)"><i class="mdi mdi-delete"></i></a><?php } ?></span>'                           
                         ]);
                     });
-                    $('#data-table_processing').hide(); // Hide loader
+
+                    $('#data-table_processing').hide();
                     callback({
                         draw: data.draw,
-                        recordsTotal: totalRecords, // Total number of records in Firestore
-                        recordsFiltered: totalRecords, // Number of records after filtering (if any)
-                        data: records // The actual data to display in the table
+                        recordsTotal: totalRecords,
+                        recordsFiltered: totalRecords,
+                        data: records
                     });
                 }).catch(function (error) {
-                    console.error("Error fetching data from Firestore:", error);
-                    $('#data-table_processing').hide(); // Hide loader
+                    console.error("Error fetching sub-categories:", error);
+                    $('#data-table_processing').hide();
                     callback({
                         draw: data.draw,
                         recordsTotal: 0,
                         recordsFiltered: 0,
-                        data: [] // No data due to error
+                        data: []
                     });
                 });
             },           
-            order: (checkDeletePermission) ? [1, 'asc'] : [0,'asc'],
+            order: (checkDeletePermission) ? [4, 'asc'] : [3,'asc'],
             columnDefs: [
-                { orderable: false, targets: (checkDeletePermission) ? [0,3,4] : [2, 3] },
+                { orderable: false, targets: (checkDeletePermission) ? [0,5,6] : [4, 5] },
             ],
             "language": {
                 "zeroRecords": "{{trans("lang.no_record_found")}}",
                 "emptyTable": "{{trans("lang.no_record_found")}}",
-                "processing": "" // Remove default loader
+                "processing": ""
             },
         });
         table.columns.adjust().draw();
-        function debounce(func, wait) {
-            let timeout;
-            const context = this;
-            return function(...args) {
-                clearTimeout(timeout);
-                timeout = setTimeout(() => func.apply(context, args), wait);
-            };
-        }
-        $('#search-input').on('input', debounce(function () {
-            const searchValue = $(this).val();
-            if (searchValue.length >= 3) {
-                $('#data-table_processing').show();
-                table.search(searchValue).draw();
-            } else if (searchValue.length === 0) {
-                $('#data-table_processing').show();
-                table.search('').draw();
-            }
-        }, 300));
     });
-    async function getProductTotal(id, section_id) {
-        var mart_products = database.collection('mart_items').where('categoryID', '==', id);
-        var Product_total = 0;
-        if (section_id) {
-            mart_products = mart_products.where('section_id', '==', section_id)
-        }
-        await mart_products.get().then(async function (productSnapshots) {
-            Product_total = productSnapshots.docs.length;
-        });
-        return Product_total;
-    }
-    $(document).on("click", "a[name='category-delete']", async function (e) {
-        var id = this.id;
-        var categoryTitle = '';
-        try {
-            var doc = await database.collection('mart_categories').doc(id).get();
+
+    // Load parent category information
+    function loadParentCategoryInfo() {
+        database.collection('mart_categories').doc(categoryId).get().then(function(doc) {
             if (doc.exists) {
-                categoryTitle = doc.data().title || 'Unknown';
+                var data = doc.data();
+                $('#parentCategoryTitle').text(data.title);
+                $('#sectionInfo').text(data.section || 'General');
+                $('.parent-category-info').html('<span class="badge badge-info">Section: ' + (data.section || 'General') + '</span>');
+            }
+        }).catch(function(error) {
+            console.error('Error loading parent category:', error);
+        });
+    }
+
+    // Get product count for sub-category
+    async function getProductTotal(subcategoryId) {
+        try {
+            const querySnapshot = await database.collection('mart_items')
+                .where('subcategoryID', '==', subcategoryId)
+                .get();
+            return querySnapshot.size;
+        } catch (error) {
+            console.error('Error getting product count:', error);
+            return 0;
+        }
+    }
+
+    $(document).on("click", "a[name='subcategory-delete']", async function (e) {
+        var id = this.id;
+        var subcategoryTitle = '';
+        try {
+            var doc = await database.collection('mart_subcategories').doc(id).get();
+            if (doc.exists) {
+                subcategoryTitle = doc.data().title || 'Unknown';
             }
         } catch (error) {
-            console.error('Error getting category title:', error);
+            console.error('Error getting subcategory title:', error);
         }
-        await deleteDocumentWithImage('mart_categories',id,'photo');
-        console.log('✅ Mart Category deleted successfully, now logging activity...');
+        await deleteDocumentWithImage('mart_subcategories',id,'photo');
+        console.log('✅ Mart Sub-Category deleted successfully, now logging activity...');
         try {
             if (typeof logActivity === 'function') {
-                console.log('🔍 Calling logActivity for mart category deletion...');
-                await logActivity('mart_categories', 'deleted', 'Deleted mart category: ' + categoryTitle);
+                console.log('🔍 Calling logActivity for mart subcategory deletion...');
+                await logActivity('mart_subcategories', 'deleted', 'Deleted mart sub-category: ' + subcategoryTitle);
                 console.log('✅ Activity logging completed successfully');
             } else {
                 console.error('❌ logActivity function is not available');
@@ -320,36 +347,39 @@
         } catch (error) {
             console.error('❌ Error calling logActivity:', error);
         }
-        window.location.href = '{{ route("mart-categories")}}';
+        updateParentCategoryCount();
+        window.location.reload();
     });
+
     $("#is_active").click(function () {
-        $("#categoriesTable .is_open").prop('checked', $(this).prop('checked'));
+        $("#subcategoriesTable .is_open").prop('checked', $(this).prop('checked'));
     });
+
     $("#deleteAll").click(async function () {
-        if ($('#categoriesTable .is_open:checked').length) {
+        if ($('#subcategoriesTable .is_open:checked').length) {
             if (confirm("{{trans('lang.selected_delete_alert')}}")) {
                 jQuery("#data-table_processing").show();
-                var selectedCategories = [];
-                for (let i = 0; i < $('#categoriesTable .is_open:checked').length; i++) {
-                    var dataId = $('#categoriesTable .is_open:checked').eq(i).attr('dataId');
+                var selectedSubcategories = [];
+                for (let i = 0; i < $('#subcategoriesTable .is_open:checked').length; i++) {
+                    var dataId = $('#subcategoriesTable .is_open:checked').eq(i).attr('dataId');
                     try {
-                        var doc = await database.collection('mart_categories').doc(dataId).get();
+                        var doc = await database.collection('mart_subcategories').doc(dataId).get();
                         if (doc.exists) {
-                            selectedCategories.push(doc.data().title || 'Unknown');
+                            selectedSubcategories.push(doc.data().title || 'Unknown');
                         }
                     } catch (error) {
-                        console.error('Error getting category title:', error);
+                        console.error('Error getting subcategory title:', error);
                     }
                 }
-                for (let i = 0; i < $('#categoriesTable .is_open:checked').length; i++) {
-                    var dataId = $('#categoriesTable .is_open:checked').eq(i).attr('dataId');
-                    await deleteDocumentWithImage('mart_categories',dataId,'photo');
+                for (let i = 0; i < $('#subcategoriesTable .is_open:checked').length; i++) {
+                    var dataId = $('#subcategoriesTable .is_open:checked').eq(i).attr('dataId');
+                    await deleteDocumentWithImage('mart_subcategories',dataId,'photo');
                 }
-                console.log('✅ Bulk mart category deletion completed, now logging activity...');
+                console.log('✅ Bulk mart subcategory deletion completed, now logging activity...');
                 try {
                     if (typeof logActivity === 'function') {
-                        console.log('🔍 Calling logActivity for bulk mart category deletion...');
-                        await logActivity('mart_categories', 'bulk_deleted', 'Bulk deleted mart categories: ' + selectedCategories.join(', '));
+                        console.log('🔍 Calling logActivity for bulk mart subcategory deletion...');
+                        await logActivity('mart_subcategories', 'bulk_deleted', 'Bulk deleted mart sub-categories: ' + selectedSubcategories.join(', '));
                         console.log('✅ Activity logging completed successfully');
                     } else {
                         console.error('❌ logActivity function is not available');
@@ -357,31 +387,33 @@
                 } catch (error) {
                     console.error('❌ Error calling logActivity:', error);
                 }
+                updateParentCategoryCount();
                 window.location.reload();
             }
         } else {
             alert("{{trans('lang.select_delete_alert')}}");
         }
     });
+
     $(document).on("click", "input[name='isSwitch']", async function (e) {
         var ischeck = $(this).is(':checked');
         var id = this.id;
-        var categoryTitle = '';
+        var subcategoryTitle = '';
         try {
-            var doc = await database.collection('mart_categories').doc(id).get();
+            var doc = await database.collection('mart_subcategories').doc(id).get();
             if (doc.exists) {
-                categoryTitle = doc.data().title || 'Unknown';
+                subcategoryTitle = doc.data().title || 'Unknown';
             }
         } catch (error) {
-            console.error('Error getting category title:', error);
+            console.error('Error getting subcategory title:', error);
         }
         if (ischeck) {
-            database.collection('mart_categories').doc(id).update({'publish': true}).then(async function (result) {
-                console.log('✅ Mart Category published successfully, now logging activity...');
+            database.collection('mart_subcategories').doc(id).update({'publish': true}).then(async function (result) {
+                console.log('✅ Mart Sub-Category published successfully, now logging activity...');
                 try {
                     if (typeof logActivity === 'function') {
-                        console.log('🔍 Calling logActivity for mart category publish...');
-                        await logActivity('mart_categories', 'published', 'Published mart category: ' + categoryTitle);
+                        console.log('🔍 Calling logActivity for mart subcategory publish...');
+                        await logActivity('mart_subcategories', 'published', 'Published mart sub-category: ' + subcategoryTitle);
                         console.log('✅ Activity logging completed successfully');
                     } else {
                         console.error('❌ logActivity function is not available');
@@ -391,12 +423,12 @@
                 }
             });
         } else {
-            database.collection('mart_categories').doc(id).update({'publish': false}).then(async function (result) {
-                console.log('✅ Mart Category unpublished successfully, now logging activity...');
+            database.collection('mart_subcategories').doc(id).update({'publish': false}).then(async function (result) {
+                console.log('✅ Mart Sub-Category unpublished successfully, now logging activity...');
                 try {
                     if (typeof logActivity === 'function') {
-                        console.log('🔍 Calling logActivity for mart category unpublish...');
-                        await logActivity('mart_categories', 'unpublished', 'Unpublished mart category: ' + categoryTitle);
+                        console.log('🔍 Calling logActivity for mart subcategory unpublish...');
+                        await logActivity('mart_subcategories', 'unpublished', 'Unpublished mart sub-category: ' + subcategoryTitle);
                         console.log('✅ Activity logging completed successfully');
                     } else {
                         console.error('❌ logActivity function is not available');
@@ -407,5 +439,17 @@
             });
         }
     });
+
+    // Update parent category sub-category count
+    function updateParentCategoryCount() {
+        database.collection('mart_subcategories')
+            .where('parent_category_id', '==', categoryId)
+            .get().then(function(querySnapshot) {
+                database.collection('mart_categories').doc(categoryId).update({
+                    subcategories_count: querySnapshot.size,
+                    has_subcategories: querySnapshot.size > 0
+                });
+            });
+    }
 </script>
 @endsection

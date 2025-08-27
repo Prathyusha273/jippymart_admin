@@ -469,6 +469,34 @@
                                                 </tr>
                                                 <tr>
                                                     <td>
+                                                        <strong>{{ trans('lang.mart_subcategory_plural') }}</strong>
+                                                    </td>
+                                                    <td>
+                                                        <input type="checkbox" id="mart-subcategories-list" value="mart-subcategories"
+                                                            name="mart-subcategories[]" class="permission"
+                                                            {{ in_array('mart-subcategories', $permissions) ? 'checked' : '' }}>
+                                                        <label class=" control-label2"
+                                                            for="mart-subcategories-list">{{ trans('lang.list') }}</label>
+                                                        <input type="checkbox" id="mart-subcategories-create"
+                                                            value="mart-subcategories.create" name="mart-subcategories[]"
+                                                            class="permission"
+                                                            {{ in_array('mart-subcategories.create', $permissions) ? 'checked' : '' }}>
+                                                        <label class=" control-label2"
+                                                            for="mart-subcategories-create">{{ trans('lang.create') }}</label>
+                                                        <input type="checkbox" id="mart-subcategories-edit"
+                                                            value="mart-subcategories.edit" name="mart-subcategories[]" class="permission"
+                                                            {{ in_array('mart-subcategories.edit', $permissions) ? 'checked' : '' }}>
+                                                        <label class=" control-label2"
+                                                            for="mart-subcategories-edit">{{ trans('lang.edit') }}</label>
+                                                        <input type="checkbox" id="mart-subcategories-delete"
+                                                            value="mart-subcategories.delete" name="mart-subcategories[]" class="permission"
+                                                            {{ in_array('mart-subcategories.delete', $permissions) ? 'checked' : '' }}>
+                                                        <label class=" control-label2"
+                                                            for="mart-subcategories-delete">{{ trans('lang.delete') }}</label>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
                                                         <strong>{{ trans('lang.cuisines_plural') }}</strong>
                                                     </td>
                                                     <td>

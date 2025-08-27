@@ -330,6 +330,13 @@ return [
     'mart_category_table' => 'Mart Category List',
     'mart_category_table_text' => 'Manage your mart product categories',
 
+    // Mart Sub-Categories
+    'mart_subcategory_plural' => 'Mart Sub-Categories',
+    'mart_subcategory_create' => 'Create Mart Sub-Category',
+    'mart_subcategory_edit' => 'Edit Mart Sub-Category',
+    'mart_subcategory_table' => 'Mart Sub-Category List',
+    'mart_subcategory_table_text' => 'Manage your mart sub-categories',
+
     // Mart Items
     'mart_item_plural' => 'Mart Items',
     'mart_item_create' => 'Create Mart Item',

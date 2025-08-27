@@ -216,6 +216,28 @@ Route::middleware(['permission:mart-categories,mart-categories.create'])->group(
 });
 Route::post('/mart-categories/import', [App\Http\Controllers\MartCategoryController::class, 'import'])->name('mart-categories.import');
 Route::get('/mart-categories/download-template', [App\Http\Controllers\MartCategoryController::class, 'downloadTemplate'])->name('mart-categories.download-template');
+
+// Mart Sub-Categories Routes (Temporary - without permissions for testing)
+Route::get('/mart-categories/{category_id}/subcategories', [App\Http\Controllers\MartSubcategoryController::class, 'index'])->name('mart-subcategories.index');
+Route::get('/mart-categories/{category_id}/subcategories/create', [App\Http\Controllers\MartSubcategoryController::class, 'create'])->name('mart-subcategories.create');
+Route::get('/mart-subcategories/{id}/edit', [App\Http\Controllers\MartSubcategoryController::class, 'edit'])->name('mart-subcategories.edit');
+Route::post('/mart-subcategories/import', [App\Http\Controllers\MartSubcategoryController::class, 'import'])->name('mart-subcategories.import');
+Route::get('/mart-subcategories/download-template', [App\Http\Controllers\MartSubcategoryController::class, 'downloadTemplate'])->name('mart-subcategories.download-template');
+
+// Original routes with permissions (commented out for now)
+/*
+Route::middleware(['permission:mart-subcategories,mart-subcategories'])->group(function () {
+    Route::get('/mart-categories/{category_id}/subcategories', [App\Http\Controllers\MartSubcategoryController::class, 'index'])->name('mart-subcategories.index');
+});
+Route::middleware(['permission:mart-subcategories,mart-subcategories.create'])->group(function () {
+    Route::get('/mart-categories/{category_id}/subcategories/create', [App\Http\Controllers\MartSubcategoryController::class, 'create'])->name('mart-subcategories.create');
+});
+Route::middleware(['permission:mart-subcategories,mart-subcategories.edit'])->group(function () {
+    Route::get('/mart-subcategories/{id}/edit', [App\Http\Controllers\MartSubcategoryController::class, 'edit'])->name('mart-subcategories.edit');
+});
+Route::post('/mart-subcategories/import', [App\Http\Controllers\MartSubcategoryController::class, 'import'])->name('mart-subcategories.import');
+Route::get('/mart-subcategories/download-template', [App\Http\Controllers\MartSubcategoryController::class, 'downloadTemplate'])->name('mart-subcategories.download-template');
+*/
 Route::post('/cuisines/import', [CuisineController::class, 'import'])->name('cuisines.import');
 Route::get('/cuisines/download-template', [CuisineController::class, 'downloadTemplate'])->name('cuisines.download-template');
 
