@@ -263,7 +263,9 @@
                     await Promise.all(querySnapshot.docs.map(async (doc) => {
                         let childData = doc.data();
                         childData.id = doc.id;
+                        console.log('🔍 Processing subcategory:', childData.title, 'ID:', childData.id);
                         childData.totalProducts = await getProductTotal(childData.id);
+                        console.log('📊 Total products for', childData.title, ':', childData.totalProducts);
                         
                         if (searchValue) {
                             if (
@@ -378,11 +380,54 @@
     async function getProductTotal(subcategoryId) {
         try {
             console.log('🔍 Getting product count for sub-category:', subcategoryId);
-            const querySnapshot = await database.collection('mart_items')
-                .where('subcategoryID', '==', subcategoryId)
-                .get();
-            console.log('✅ Product count for sub-category', subcategoryId, ':', querySnapshot.size);
-            return querySnapshot.size;
+            
+            // First, let's check if there are any mart items at all
+            const allItemsSnapshot = await database.collection('mart_items').limit(5).get();
+            console.log('🔍 Total mart items in database:', allItemsSnapshot.size);
+            
+            if (allItemsSnapshot.size > 0) {
+                console.log('📋 Sample mart items:');
+                allItemsSnapshot.docs.forEach(doc => {
+                    const data = doc.data();
+                    console.log(`📦 Item: ${data.name || 'Unknown'} (ID: ${doc.id})`);
+                    console.log(`   - subcategoryID: ${data.subcategoryID || 'NOT SET'}`);
+                    console.log(`   - categoryID: ${data.categoryID || 'NOT SET'}`);
+                });
+            }
+            
+            // Try multiple possible field names
+            const possibleFields = ['subcategoryID', 'subcategory_id', 'subcategoryId', 'sub_category_id', 'sub_categoryID'];
+            let totalCount = 0;
+            
+            for (const fieldName of possibleFields) {
+                try {
+                    console.log(`🔍 Trying field: ${fieldName}`);
+                    const querySnapshot = await database.collection('mart_items')
+                        .where(fieldName, '==', subcategoryId)
+                        .get();
+                    
+                    if (querySnapshot.size > 0) {
+                        console.log(`✅ Found ${querySnapshot.size} items using field: ${fieldName}`);
+                        totalCount = querySnapshot.size;
+                        
+                        // Log the items found for debugging
+                        querySnapshot.docs.forEach(doc => {
+                            const data = doc.data();
+                            console.log(`📦 Item: ${data.name || 'Unknown'} (ID: ${doc.id})`);
+                        });
+                        
+                        break; // Found items, no need to check other fields
+                    } else {
+                        console.log(`❌ No items found using field: ${fieldName}`);
+                    }
+                } catch (fieldError) {
+                    console.log(`❌ Error with field ${fieldName}:`, fieldError.message);
+                }
+            }
+            
+            console.log('✅ Final product count for sub-category', subcategoryId, ':', totalCount);
+            return totalCount;
+            
         } catch (error) {
             console.error('❌ Error getting product count for sub-category', subcategoryId, ':', error);
             return 0;

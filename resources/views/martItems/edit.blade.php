@@ -92,6 +92,21 @@
                                     </div>
                                 </div>
                             </div>
+                            
+                            <div class="form-group row width-100">
+                                <label class="col-3 control-label">Mart Sub-Categories</label>
+                                <div class="col-7">
+                                    <div id="selected_subcategories" class="mb-2"></div>
+                                    <input type="text" id="food_subcategory_search" class="form-control mb-2" placeholder="Search mart sub-categories...">
+                                    <select id='food_subcategory' class="form-control" multiple>
+                                        <option value="">Select mart sub-categories (optional)</option>
+                                        <!-- options populated dynamically -->
+                                    </select>
+                                    <div class="form-text text-muted">
+                                     Select the mart sub-categories for this item (optional)
+                                    </div>
+                                </div>
+                            </div>
                             <div class="form-group row width-50">
                                 <label class="col-3 control-label">{{trans('lang.item_quantity')}}</label>
                                 <div class="col-7">
@@ -148,11 +163,127 @@
                                 <label class="col-3 control-label"
                                        for="food_take_away_option">{{trans('lang.food_take_away')}}</label>
                             </div>
-                            <div class="form-check width-100">
-                                <input type="checkbox" class="food_is_available" id="food_is_available">
-                                <label class="col-3 control-label" for="food_is_available">Available</label>
+                                                    <div class="form-check width-100">
+                            <input type="checkbox" class="food_is_available" id="food_is_available">
+                            <label class="col-3 control-label" for="food_is_available">Available</label>
+                        </div>
+                        
+                        <!-- Enhanced Item Features -->
+                        <div class="form-group row width-100">
+                            <label class="col-3 control-label">Item Features</label>
+                            <div class="col-7">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <div class="form-check">
+                                            <input type="checkbox" class="form-check-input" id="isSpotlight">
+                                            <label class="form-check-label" for="isSpotlight">Spotlight</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-check">
+                                            <input type="checkbox" class="form-check-input" id="isStealOfMoment">
+                                            <label class="form-check-label" for="isStealOfMoment">Steal of Moment</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-check">
+                                            <input type="checkbox" class="form-check-input" id="isFeature">
+                                            <label class="form-check-label" for="isFeature">Featured</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-check">
+                                            <input type="checkbox" class="form-check-input" id="isTrending">
+                                            <label class="form-check-label" for="isTrending">Trending</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row mt-2">
+                                    <div class="col-md-3">
+                                        <div class="form-check">
+                                            <input type="checkbox" class="form-check-input" id="isNew">
+                                            <label class="form-check-label" for="isNew">New Arrival</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-check">
+                                            <input type="checkbox" class="form-check-input" id="isBestSeller">
+                                            <label class="form-check-label" for="isBestSeller">Best Seller</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-check">
+                                            <input type="checkbox" class="form-check-input" id="isSeasonal">
+                                            <label class="form-check-label" for="isSeasonal">Seasonal</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-text text-muted">
+                                    Select item features for better categorization and filtering
+                                </div>
                             </div>
-                        </fieldset>
+                        </div>
+                    </fieldset>
+                    
+                    <!-- Options Configuration -->
+                    <fieldset>
+                        <legend>Options Configuration</legend>
+                        
+                        <div class="form-check width-100">
+                            <input type="checkbox" class="has_options" id="has_options">
+                            <label class="col-3 control-label" for="has_options">
+                                <strong>Enable Options for this item</strong>
+                            </label>
+                            <div class="form-text text-muted">
+                                Enable this to create different variants/sizes for this item
+                            </div>
+                        </div>
+                        
+                        <div id="options_config" style="display:none;">
+                            <div class="alert alert-info">
+                                <i class="mdi mdi-information-outline"></i>
+                                <strong>Options will be stored as part of this item.</strong>
+                                Each option can have its own price, image, and specifications.
+                            </div>
+                            
+                            <div class="form-group row width-50">
+                                <label class="col-3 control-label">Default Option</label>
+                                <div class="col-7">
+                                    <select id="default_option" class="form-control">
+                                        <option value="">Select default option</option>
+                                    </select>
+                                    <div class="form-text text-muted">
+                                        The default option will be automatically selected when customers view this item. 
+                                        This is typically the featured option or the most popular choice.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+                    
+                    <!-- Options Management -->
+                    <fieldset id="options_fieldset" style="display:none;">
+                        <legend>Item Options</legend>
+                        
+                        <div class="options-list">
+                            <!-- Dynamic options will be added here -->
+                        </div>
+                        
+                        <div class="form-group row width-100">
+                            <div class="col-12 text-center">
+                                <button type="button" class="btn btn-primary" onclick="addNewOption()">
+                                    <i class="mdi mdi-plus"></i> Add Option
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="options-summary" style="display:none;">
+                            <h5>Options Summary</h5>
+                            <div class="summary-content">
+                                <!-- Will show price range and option count -->
+                            </div>
+                        </div>
+                    </fieldset>
                         <!-- Hidden ingredients fieldset for now -->
                         <fieldset style="display: none">
                             <legend>{{trans('lang.ingredients')}}</legend>
@@ -272,6 +403,220 @@
             </div>
         </div>
     </div>
+</div>
+
+<!-- Option Template (Hidden) -->
+<div id="option_template" style="display:none;">
+    <div class="option-item" data-option-id="">
+        <div class="option-header">
+            <h5>Option #<span class="option-number"></span></h5>
+            <button type="button" class="btn btn-danger btn-sm" onclick="removeOption(this)">
+                <i class="mdi mdi-delete"></i>
+            </button>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label>Option Type</label>
+                    <select class="form-control option-type">
+                        <option value="size">Size/Weight (kg, g, mg)</option>
+                        <option value="volume">Volume (L, ml, cl)</option>
+                        <option value="quantity">Quantity (pcs, units)</option>
+                        <option value="pack">Pack (dozen, bundle)</option>
+                        <option value="bundle">Bundle (mixed items)</option>
+                        <option value="addon">Add-on (extras)</option>
+                        <option value="variant">Variant (organic, premium)</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label>Option Title</label>
+                    <input type="text" class="form-control option-title" placeholder="e.g., Pack of 2">
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label>Option Subtitle</label>
+                    <input type="text" class="form-control option-subtitle" placeholder="e.g., 180 g X 2">
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label>Price (₹)</label>
+                    <input type="number" class="form-control option-price" step="0.01" min="0">
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label>Original Price (₹)</label>
+                    <input type="number" class="form-control option-original-price" step="0.01" min="0">
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label>Quantity</label>
+                    <input type="number" class="form-control option-quantity" min="0">
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label>Unit</label>
+                    <select class="form-control option-quantity-unit">
+                        <option value="g">Grams (g)</option>
+                        <option value="kg">Kilograms (kg)</option>
+                        <option value="mg">Milligrams (mg)</option>
+                        <option value="L">Liters (L)</option>
+                        <option value="ml">Milliliters (ml)</option>
+                        <option value="pcs">Pieces (pcs)</option>
+                        <option value="units">Units</option>
+                        <option value="dozen">Dozen</option>
+                        <option value="custom">Custom</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label>Unit Measure Base</label>
+                    <input type="number" class="form-control option-unit-measure" value="100">
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label>Unit Price Display</label>
+                    <input type="text" class="form-control option-unit-price-display" readonly>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label>Discount Amount</label>
+                    <input type="number" class="form-control option-discount" step="0.01" readonly>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label>Savings Display</label>
+                    <input type="text" class="form-control option-savings-display" readonly>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label>Smart Suggestions</label>
+                    <div class="smart-suggestions-display">
+                        <small class="text-muted">Select option type for smart defaults</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label>Option Image</label>
+            <input type="file" class="option-image-input" accept="image/*">
+            <div class="option-image-preview"></div>
+        </div>
+        
+        <div class="form-check">
+            <input type="checkbox" class="option-available" checked>
+            <label>Available</label>
+        </div>
+        
+        <div class="form-check">
+            <input type="checkbox" class="option-featured">
+            <label>Featured (Show first)</label>
+        </div>
+    </div>
+</div>
+
+<style>
+.option-item {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    background: #f9f9f9;
+}
+
+.option-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+
+.option-header h5 {
+    margin: 0;
+    color: #333;
+}
+
+.option-image-preview {
+    margin-top: 10px;
+}
+
+.option-image-preview img {
+    border: 1px solid #ddd;
+}
+
+.options-summary {
+    background: #e8f5e8;
+    border: 1px solid #c3e6cb;
+    border-radius: 4px;
+    padding: 15px;
+    margin-top: 20px;
+}
+
+.summary-content {
+    margin: 0;
+}
+
+#options_config {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 15px;
+    margin-top: 15px;
+}
+
+.selected-subcategory-tag {
+    display: inline-block;
+    background: #007bff;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    margin: 2px;
+    font-size: 12px;
+    position: relative;
+}
+
+.selected-subcategory-tag .remove-tag {
+    margin-left: 5px;
+    cursor: pointer;
+    font-weight: bold;
+}
+</style>
+
 @endsection
 @section('scripts')
     <script>
@@ -429,6 +774,25 @@
                         updateSelectedFoodCategoryTags();
                     })
                 });
+                
+                // Load subcategories
+                await database.collection('mart_subcategories').where('publish', '==', true).get().then(async function (snapshots) {
+                    snapshots.docs.forEach((listval) => {
+                        var data = listval.data();
+                        if (data.id == product.subcategoryID) {
+                            $('#food_subcategory').append($("<option selected></option>")
+                                .attr("value", data.id)
+                                .attr("data-parent", data.parent_category_id)
+                                .text(data.title));
+                        } else {
+                            $('#food_subcategory').append($("<option></option>")
+                                .attr("value", data.id)
+                                .attr("data-parent", data.parent_category_id)
+                                .text(data.title));
+                        }
+                        updateSelectedSubcategoryTags();
+                    })
+                });
                 var selected_attributes = [];
                 if (product.item_attribute != null) {
                     $("#attributes_div").show();
@@ -530,6 +894,33 @@
                 if (product.hasOwnProperty('isAvailable') && product.isAvailable) {
                     $(".food_is_available").prop('checked', true);
                 }
+                
+                // Load existing options if any - moved here after product data is loaded
+                console.log('🔍 Checking for options in product:', product);
+                console.log('🔍 Product has_options:', product?.has_options);
+                console.log('🔍 Product options:', product?.options);
+                console.log('🔍 Options length:', product?.options?.length);
+                
+                if (product && product.has_options && product.options && product.options.length > 0) {
+                    console.log('✅ Loading existing options...');
+                    $('.has_options').prop('checked', true);
+                    $('#options_config').show();
+                    $('#options_fieldset').show();
+                    console.log('🔧 Options fieldset shown:', $('#options_fieldset').is(':visible'));
+                    console.log('🔧 Options config shown:', $('#options_config').is(':visible'));
+                    
+                    // Load existing options
+                    product.options.forEach((option, index) => {
+                        console.log('📋 Loading option:', option);
+                        loadExistingOption(option, index + 1);
+                    });
+                    
+                    updateOptionsSummary();
+                    updateDefaultOptionSelect();
+                } else {
+                    console.log('❌ No options found or conditions not met');
+                }
+                
                 jQuery("#data-table_processing").hide();
             })
             $(".edit-form-btn").click( async function () {
@@ -690,30 +1081,93 @@
                         photo = IMG[0];
                     }
                     var foodIsAvailable = $(".food_is_available").is(":checked");
-                    database.collection('mart_items').doc(id).update({
-                        'name': name,
-                        'price': price.toString(),
-                        'quantity': parseInt(quantity),
-                        'disPrice': discount,
-                        'vendorID': restaurant,
-                        'categoryID': category,
-                        'photo': photo,
-                        'calories': foodCalories,
-                        "grams": foodGrams,
-                        'proteins': foodProteins,
-                        'fats': foodFats,
-                        'description': description,
+                    const hasOptions = $(".has_options").is(":checked");
+                    let updateData = {
+                        'name': name || '',
+                        'price': price.toString() || '0',
+                        'quantity': parseInt(quantity) || 0,
+                        'disPrice': discount || '0',
+                        'vendorID': restaurant || '',
+                        'categoryID': category || '',
+                        'subcategoryID': $("#food_subcategory").val() || '', // Add subcategory
+                        'photo': photo || '',
+                        'calories': foodCalories || 0,
+                        "grams": foodGrams || 0,
+                        'proteins': foodProteins || 0,
+                        'fats': foodFats || 0,
+                        'description': description || '',
                         'publish': foodPublish,
                         'nonveg': nonveg,
                         'veg': veg,
-                        'addOnsTitle': addOnesTitle,
-                        'addOnsPrice': addOnesPrice,
+                        'addOnsTitle': addOnesTitle || [],
+                        'addOnsPrice': addOnesPrice || [],
                         'takeawayOption': foodTakeaway,
-                        'product_specification': product_specification,
-                        'item_attribute': item_attribute,
-                        'photos': IMG,
-                        'isAvailable': foodIsAvailable
-                    }).then(async function (result) {
+                        'product_specification': product_specification || {},
+                        'item_attribute': item_attribute || null,
+                        'photos': IMG || [],
+                        'isAvailable': foodIsAvailable,
+                        'updated_at': firebase.firestore.FieldValue.serverTimestamp()
+                    };
+                    
+                    // Handle options
+                    if (hasOptions && optionsList.length > 0) {
+                        // Validate options
+                        for (let option of optionsList) {
+                            if (!option.title || !option.price || option.price <= 0) {
+                                alert('Please fill all required fields for all options.');
+                                return;
+                            }
+                        }
+                        
+                        // Prepare options data
+                        const optionsData = optionsList.map((option, index) => ({
+                            id: option.id || `option_${Date.now()}_${index}`,
+                            option_type: option.type || 'size',
+                            option_title: option.title || '',
+                            option_subtitle: option.subtitle || '',
+                            price: parseFloat(option.price) || 0,
+                            original_price: parseFloat(option.original_price) || parseFloat(option.price) || 0,
+                            discount_amount: parseFloat(option.discount_amount) || 0,
+                            unit_price: parseFloat(option.unit_price) || 0,
+                            unit_measure: parseFloat(option.unit_measure) || 100,
+                            unit_measure_type: option.unit_measure_type || 'g',
+                            quantity: parseFloat(option.quantity) || 0,
+                            quantity_unit: option.quantity_unit || 'g',
+                            image: option.image || '',
+                            is_available: option.is_available !== false,
+                            is_featured: option.is_featured === true,
+                            sort_order: index + 1,
+                            updated_at: new Date().toISOString()
+                        }));
+                        
+                        // Calculate price range
+                        const prices = optionsList.map(opt => opt.price);
+                        const minPrice = Math.min(...prices);
+                        const maxPrice = Math.max(...prices);
+                        const defaultOptionId = optionsList.find(opt => opt.is_featured)?.id || optionsList[0]?.id;
+                        
+                        updateData = {
+                            ...updateData,
+                            has_options: true,
+                            options_enabled: true,
+                            options_count: optionsList.length || 0,
+                            min_price: minPrice || 0,
+                            max_price: maxPrice || 0,
+                            price_range: `₹${minPrice || 0} - ₹${maxPrice || 0}`,
+                            default_option_id: defaultOptionId || '',
+                            options: optionsData
+                        };
+                    } else {
+                        updateData = {
+                            ...updateData,
+                            has_options: false,
+                            options_enabled: false,
+                            options_count: 0,
+                            options: []
+                        };
+                    }
+                    
+                    database.collection('mart_items').doc(id).update(updateData).then(async function (result) {
                         console.log('✅ Mart item updated successfully, now logging activity...');
                         try {
                             if (typeof logActivity === 'function') {
@@ -1175,5 +1629,630 @@
         });
         $('#selected_categories').html(html);
     }
+
+// Subcategory search and multi-select tag functionality
+$(document).ready(function() {
+    // 1. Filter dropdown options based on search
+    $('#food_subcategory_search').on('keyup', function() {
+        var search = $(this).val().toLowerCase();
+        $('#food_subcategory option').each(function() {
+            if ($(this).val() === "") {
+                $(this).show();
+                return;
+            }
+            var text = $(this).text().toLowerCase();
+            if (text.indexOf(search) > -1) {
+                $(this).show();
+            } else {
+                $(this).hide();
+            }
+        });
+    });
+
+    // 2. When selecting from dropdown, add tag (multi-select support)
+    $('#food_subcategory').on('change', function() {
+        updateSelectedSubcategoryTags();
+    });
+
+    // 3. Remove tag and unselect in dropdown
+    $('#selected_subcategories').on('click', '.remove-tag', function() {
+        var value = $(this).parent().data('value');
+        $('#food_subcategory option[value="' + value + '"]').prop('selected', false);
+        updateSelectedSubcategoryTags();
+    });
+});
+
+function updateSelectedSubcategoryTags() {
+    var selected = $('#food_subcategory').val() || [];
+    var html = '';
+    $('#food_subcategory option:selected').each(function() {
+        if ($(this).val() !== "") {
+            html += '<span class="selected-subcategory-tag" data-value="' + $(this).val() + '">' +
+                $(this).text() +
+                '<span class="remove-tag">&times;</span></span>';
+        }
+    });
+    $('#selected_subcategories').html(html);
+}
+
+// Options Management Functions
+let optionsList = [];
+let currentOptionId = null;
+
+// Options loading is now handled after Firebase data is loaded
+
+// Toggle options section
+$(document).ready(function() {
+    $('.has_options').change(function() {
+        if ($(this).is(':checked')) {
+            $('#options_config').show();
+            $('#options_fieldset').show();
+        } else {
+            $('#options_config').hide();
+            $('#options_fieldset').hide();
+            $('.options-list').empty();
+            optionsList = [];
+            updateOptionsSummary();
+        }
+    });
+});
+
+function loadExistingOption(optionData, optionNumber) {
+    console.log('🔧 loadExistingOption called with:', optionData, 'optionNumber:', optionNumber);
+    const optionId = optionData.id || 'option_' + Date.now();
+    const template = $('#option_template .option-item').clone();
+    console.log('🔧 Template found:', template.length > 0);
+    
+    template.attr('data-option-id', optionId);
+    template.find('.option-number').text(optionNumber);
+    
+    // Populate fields with existing data
+    template.find('.option-type').val(optionData.option_type || 'size');
+    template.find('.option-title').val(optionData.option_title || '');
+    template.find('.option-subtitle').val(optionData.option_subtitle || '');
+    template.find('.option-price').val(optionData.price || 0);
+    template.find('.option-original-price').val(optionData.original_price || optionData.price || 0);
+    template.find('.option-quantity').val(optionData.quantity || optionData.weight || 0);
+    template.find('.option-quantity-unit').val(optionData.quantity_unit || 'g');
+    template.find('.option-unit-measure').val(optionData.unit_measure || 100);
+    template.find('.option-unit-price-display').val(optionData.unit_price_display || '');
+    template.find('.option-unit-price').val(optionData.unit_price || 0);
+    template.find('.option-discount').val(optionData.discount_amount || 0);
+    template.find('.option-available').prop('checked', optionData.is_available !== false);
+    template.find('.option-featured').prop('checked', optionData.is_featured === true);
+    
+    // Load image if exists
+    if (optionData.image) {
+        template.find('.option-image-preview').html(
+            `<img src="${optionData.image}" style="max-width: 100px; max-height: 100px; border-radius: 4px;">`
+        );
+    }
+    
+    $('.options-list').append(template);
+    template.show();
+    console.log('🔧 Option template appended and shown. Total options in DOM:', $('.option-item').length);
+    
+    // Add to options list
+    optionsList.push({
+        id: optionId,
+        type: optionData.option_type || 'size',
+        title: optionData.option_title || '',
+        subtitle: optionData.option_subtitle || '',
+        price: parseFloat(optionData.price) || 0,
+        original_price: parseFloat(optionData.original_price) || parseFloat(optionData.price) || 0,
+        quantity: parseFloat(optionData.quantity) || parseFloat(optionData.weight) || 0,
+        quantity_unit: optionData.quantity_unit || 'g',
+        unit_measure: parseFloat(optionData.unit_measure) || 100,
+        unit_price: parseFloat(optionData.unit_price) || 0,
+        unit_price_display: optionData.unit_price_display || '',
+        discount_amount: parseFloat(optionData.discount_amount) || 0,
+        image: optionData.image || '',
+        is_available: optionData.is_available !== false,
+        is_featured: optionData.is_featured === true
+    });
+    
+    console.log('🔧 Option added to optionsList. Total options:', optionsList.length);
+    attachOptionEventListeners(optionId);
+}
+
+function addNewOption() {
+    const optionId = 'option_' + Date.now();
+    const template = $('#option_template .option-item').clone();
+    
+    template.attr('data-option-id', optionId);
+    template.find('.option-number').text(optionsList.length + 1);
+    
+    $('.options-list').append(template);
+    template.show();
+    
+    optionsList.push({
+        id: optionId,
+        type: 'size',
+        title: '',
+        subtitle: '',
+        price: 0,
+        original_price: 0,
+        quantity: 0,
+        quantity_unit: 'g',
+        unit_measure: 100,
+        unit_measure_type: 'g',
+        unit_price: 0,
+        unit_price_display: '',
+        discount_amount: 0,
+        image: '',
+        is_available: true,
+        is_featured: false
+    });
+    
+    attachOptionEventListeners(optionId);
+    updateOptionsSummary();
+    updateDefaultOptionSelect();
+}
+
+function removeOption(button) {
+    const optionItem = $(button).closest('.option-item');
+    const optionId = optionItem.data('option-id');
+    
+    // Remove from array
+    optionsList = optionsList.filter(opt => opt.id !== optionId);
+    
+    // Remove from DOM
+    optionItem.remove();
+    
+    updateOptionNumbers();
+    updateOptionsSummary();
+    updateDefaultOptionSelect();
+}
+
+function attachOptionEventListeners(optionId) {
+    const optionItem = $(`[data-option-id="${optionId}"]`);
+    
+    // Update optionsList when form fields change
+    optionItem.find('.option-type').on('change', function() {
+        updateOptionInList(optionId, 'type', $(this).val());
+    });
+    
+    optionItem.find('.option-title').on('input', function() {
+        updateOptionInList(optionId, 'title', $(this).val());
+        updateOptionsSummary();
+        updateDefaultOptionSelect();
+    });
+    
+    optionItem.find('.option-subtitle').on('input', function() {
+        updateOptionInList(optionId, 'subtitle', $(this).val());
+    });
+    
+    optionItem.find('.option-price').on('input', function() {
+        const price = parseFloat($(this).val()) || 0;
+        updateOptionInList(optionId, 'price', price);
+        calculateOptionCalculations(optionId);
+        updateOptionsSummary();
+    });
+    
+    optionItem.find('.option-original-price').on('input', function() {
+        const originalPrice = parseFloat($(this).val()) || 0;
+        updateOptionInList(optionId, 'original_price', originalPrice);
+        calculateOptionCalculations(optionId);
+    });
+    
+    optionItem.find('.option-quantity').on('input', function() {
+        const quantity = parseFloat($(this).val()) || 0;
+        updateOptionInList(optionId, 'quantity', quantity);
+        calculateOptionCalculations(optionId);
+    });
+    
+    optionItem.find('.option-quantity-unit').on('change', function() {
+        const unit = $(this).val();
+        updateOptionInList(optionId, 'quantity_unit', unit);
+        updateOptionInList(optionId, 'unit_measure_type', unit);
+        calculateOptionCalculations(optionId);
+    });
+    
+    optionItem.find('.option-unit-measure').on('input', function() {
+        const unitMeasure = parseFloat($(this).val()) || 100;
+        updateOptionInList(optionId, 'unit_measure', unitMeasure);
+        calculateOptionCalculations(optionId);
+    });
+    
+    optionItem.find('.option-available').on('change', function() {
+        updateOptionInList(optionId, 'is_available', $(this).is(':checked'));
+    });
+    
+    optionItem.find('.option-featured').on('change', function() {
+        const isFeatured = $(this).is(':checked');
+        updateOptionInList(optionId, 'is_featured', isFeatured);
+        
+        if (isFeatured) {
+            // Uncheck other featured options
+            $('.option-featured').not(this).prop('checked', false);
+            optionsList.forEach(opt => {
+                if (opt.id !== optionId) {
+                    opt.is_featured = false;
+                }
+            });
+        }
+        updateOptionsSummary();
+        updateDefaultOptionSelect();
+    });
+    
+    // Image upload
+    optionItem.find('.option-image-input').change(function() {
+        handleOptionImageUpload(this, optionId);
+    });
+}
+
+function updateOptionInList(optionId, field, value) {
+    const optionIndex = optionsList.findIndex(opt => opt.id === optionId);
+    if (optionIndex !== -1) {
+        optionsList[optionIndex][field] = value;
+    }
+}
+
+// Smart Auto-generation Functions
+function autoGenerateTitle(optionData) {
+    const { quantity, quantity_unit, option_type, unit_measure } = optionData;
+    
+    switch(option_type) {
+        case 'pack':
+            return `Pack of ${quantity} (${unit_measure}${quantity_unit} each)`;
+        case 'bundle':
+            return `Bundle - ${quantity} ${quantity_unit}`;
+        case 'size':
+        case 'volume':
+            return `${quantity}${quantity_unit} Pack`;
+        case 'quantity':
+            return `${quantity} ${quantity_unit}`;
+        case 'addon':
+            return `Add-on: ${quantity} ${quantity_unit}`;
+        case 'variant':
+            return `Variant: ${quantity} ${quantity_unit}`;
+        default:
+            return `${quantity} ${quantity_unit}`;
+    }
+}
+
+function autoGenerateSubtitle(optionData) {
+    const { quantity, quantity_unit, option_type, unit_measure } = optionData;
+    
+    switch(option_type) {
+        case 'pack':
+            const totalQuantity = quantity * unit_measure;
+            return `${unit_measure}${quantity_unit} × ${quantity} = ${totalQuantity}${quantity_unit} total`;
+        case 'bundle':
+            return `Mixed items bundle - ${quantity} pieces`;
+        case 'size':
+        case 'volume':
+            return `Single unit: ${quantity}${quantity_unit}`;
+        case 'quantity':
+            return `Individual pieces`;
+        case 'addon':
+            return `Extra item`;
+        case 'variant':
+            return `Special variant`;
+        default:
+            return `${quantity}${quantity_unit}`;
+    }
+}
+
+// Smart Validation System
+function validateAndEnhanceOption(optionData) {
+    const errors = [];
+    const warnings = [];
+    const autoCorrections = {};
+    
+    // Price validation
+    if (optionData.price > optionData.original_price) {
+        errors.push('Price cannot be greater than Original Price');
+    }
+    
+    // Quantity validation
+    if (optionData.quantity < 0) {
+        errors.push('Quantity cannot be negative');
+        autoCorrections.quantity = 0;
+    }
+    
+    // Auto-disable when quantity is 0
+    if (optionData.quantity === 0) {
+        autoCorrections.is_available = false;
+        warnings.push('Option automatically disabled due to zero quantity');
+    }
+    
+    // Low stock warning
+    if (optionData.quantity > 0 && optionData.quantity < 10) {
+        warnings.push('Low stock warning: Only ' + optionData.quantity + ' units remaining');
+    }
+    
+    // Unit compatibility check
+    const compatibleUnits = getCompatibleUnits(optionData.option_type);
+    if (!compatibleUnits.includes(optionData.quantity_unit)) {
+        warnings.push(`Unit "${optionData.quantity_unit}" may not be ideal for "${optionData.option_type}" type`);
+    }
+    
+    return { errors, warnings, autoCorrections };
+}
+
+function getCompatibleUnits(optionType) {
+    const unitMap = {
+        'size': ['g', 'kg', 'mg'],
+        'volume': ['L', 'ml', 'cl'],
+        'quantity': ['pcs', 'units'],
+        'pack': ['pcs', 'units', 'dozen'],
+        'bundle': ['pcs', 'units', 'custom'],
+        'addon': ['pcs', 'units', 'custom'],
+        'variant': ['pcs', 'units', 'custom']
+    };
+    return unitMap[optionType] || ['pcs', 'units'];
+}
+
+// Smart Defaults System
+function getSmartUnitMeasureBase(quantity_unit) {
+    const smartDefaults = {
+        'g': { base: 100, description: 'per 100g' },
+        'kg': { base: 1, description: 'per kg' },
+        'mg': { base: 1000, description: 'per 1000mg' },
+        'L': { base: 1, description: 'per liter' },
+        'ml': { base: 100, description: 'per 100ml' },
+        'cl': { base: 10, description: 'per 10cl' },
+        'pcs': { base: 1, description: 'per piece' },
+        'units': { base: 1, description: 'per unit' },
+        'dozen': { base: 12, description: 'per dozen' },
+        'custom': { base: 100, description: 'per 100 units' }
+    };
+    
+    return smartDefaults[quantity_unit] || { base: 100, description: 'per 100 units' };
+}
+
+function getOptionTypeDefaults(optionType) {
+    const defaults = {
+        'size': { 
+            suggested_units: ['g', 'kg'], 
+            default_unit: 'g',
+            unit_measure: 100,
+            description: 'Weight-based options'
+        },
+        'volume': { 
+            suggested_units: ['L', 'ml'], 
+            default_unit: 'ml',
+            unit_measure: 100,
+            description: 'Volume-based options'
+        },
+        'quantity': { 
+            suggested_units: ['pcs', 'units'], 
+            default_unit: 'pcs',
+            unit_measure: 1,
+            description: 'Count-based options'
+        },
+        'pack': { 
+            suggested_units: ['pcs', 'dozen'], 
+            default_unit: 'pcs',
+            unit_measure: 1,
+            description: 'Packaged options'
+        },
+        'bundle': { 
+            suggested_units: ['pcs', 'custom'], 
+            default_unit: 'pcs',
+            unit_measure: 1,
+            description: 'Mixed item bundles'
+        },
+        'addon': { 
+            suggested_units: ['pcs', 'units'], 
+            default_unit: 'pcs',
+            unit_measure: 1,
+            description: 'Additional items'
+        },
+        'variant': { 
+            suggested_units: ['pcs', 'units'], 
+            default_unit: 'pcs',
+            unit_measure: 1,
+            description: 'Product variants'
+        }
+    };
+    
+    return defaults[optionType] || defaults['quantity'];
+}
+
+// Enhanced Calculation Engine
+function calculateOptionCalculations(optionId) {
+    const optionItem = $(`[data-option-id="${optionId}"]`);
+    const price = parseFloat(optionItem.find('.option-price').val()) || 0;
+    const quantity = parseFloat(optionItem.find('.option-quantity').val()) || 0;
+    const originalPrice = parseFloat(optionItem.find('.option-original-price').val()) || 0;
+    const unitMeasure = parseFloat(optionItem.find('.option-unit-measure').val()) || 100;
+    const quantityUnit = optionItem.find('.option-quantity-unit').val() || 'g';
+    const optionType = optionItem.find('.option-type').val();
+    
+    // Enhanced unit price calculation
+    let unitPrice = 0;
+    let unitPriceDisplay = '';
+    let savingsPercentage = 0;
+    let savingsAmount = 0;
+    
+    if (quantity > 0) {
+        switch(optionType) {
+            case 'size':
+            case 'volume':
+                // For size/volume, calculate per unit first
+                unitPrice = price / quantity;
+                // Show per unit price with unit measure base for display only
+                unitPriceDisplay = `₹${unitPrice.toFixed(2)}/${unitMeasure}${quantityUnit}`;
+                break;
+            case 'quantity':
+            case 'pack':
+            case 'bundle':
+                unitPrice = price / quantity;
+                const unitLabel = quantityUnit === 'pcs' ? 'piece' : quantityUnit;
+                unitPriceDisplay = `₹${unitPrice.toFixed(2)}/${unitLabel}`;
+                break;
+            default:
+                unitPrice = price / quantity;
+                unitPriceDisplay = `₹${unitPrice.toFixed(2)}/${quantityUnit}`;
+        }
+        
+        optionItem.find('.option-unit-price-display').val(unitPriceDisplay);
+    }
+    
+    // Enhanced discount calculation
+    if (originalPrice > 0 && originalPrice > price) {
+        savingsAmount = originalPrice - price;
+        savingsPercentage = ((savingsAmount / originalPrice) * 100);
+        
+        optionItem.find('.option-discount').val(savingsAmount.toFixed(2));
+        
+        // Add savings percentage display
+        const savingsDisplay = `Save ₹${savingsAmount.toFixed(2)} (${savingsPercentage.toFixed(1)}%)`;
+        if (optionItem.find('.option-savings-display').length) {
+            optionItem.find('.option-savings-display').val(savingsDisplay);
+        }
+    }
+    
+    // Update in optionsList
+    updateOptionInList(optionId, 'unit_price', unitPrice);
+    updateOptionInList(optionId, 'discount_amount', savingsAmount);
+    updateOptionInList(optionId, 'savings_percentage', savingsPercentage);
+    
+    // Auto-generate title and subtitle
+    const optionData = {
+        quantity: quantity,
+        quantity_unit: quantityUnit,
+        option_type: optionType,
+        unit_measure: unitMeasure
+    };
+    
+    const autoTitle = autoGenerateTitle(optionData);
+    const autoSubtitle = autoGenerateSubtitle(optionData);
+    
+    // Only auto-fill if fields are empty
+    if (!optionItem.find('.option-title').val()) {
+        optionItem.find('.option-title').val(autoTitle);
+        updateOptionInList(optionId, 'title', autoTitle);
+    }
+    
+    if (!optionItem.find('.option-subtitle').val()) {
+        optionItem.find('.option-subtitle').val(autoSubtitle);
+        updateOptionInList(optionId, 'subtitle', autoSubtitle);
+    }
+    
+    // Show validation feedback
+    showValidationFeedback(optionId, optionData);
+}
+
+// Validation Feedback Display
+function showValidationFeedback(optionId, optionData) {
+    const optionItem = $(`[data-option-id="${optionId}"]`);
+    const validation = validateAndEnhanceOption(optionData);
+    
+    // Clear previous feedback
+    optionItem.find('.validation-feedback').remove();
+    
+    // Create feedback container
+    let feedbackHtml = '<div class="validation-feedback mt-2">';
+    
+    // Show errors
+    if (validation.errors.length > 0) {
+        feedbackHtml += '<div class="alert alert-danger alert-sm">';
+        feedbackHtml += '<i class="mdi mdi-alert-circle"></i> <strong>Errors:</strong><ul class="mb-0">';
+        validation.errors.forEach(error => {
+            feedbackHtml += `<li>${error}</li>`;
+        });
+        feedbackHtml += '</ul></div>';
+    }
+    
+    // Show warnings
+    if (validation.warnings.length > 0) {
+        feedbackHtml += '<div class="alert alert-warning alert-sm">';
+        feedbackHtml += '<i class="mdi mdi-alert"></i> <strong>Warnings:</strong><ul class="mb-0">';
+        validation.warnings.forEach(warning => {
+            feedbackHtml += `<li>${warning}</li>`;
+        });
+        feedbackHtml += '</ul></div>';
+    }
+    
+    // Show smart suggestions
+    const optionType = optionData.option_type;
+    if (optionType) {
+        const defaults = getOptionTypeDefaults(optionType);
+        feedbackHtml += '<div class="alert alert-info alert-sm">';
+        feedbackHtml += '<i class="mdi mdi-lightbulb-outline"></i> <strong>Smart Suggestions:</strong>';
+        feedbackHtml += `<div>${defaults.description}</div>`;
+        feedbackHtml += `<div>Suggested units: ${defaults.suggested_units.join(', ')}</div>`;
+        feedbackHtml += '</div>';
+    }
+    
+    feedbackHtml += '</div>';
+    
+    // Append feedback after the option item
+    optionItem.append(feedbackHtml);
+    
+    // Apply auto-corrections
+    Object.keys(validation.autoCorrections).forEach(field => {
+        const value = validation.autoCorrections[field];
+        if (field === 'is_available') {
+            optionItem.find('.option-available').prop('checked', value);
+        } else {
+            optionItem.find(`.option-${field}`).val(value);
+        }
+    });
+}
+
+function handleOptionImageUpload(input, optionId) {
+    const file = input.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const optionItem = $(`[data-option-id="${optionId}"]`);
+            optionItem.find('.option-image-preview').html(
+                `<img src="${e.target.result}" style="max-width: 100px; max-height: 100px; border-radius: 4px;">`
+            );
+            
+            // Store image data
+            const optionIndex = optionsList.findIndex(opt => opt.id === optionId);
+            if (optionIndex !== -1) {
+                optionsList[optionIndex].image = e.target.result;
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+function updateOptionNumbers() {
+    $('.option-item').each(function(index) {
+        $(this).find('.option-number').text(index + 1);
+    });
+}
+
+function updateOptionsSummary() {
+    if (optionsList.length > 0) {
+        const prices = optionsList.map(opt => opt.price).filter(p => p > 0);
+        const minPrice = Math.min(...prices);
+        const maxPrice = Math.max(...prices);
+        
+        $('.options-summary').show();
+        $('.summary-content').html(`
+            <div class="row">
+                <div class="col-md-4">
+                    <strong>Price Range:</strong> ₹${minPrice} - ₹${maxPrice}
+                </div>
+                <div class="col-md-4">
+                    <strong>Total Options:</strong> ${optionsList.length}
+                </div>
+                <div class="col-md-4">
+                    <strong>Featured Option:</strong> ${optionsList.find(opt => opt.is_featured)?.title || 'None'}
+                </div>
+            </div>
+        `);
+    } else {
+        $('.options-summary').hide();
+    }
+}
+
+function updateDefaultOptionSelect() {
+    const select = $('#default_option');
+    select.empty();
+    select.append('<option value="">Select default option</option>');
+    
+    optionsList.forEach(option => {
+        select.append(`<option value="${option.id}">${option.title}</option>`);
+    });
+}
 </script>
 @endsection

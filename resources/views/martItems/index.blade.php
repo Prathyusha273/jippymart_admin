@@ -24,6 +24,19 @@
             padding: 2px 4px;
             font-size: inherit;
         }
+        
+        .options-info {
+            text-align: center;
+        }
+        
+        .options-info .badge {
+            font-size: 11px;
+            padding: 4px 8px;
+        }
+        
+        .options-info small {
+            font-size: 10px;
+        }
     </style>
     <div class="page-wrapper">
         <div class="row page-titles">
@@ -86,6 +99,18 @@
                                 <div class="select-box pl-3">
                                     <select class="form-control category_selector">
                                         <option value=""  selected>Mart Categories</option>
+                                    </select>
+                                </div>
+                                <div class="select-box pl-3">
+                                    <select class="form-control feature_selector">
+                                        <option value=""  selected>Item Features</option>
+                                        <option value="spotlight">Spotlight</option>
+                                        <option value="steal_of_moment">Steal of Moment</option>
+                                        <option value="featured">Featured</option>
+                                        <option value="trending">Trending</option>
+                                        <option value="new">New Arrival</option>
+                                        <option value="best_seller">Best Seller</option>
+                                        <option value="seasonal">Seasonal</option>
                                     </select>
                                 </div>
                             </div>
@@ -214,6 +239,7 @@
                                             <th>Mart</th>
                                             <?php } ?>
                                             <th>Mart Categories</th>
+                                            <th>Options</th>
                                             <th>Published</th>
                                             <th>Available</th>
                                             <th>{{trans('lang.actions')}}</th>
@@ -325,6 +351,7 @@
             var restaurant = $('.restaurant_selector').val();
             var foodType = $('.food_type_selector').val();
             var category = $('.category_selector').val();
+            var feature = $('.feature_selector').val();
             refData = initialRef;
             if (restaurant) {
                 refData = refData.where('vendorID', '==', restaurant);
@@ -334,6 +361,31 @@
             }
             if (category) {
                 refData=refData.where('categoryID','==',category);
+            }
+            if (feature) {
+                switch(feature) {
+                    case 'spotlight':
+                        refData = refData.where('isSpotlight', '==', true);
+                        break;
+                    case 'steal_of_moment':
+                        refData = refData.where('isStealOfMoment', '==', true);
+                        break;
+                    case 'featured':
+                        refData = refData.where('isFeature', '==', true);
+                        break;
+                    case 'trending':
+                        refData = refData.where('isTrending', '==', true);
+                        break;
+                    case 'new':
+                        refData = refData.where('isNew', '==', true);
+                        break;
+                    case 'best_seller':
+                        refData = refData.where('isBestSeller', '==', true);
+                        break;
+                    case 'seasonal':
+                        refData = refData.where('isSeasonal', '==', true);
+                        break;
+                }
             }
             ref=refData;
             $('#foodTable').DataTable().ajax.reload();
@@ -351,6 +403,11 @@
             });
             $('.category_selector').select2({
                 placeholder: "Mart Categories",
+                minimumResultsForSearch: Infinity,
+                allowClear: true
+            });
+            $('.feature_selector').select2({
+                placeholder: "Item Features",
                 minimumResultsForSearch: Infinity,
                 allowClear: true
             });
@@ -451,19 +508,21 @@
                             childData.finalPrice=parseInt(finalPrice);
                             childData.restaurant=restaurantNames[childData.vendorID]||'';
                             childData.category=categoryNames[childData.categoryID]||'';
-                            if(searchValue) {
-                                if(
-                                    (childData.name&&childData.name.toString().toLowerCase().includes(searchValue))||
-                                    (childData.price&&childData.price.toString().includes(searchValue))||
-                                    (childData.disPrice&&childData.disPrice.toString().includes(searchValue))||
-                                    (childData.restaurant&&childData.restaurant.toString().toLowerCase().includes(searchValue))||
-                                    (childData.category&&childData.category.toString().toLowerCase().includes(searchValue))
-                                ) {
-                                    filteredRecords.push(childData);
-                                }
-                            } else {
+                                                    if(searchValue) {
+                            if(
+                                (childData.name&&childData.name.toString().toLowerCase().includes(searchValue))||
+                                (childData.price&&childData.price.toString().includes(searchValue))||
+                                (childData.disPrice&&childData.disPrice.toString().includes(searchValue))||
+                                (childData.restaurant&&childData.restaurant.toString().toLowerCase().includes(searchValue))||
+                                (childData.category&&childData.category.toString().toLowerCase().includes(searchValue))||
+                                (childData.price_range&&childData.price_range.toString().toLowerCase().includes(searchValue))||
+                                (childData.best_value_option&&childData.best_value_option.toString().toLowerCase().includes(searchValue))
+                            ) {
                                 filteredRecords.push(childData);
                             }
+                        } else {
+                            filteredRecords.push(childData);
+                        }
                         }));
                         filteredRecords.sort((a,b) => {
                             let aValue=a[orderByField];
@@ -636,6 +695,23 @@
             var caregoryroute='{{route("categories.edit", ":id")}}';
             caregoryroute=caregoryroute.replace(':id',val.categoryID);
             html.push('<a href="'+caregoryroute+'">'+val.category+'</a>');
+            
+            // Enhanced Options column
+            if(val.has_options && val.options && val.options.length > 0) {
+                const optionsCount = val.options.length;
+                const priceRange = val.price_range || `₹${val.min_price || 0} - ₹${val.max_price || 0}`;
+                const bestValue = val.best_value_option ? 'Best Value' : '';
+                const savings = val.savings_percentage ? `${val.savings_percentage.toFixed(1)}% off` : '';
+                
+                html.push(`<div class="options-info">
+                    <span class="badge badge-info">${optionsCount} Options</span>
+                    <br><small class="text-muted">${priceRange}</small>
+                    ${bestValue ? `<br><small class="text-success">${bestValue}</small>` : ''}
+                    ${savings ? `<br><small class="text-danger">${savings}</small>` : ''}
+                </div>`);
+            } else {
+                html.push('<span class="text-muted">No Options</span>');
+            }
             if(val.publish) {
                 html.push('<label class="switch"><input type="checkbox" checked id="'+val.id+'" name="isActive"><span class="slider round"></span></label>');
             } else {
