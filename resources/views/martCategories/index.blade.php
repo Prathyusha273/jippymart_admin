@@ -137,7 +137,11 @@
     var user_permissions = '<?php echo @session("user_permissions")?>';
     user_permissions = Object.values(JSON.parse(user_permissions));
     var checkDeletePermission = false;
-                            if ($.inArray('mart-categories.delete', user_permissions) >= 0) {
+    var subcategoryCountsCache = {}; // Cache for sub-category counts
+    var cacheTimestamp = 0;
+    var CACHE_DURATION = 60000; // 1 minute cache
+    
+    if ($.inArray('mart-categories.delete', user_permissions) >= 0) {
         checkDeletePermission = true;
     }
     $(document).ready(function () {
@@ -178,14 +182,22 @@
                     }
                     let records = [];
                     let filteredRecords = [];    
+                    // Get cached sub-categories count for better performance
+                    const subcategoryCounts = await getCachedSubcategoryCounts();
+
                     await Promise.all(querySnapshot.docs.map(async (doc) => {
                         let childData = doc.data();
                         childData.id = doc.id; // Ensure the document ID is included in the data
                         if (childData.id) {
                             childData.totalProducts = await getProductTotal(childData.id);
+                            // Use cached sub-categories count
+                            childData.subcategories_count = subcategoryCounts[childData.id] || 0;
+                            childData.has_subcategories = childData.subcategories_count > 0;
                         }
                         else {
                             childData.totalProducts = 0;
+                            childData.subcategories_count = 0;
+                            childData.has_subcategories = false;
                         }
                         if (searchValue) {
                             if (
@@ -238,6 +250,7 @@
                         ]);
                     });
                     $('#data-table_processing').hide(); // Hide loader
+                    
                     callback({
                         draw: data.draw,
                         recordsTotal: totalRecords, // Total number of records in Firestore
@@ -296,6 +309,53 @@
         });
         return Product_total;
     }
+
+    async function getSubcategoriesCount(categoryId) {
+        try {
+            const querySnapshot = await database.collection('mart_subcategories')
+                .where('parent_category_id', '==', categoryId)
+                .get();
+            return querySnapshot.size;
+        } catch (error) {
+            console.error('Error getting subcategories count for category', categoryId, ':', error);
+            return 0;
+        }
+    }
+
+    async function getCachedSubcategoryCounts() {
+        const now = Date.now();
+        
+        // Return cached data if it's still valid
+        if (subcategoryCountsCache && (now - cacheTimestamp) < CACHE_DURATION) {
+            console.log('📦 Using cached sub-category counts');
+            return subcategoryCountsCache;
+        }
+        
+        console.log('🔄 Fetching fresh sub-category counts');
+        const allSubcategoriesSnapshot = await database.collection('mart_subcategories').get();
+        const counts = {};
+        
+        allSubcategoriesSnapshot.docs.forEach(doc => {
+            const data = doc.data();
+            const parentId = data.parent_category_id;
+            if (parentId) {
+                counts[parentId] = (counts[parentId] || 0) + 1;
+            }
+        });
+        
+        // Update cache
+        subcategoryCountsCache = counts;
+        cacheTimestamp = now;
+        
+        console.log('✅ Sub-category counts cached for', Object.keys(counts).length, 'categories');
+        return counts;
+    }
+
+    function invalidateSubcategoryCache() {
+        subcategoryCountsCache = {};
+        cacheTimestamp = 0;
+        console.log('🗑️ Sub-category cache invalidated');
+    }
     $(document).on("click", "a[name='category-delete']", async function (e) {
         var id = this.id;
         var categoryTitle = '';
@@ -320,6 +380,7 @@
         } catch (error) {
             console.error('❌ Error calling logActivity:', error);
         }
+        invalidateSubcategoryCache();
         window.location.href = '{{ route("mart-categories")}}';
     });
     $("#is_active").click(function () {
@@ -357,6 +418,7 @@
                 } catch (error) {
                     console.error('❌ Error calling logActivity:', error);
                 }
+                invalidateSubcategoryCache();
                 window.location.reload();
             }
         } else {

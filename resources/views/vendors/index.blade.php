@@ -209,7 +209,7 @@
     var initialRef=ref;
     var zones = [];
     var zoneIdToName = {};
-    
+
     // Load zones
     database.collection('zone').where('publish','==',true).orderBy('name','asc').get().then(async function(snapshots) {
         console.log('Loading zones, found:', snapshots.docs.length);
@@ -278,7 +278,7 @@
                 const searchValue=data.search.value.toLowerCase();
                 const orderColumnIndex=data.order[0].column;
                 const orderDirection=data.order[0].dir;
-                const orderableColumns=(checkDeletePermission)? ['','fullName','email','zoneName','vType','subscription_plan.name','subscriptionExpiryDate','createdAt','','','','']:['fullName','email','zoneName','vType','subscription_plan.name','subscriptionExpiryDate','createdAt','','','','']; // Ensure this matches the actual column names
+                const orderableColumns=(checkDeletePermission)? ['','vendorInfo','email','zone','vType','currentPlan','expiryDate','date','documents','active','actions']:['vendorInfo','email','zone','vType','currentPlan','expiryDate','date','documents','active','actions']; // Match the actual column structure
                 const orderByField=orderableColumns[orderColumnIndex]; // Adjust the index to match your table
                 if(searchValue.length>=3||searchValue.length===0) {
                     $('#data-table_processing').show();
@@ -403,6 +403,9 @@
                     const paginatedRecords=filteredRecords.slice(start,start+length);
                     await Promise.all(paginatedRecords.map(async (childData) => {
                         var getData=await buildHTML(childData);
+                        console.log('🔍 Data returned for vendor:', childData.firstName + ' ' + childData.lastName);
+                        console.log('🔍 Data length:', getData.length);
+                        console.log('🔍 Data:', getData);
                         records.push(getData);
                     }));
                     $('#data-table_processing').hide(); // Hide loader
@@ -425,16 +428,16 @@
                     });
                 });
             },
-            order: (checkDeletePermission)? [[6,'desc']]:[[5,'desc']],
+            order: (checkDeletePermission)? [[7,'desc']]:[[6,'desc']], // Date column is at index 7 (with delete) or 6 (without delete)
             columnDefs: [
                 {
-                    targets: (checkDeletePermission)? 6:5,
+                    targets: (checkDeletePermission)? 7:6, // Date column index
                     type: 'date',
                     render: function(data) {
                         return data;
                     }
                 },
-                {orderable: false,targets: (checkDeletePermission)? [0,7,8,9]:[6,7,8]},
+                {orderable: false,targets: (checkDeletePermission)? [0,8,9,10]:[7,8,9]}, // Non-orderable columns: Documents, Active, Actions
             ],
             "language": {
                 "zeroRecords": "{{trans("lang.no_record_found")}}",
@@ -461,7 +464,7 @@
                             action: function (e, dt, button, config) {
                                 exportData(dt, 'pdf',fieldConfig);
                             }
-                        },   
+                        },
                         {
                             extend: 'csvHtml5',
                             text: 'Export CSV',
@@ -476,7 +479,7 @@
                 $(".dataTables_filter").append($(".dt-buttons").detach());
                 $('.dataTables_filter input').attr('placeholder', 'Search here...').attr('autocomplete','new-password').val('');
                 $('.dataTables_filter label').contents().filter(function() {
-                    return this.nodeType === 3; 
+                    return this.nodeType === 3;
                 }).remove();
             }
         });
@@ -500,20 +503,20 @@
         },300));
     }
     $('.status_selector').select2({
-        placeholder: '{{trans("lang.status")}}',  
+        placeholder: '{{trans("lang.status")}}',
         minimumResultsForSearch: Infinity,
-        allowClear: true 
+        allowClear: true
     });
-    
+
     $('.zone_selector').select2({
-        placeholder: '{{trans("lang.select_zone")}}',  
+        placeholder: '{{trans("lang.select_zone")}}',
         minimumResultsForSearch: Infinity,
-        allowClear: true 
+        allowClear: true
     });
     $('.zone_sort_selector').select2({
-        placeholder: '{{trans("lang.sort_by_zone")}}',  
+        placeholder: '{{trans("lang.sort_by_zone")}}',
         minimumResultsForSearch: Infinity,
-        allowClear: true 
+        allowClear: true
     });
     $('select').on("select2:unselecting", function(e) {
         var self = $(this);
@@ -524,10 +527,10 @@
     function setDate() {
         $('#daterange span').html('{{trans("lang.select_range")}}');
         $('#daterange').daterangepicker({
-            autoUpdateInput: false, 
+            autoUpdateInput: false,
         }, function (start, end) {
             $('#daterange span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
-            $('.filteredRecords').trigger('change'); 
+            $('.filteredRecords').trigger('change');
         });
         $('#daterange').on('apply.daterangepicker', function (ev, picker) {
             $('#daterange span').html(picker.startDate.format('MMMM D, YYYY') + ' - ' + picker.endDate.format('MMMM D, YYYY'));
@@ -535,7 +538,7 @@
         });
         $('#daterange').on('cancel.daterangepicker', function (ev, picker) {
             $('#daterange span').html('{{trans("lang.select_range")}}');
-            $('.filteredRecords').trigger('change'); 
+            $('.filteredRecords').trigger('change');
         });
     }
     setDate();
@@ -546,28 +549,28 @@
         var zoneSort = $('.zone_sort_selector').val();
         var daterangepicker = $('#daterange').data('daterangepicker');
         var refData = initialRef;
-        
+
         if(status) {
             refData = (status === "active")
                 ? refData.where('active','==',true)
                 : refData.where('active','==',false);
         }
-        
+
         if(vendorType) {
             refData = refData.where('vType','==',vendorType);
         }
-        
+
         if ($('#daterange span').html() != '{{trans("lang.select_range")}}' && daterangepicker) {
             var from = moment(daterangepicker.startDate).toDate();
             var to = moment(daterangepicker.endDate).toDate();
-            if (from && to) { 
+            if (from && to) {
                 var fromDate = firebase.firestore.Timestamp.fromDate(new Date(from));
                 refData = refData.where('createdAt', '>=', fromDate);
                 var toDate = firebase.firestore.Timestamp.fromDate(new Date(to));
                 refData = refData.where('createdAt', '<=', toDate);
             }
         }
-        
+
         // Store zone filter for use in ajax function
         window.selectedZone = zone;
         window.selectedZoneSort = zoneSort;
@@ -585,9 +588,13 @@
         var checkIsRestaurant=getUserRestaurantInfo(id);
         var trroute1='{{route("users.walletstransaction", ":id")}}';
         trroute1=trroute1.replace(':id',id);
+
+        // Column 0: Delete checkbox (if permission exists)
         if(checkDeletePermission) {
             html.push('<input type="checkbox" id="is_open_'+id+'" class="is_open" dataId="'+id+'" data-vendorid="'+val.vendorID+'"><label class="col-3 control-label" for="is_open_'+id+'"></label>');
         }
+
+        // Column 1: Vendor Info (image + name)
         if(val.profilePictureURL==''&&val.profilePictureURL==null) {
             imageHtml='<img width="100%" style="width:70px;height:70px;" src="'+placeholderImage+'" alt="image">';
         } else {
@@ -599,33 +606,44 @@
         else {
             html.push('');
         }
+
+        // Column 2: Email
         if(val.email!=""&&val.email!=null) {
             html.push(val.email);
         }
         else {
             html.push("");
         }
-        // Use zoneIdToName map to display zone name
+
+        // Column 3: Zone
         if(val.hasOwnProperty('zoneId') && val.zoneId && window.zoneIdToName && window.zoneIdToName[val.zoneId]) {
             html.push(window.zoneIdToName[val.zoneId]);
         } else {
             html.push('<span class="text-muted">No Zone</span>');
         }
+
+        // Column 4: Vendor Type
         if(val.hasOwnProperty('vType') && val.vType) {
             html.push(val.vType.charAt(0).toUpperCase() + val.vType.slice(1));
         } else {
             html.push('<span class="text-muted">Not Set</span>');
         }
+
+        // Column 5: Current Plan
         if(val.hasOwnProperty('subscription_plan') && val.subscription_plan && val.subscription_plan.name) {
             html.push(val.subscription_plan.name);
         } else {
             html.push('');
         }
+
+        // Column 6: Expiry Date
         if(val.hasOwnProperty('subscriptionExpiryDate')) {
             html.push(val.expiryDate);
         } else {
             html.push('');
         }
+
+        // Column 7: Date
         var date='';
         var time='';
         if(val.hasOwnProperty("createdAt")) {
@@ -638,14 +656,20 @@
         } else {
             html.push('');
         }
+
+        // Column 8: Documents
         document_list_view="{{route('vendors.document', ':id')}}";
         document_list_view=document_list_view.replace(':id',val.id);
         html.push('<a href="'+document_list_view+'"><i class="fa fa-file"></i></a>');
+
+        // Column 9: Active
         if(val.active) {
             html.push('<label class="switch"><input type="checkbox" checked id="'+val.id+'" name="isActive"><span class="slider round"></span></label>');
         } else {
             html.push('<label class="switch"><input type="checkbox" id="'+val.id+'" name="isActive"><span class="slider round"></span></label>');
         }
+
+        // Column 10: Actions
         var action='<span class="action-btn">';
         var planRoute="{{route('vendor.subscriptionPlanHistory',':id')}}";
         planRoute=planRoute.replace(':id',val.id);
@@ -658,8 +682,42 @@
         }
         action=action+'</span>';
         html.push(action);
+
+        // Ensure we always return exactly the right number of columns
+        const expectedColumns = checkDeletePermission ? 11 : 10;
+        if (html.length !== expectedColumns) {
+            console.error('❌ Column count mismatch! Expected:', expectedColumns, 'Got:', html.length);
+            // Pad with empty columns if needed
+            while (html.length < expectedColumns) {
+                html.push('');
+            }
+            // Trim if too many
+            if (html.length > expectedColumns) {
+                html = html.slice(0, expectedColumns);
+            }
+        }
+
         // Debug: log the number of columns for each row
-        console.log('buildHTML columns:', html.length, html);
+        console.log('🔍 buildHTML for vendor:', val.firstName + ' ' + val.lastName);
+        console.log('🔍 Number of columns returned:', html.length);
+        console.log('🔍 Expected columns:', checkDeletePermission ? 11 : 10);
+        console.log('🔍 Columns:', html);
+
+        // Ensure we always return exactly the right number of columns
+        const expectedColumns = checkDeletePermission ? 11 : 10;
+        if (html.length !== expectedColumns) {
+            console.error('❌ Column count mismatch! Expected:', expectedColumns, 'Got:', html.length);
+            console.error('❌ This will cause DataTables warning!');
+            // Pad with empty columns if needed
+            while (html.length < expectedColumns) {
+                html.push('');
+            }
+            // Trim if too many
+            if (html.length > expectedColumns) {
+                html = html.slice(0, expectedColumns);
+            }
+        }
+
         return html;
     }
     async function getUserRestaurantInfo(userId) {
@@ -693,7 +751,7 @@
                         console.error('Error getting vendor name:', error);
                     }
                 }
-                
+
                 $('#userTable .is_open:checked').each(function() {
                     var dataId=$(this).attr('dataId');
                     var VendorId=$(this).attr('data-vendorid');
@@ -864,7 +922,7 @@
         } catch (error) {
             console.error('Error getting vendor name:', error);
         }
-        
+
         deleteDocumentWithImage('users',VendorId,'profilePictureURL')
             .then(() => {
                 return deleteUserData(id,VendorId);
@@ -903,7 +961,7 @@
         } catch (error) {
             console.error('Error getting vendor name:', error);
         }
-        
+
         if(ischeck) {
             database.collection('users').doc(id).update({'active': true}).then(async function(result) {
                 console.log('✅ Vendor activated successfully, now logging activity...');

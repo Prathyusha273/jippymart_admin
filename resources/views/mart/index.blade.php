@@ -286,7 +286,7 @@
                                     cellspacing="0" width="100%">
                                     <thead>
                                         <tr>
-                                            <?php if (in_array('restaurant.delete', json_decode(@session('user_permissions'), true))) { ?>
+                                            <?php if (in_array('mart.delete', json_decode(@session('user_permissions'), true))) { ?>
                                                 <th class="delete-all"><input type="checkbox" id="is_active"><label
                                                         class="col-3 control-label" for="is_active"><a id="deleteAll"
                                                             class="do_not_delete" href="javascript:void(0)"><i
@@ -378,11 +378,11 @@
 <script type="text/javascript">
     var database = firebase.firestore();
     var refData = database.collection('vendors').where('vType', '==', 'mart');
-    
+
     console.log('🚀 Firebase initialized');
     console.log('🚀 Database object:', database);
     console.log('🚀 Initial refData:', refData);
-    
+
     // Test Firebase connection
     console.log('🧪 Testing Firebase connection...');
     database.collection('vendors').limit(1).get().then(function(snapshot) {
@@ -411,17 +411,17 @@
         var martTypeValue = $('.mart_type_selector').val();
         var businessModelValue = $('.business_model_selector').val();
         var categoryValue = $('.category_selector').val();
-        
+
         console.log('🔄 Filter changed:', {
             zoneValue: zoneValue,
             martTypeValue: martTypeValue,
             businessModelValue: businessModelValue,
             categoryValue: categoryValue
         });
-        
+
         refData = database.collection('vendors').where('vType', '==', 'mart');
         console.log('🔄 Reset refData to base query');
-        
+
         if (zoneValue) {
             refData = refData.where('zoneId', '==', zoneValue);
             console.log('🔄 Added zone filter:', zoneValue);
@@ -445,7 +445,7 @@
             refData = refData.where('categoryID', '==', categoryValue);
             console.log('🔄 Added category filter:', categoryValue);
         }
-        
+
         console.log('🔄 Final refData query:', refData);
         $('#storeTable').DataTable().ajax.reload();
     });
@@ -467,6 +467,8 @@
     if ($.inArray('mart.delete', user_permissions) >= 0) {
         checkDeletePermission = true;
     }
+    console.log('🔍 User permissions:', user_permissions);
+    console.log('🔍 Check delete permission:', checkDeletePermission);
     var userData = [];
     var vendorData = [];
     var vendorProducts = [];
@@ -570,16 +572,16 @@
                 if (searchValue.length >= 3 || searchValue.length === 0) {
                     $('#data-table_processing').show();
                 }
-                
+
                 console.log('🔍 Starting mart data fetch...');
                 console.log('🔍 Current refData query:', refData);
                 console.log('🔍 Database object:', database);
-                
+
                 await refData.get().then(async function(querySnapshot) {
                     console.log('📊 Query result:', querySnapshot);
                     console.log('📊 Total docs found:', querySnapshot.docs.length);
                     console.log('📊 Is empty:', querySnapshot.empty);
-                    
+
                     if (querySnapshot.empty) {
                         console.log('❌ No marts found in Firestore');
                         $('.mart_count').text(0);
@@ -598,7 +600,7 @@
                         $('.new_joined_mart').text('00');
                         return;
                     }
-                    
+
                     console.log('✅ Found marts! Processing data...');
                     console.log('📋 First mart data:', querySnapshot.docs[0].data());
                     let records = [];
@@ -854,6 +856,11 @@
         }
         actionHtml += `</span>`;
         html.push(actionHtml);
+
+        console.log('🔍 buildHTML result for mart:', val.title);
+        console.log('🔍 Number of columns returned:', html.length);
+        console.log('🔍 Columns:', html);
+
         return html;
     }
     async function vendorStatus(id) {

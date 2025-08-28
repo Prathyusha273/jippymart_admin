@@ -119,6 +119,9 @@ $role_has_permission = App\Models\Permission::where('role_id', $user->role_id)->
             </ul>
         </li>
         @endif
+
+
+
         @if(in_array('reports', $role_has_permission))
         <li class="nav-subtitle"><span class="nav-subtitle-span">{{trans('lang.report_and_analytics')}}</span></li>
         <li><a class="has-arrow waves-effect waves-dark" href="#" aria-expanded="false">

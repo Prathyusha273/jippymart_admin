@@ -321,6 +321,7 @@
                         $("#data-table_processing").hide();
                     }
                     console.log('✅ DataTable callback completed with', records.length, 'records');
+                    
                     callback({
                         draw: data.draw,
                         recordsTotal: totalRecords,
@@ -413,6 +414,10 @@
             console.error('❌ Error calling logActivity:', error);
         }
         updateParentCategoryCount();
+        // Invalidate cache on parent categories page
+        if (typeof invalidateSubcategoryCache === 'function') {
+            invalidateSubcategoryCache();
+        }
         window.location.reload();
     });
 
@@ -453,6 +458,10 @@
                     console.error('❌ Error calling logActivity:', error);
                 }
                 updateParentCategoryCount();
+                // Invalidate cache on parent categories page
+                if (typeof invalidateSubcategoryCache === 'function') {
+                    invalidateSubcategoryCache();
+                }
                 window.location.reload();
             }
         } else {
@@ -505,15 +514,23 @@
         }
     });
 
-    // Update parent category sub-category count
+    // Update parent category sub-category count (only when needed)
     function updateParentCategoryCount() {
+        console.log('🔄 Updating parent category count for category ID:', categoryId);
         database.collection('mart_subcategories')
             .where('parent_category_id', '==', categoryId)
             .get().then(function(querySnapshot) {
+                console.log('📊 Found', querySnapshot.size, 'sub-categories for parent category');
                 database.collection('mart_categories').doc(categoryId).update({
                     subcategories_count: querySnapshot.size,
                     has_subcategories: querySnapshot.size > 0
+                }).then(function() {
+                    console.log('✅ Parent category count updated successfully');
+                }).catch(function(error) {
+                    console.error('❌ Error updating parent category count:', error);
                 });
+            }).catch(function(error) {
+                console.error('❌ Error counting sub-categories:', error);
             });
     }
 </script>
