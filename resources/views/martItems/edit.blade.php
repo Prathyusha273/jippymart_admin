@@ -537,13 +537,13 @@
         </div>
         
         <div class="form-check">
-            <input type="checkbox" class="option-available" checked>
-            <label>Available</label>
+            <input type="checkbox" class="option-available" id="option_available_" checked>
+            <label class="form-check-label" for="option_available_">Available</label>
         </div>
         
         <div class="form-check">
-            <input type="checkbox" class="option-featured">
-            <label>Featured (Show first)</label>
+            <input type="checkbox" class="option-featured" id="option_featured_">
+            <label class="form-check-label" for="option_featured_">Featured (Show first)</label>
         </div>
     </div>
 </div>
@@ -577,6 +577,47 @@
 
 .option-image-preview img {
     border: 1px solid #ddd;
+}
+
+/* Visual feedback for option states */
+.option-enabled {
+    border-color: #28a745 !important;
+    background: #f8fff9 !important;
+}
+
+.option-disabled {
+    border-color: #dc3545 !important;
+    background: #fff8f8 !important;
+    opacity: 0.7;
+}
+
+.option-featured-highlight {
+    border-color: #ffc107 !important;
+    background: #fffdf0 !important;
+    box-shadow: 0 0 10px rgba(255, 193, 7, 0.3);
+}
+
+/* Enhanced checkbox styling */
+.option-item .form-check {
+    margin: 15px 0;
+    padding: 10px;
+    border-radius: 4px;
+    background: #f8f9fa;
+}
+
+.option-item .form-check input[type="checkbox"] {
+    margin-right: 8px;
+    transform: scale(1.2);
+}
+
+.option-item .form-check label {
+    font-weight: 500;
+    cursor: pointer;
+    margin-bottom: 0;
+}
+
+.option-item .form-check:hover {
+    background: #e9ecef;
 }
 
 .options-summary {
@@ -1807,6 +1848,24 @@ function removeOption(button) {
 function attachOptionEventListeners(optionId) {
     const optionItem = $(`[data-option-id="${optionId}"]`);
     
+    // Initialize checkbox states
+    const optionData = optionsList.find(opt => opt.id === optionId);
+    if (optionData) {
+        optionItem.find('.option-available').prop('checked', optionData.is_available !== false);
+        optionItem.find('.option-featured').prop('checked', optionData.is_featured === true);
+        
+        // Apply initial visual states
+        if (optionData.is_available !== false) {
+            optionItem.addClass('option-enabled');
+        } else {
+            optionItem.addClass('option-disabled');
+        }
+        
+        if (optionData.is_featured === true) {
+            optionItem.addClass('option-featured-highlight');
+        }
+    }
+    
     // Update optionsList when form fields change
     optionItem.find('.option-type').on('change', function() {
         updateOptionInList(optionId, 'type', $(this).val());
@@ -1855,11 +1914,21 @@ function attachOptionEventListeners(optionId) {
     });
     
     optionItem.find('.option-available').on('change', function() {
-        updateOptionInList(optionId, 'is_available', $(this).is(':checked'));
+        const isChecked = $(this).is(':checked');
+        console.log('🔍 Option Available changed for', optionId, ':', isChecked);
+        updateOptionInList(optionId, 'is_available', isChecked);
+        
+        // Visual feedback
+        if (isChecked) {
+            $(this).closest('.option-item').removeClass('option-disabled').addClass('option-enabled');
+        } else {
+            $(this).closest('.option-item').removeClass('option-enabled').addClass('option-disabled');
+        }
     });
     
     optionItem.find('.option-featured').on('change', function() {
         const isFeatured = $(this).is(':checked');
+        console.log('🔍 Option Featured changed for', optionId, ':', isFeatured);
         updateOptionInList(optionId, 'is_featured', isFeatured);
         
         if (isFeatured) {
@@ -1870,7 +1939,14 @@ function attachOptionEventListeners(optionId) {
                     opt.is_featured = false;
                 }
             });
+            
+            // Visual feedback
+            $('.option-item').removeClass('option-featured-highlight');
+            $(this).closest('.option-item').addClass('option-featured-highlight');
+        } else {
+            $(this).closest('.option-item').removeClass('option-featured-highlight');
         }
+        
         updateOptionsSummary();
         updateDefaultOptionSelect();
     });
