@@ -371,6 +371,10 @@
                 var countryCode = '+' + jQuery("#country_selector").val();
                 var userPhone = $(".user_phone").val();
                 var vendorType = $("#vendor_type").val();
+                // Set default vendor type to 'restaurant' if empty or not selected
+                if(vendorType=='' || vendorType==null || vendorType==undefined) {
+                    vendorType='restaurant';
+                }
                 var subscriptionPlanId = $('#restaurant_subscription_model').val();
                 var subscriptionPlanData = '';
                 var change_expiry_date = $('#change_expiry_date').val();
@@ -406,8 +410,6 @@
                     showError("{{ trans('lang.enter_owners_last_name_error') }}");
                 } else if (userPhone == '') {
                     showError("{{ trans('lang.enter_owners_phone') }}");
-                } else if (vendorType == '') {
-                    showError("{{ trans('lang.select_vendor_type_error') }}");
                 } else if (subscriptionPlanId == '') {
                     showError("{{ trans('lang.subscriptionplan_error') }}");
                 } else {

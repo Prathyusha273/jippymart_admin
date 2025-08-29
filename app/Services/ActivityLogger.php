@@ -13,13 +13,26 @@ class ActivityLogger
 
     public function __construct()
     {
-        $this->firestore = new FirestoreClient([
-            'projectId' => config('firestore.project_id'),
-            'keyFilePath' => config('firestore.credentials'),
-            'databaseId' => config('firestore.database_id'),
-        ]);
-        
-        $this->collection = config('firestore.collection', 'activity_logs');
+        try {
+            // Check if service account file exists
+            $keyFilePath = config('firestore.credentials');
+            if (!file_exists($keyFilePath)) {
+                \Log::warning('Firebase service account file not found: ' . $keyFilePath);
+                $this->firestore = null;
+                return;
+            }
+            
+            $this->firestore = new FirestoreClient([
+                'projectId' => config('firestore.project_id'),
+                'keyFilePath' => $keyFilePath,
+                'databaseId' => config('firestore.database_id'),
+            ]);
+            
+            $this->collection = config('firestore.collection', 'activity_logs');
+        } catch (\Exception $e) {
+            \Log::error('Failed to initialize ActivityLogger: ' . $e->getMessage());
+            $this->firestore = null;
+        }
     }
 
     /**
@@ -35,6 +48,12 @@ class ActivityLogger
     public function log($user, $module, $action, $description, Request $request = null)
     {
         try {
+            // Check if Firestore is available
+            if (!$this->firestore) {
+                \Log::warning('ActivityLogger: Firestore not available, skipping log');
+                return false;
+            }
+            
             // Get user information
             $userType = $this->getUserType($user);
             $role = $this->getUserRole($user);
@@ -169,6 +188,11 @@ class ActivityLogger
     public function getLogsByModule($module, $limit = 100)
     {
         try {
+            if (!$this->firestore) {
+                \Log::warning('ActivityLogger: Firestore not available, cannot fetch logs');
+                return [];
+            }
+            
             $query = $this->firestore->collection($this->collection)
                 ->where('module', '=', $module)
                 ->orderBy('created_at', 'desc')
@@ -200,6 +224,11 @@ class ActivityLogger
     public function getAllLogs($limit = 50, $startAfter = null)
     {
         try {
+            if (!$this->firestore) {
+                \Log::warning('ActivityLogger: Firestore not available, cannot fetch logs');
+                return [];
+            }
+            
             $query = $this->firestore->collection($this->collection)
                 ->orderBy('created_at', 'desc')
                 ->limit($limit);

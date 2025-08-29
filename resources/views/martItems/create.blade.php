@@ -177,7 +177,7 @@
                         <div class="form-group row width-50">
                             <label class="col-3 control-label">{{ trans('lang.item_quantity') }}</label>
                             <div class="col-7">
-                                <input type="number" class="form-control item_quantity" value="-1">
+                                <input type="number" class="form-control item_quantity" value="-1" min="-1" step="1">
                                 <div class="form-text text-muted">
                                     {{ trans('lang.item_quantity_help') }}
                                 </div>
@@ -627,256 +627,309 @@
         
         jQuery("#data-table_processing").hide();
         $(".save-form-btn").click(async function() {
-            var attributes=$('#attributes').val();
-            var variants=$('#variants').val();
-            var name=$(".food_name").val();
-            var price=$(".food_price").val();
+            console.log('🔍 Save button clicked - starting validation...');
+            
+            // Get form values
+            var name = $(".food_name").val().trim();
+            var price = $(".food_price").val().trim();
+            var discount = $(".food_discount").val().trim();
+            var description = $("#food_description").val().trim();
+            var quantity = parseInt($(".item_quantity").val()) || -1;
+            
             <?php if ($id == '') { ?>
-                restaurant=$("#food_restaurant option:selected").val();
+            var restaurant = $("#food_restaurant").val();
             <?php } else { ?>
-                restaurant="<?php echo $id; ?>";
+            var restaurant = "<?php echo $id; ?>";
             <?php } ?>
-            var category=$("#food_category").val();
+            
+            var category = $("#food_category").val();
+            var subcategory = $("#food_subcategory").val();
+            
             // Handle multiple category selection - take the first selected category
             if (Array.isArray(category) && category.length > 0) {
                 category = category[0]; // Take the first selected category
+            } else if (category === '') {
+                category = '';
             }
-            var foodCalories=parseInt($(".food_calories").val());
-            var foodGrams=parseInt($(".food_grams").val());
-            var foodProteins=parseInt($(".food_proteins").val());
-            var foodFats=parseInt($(".food_fats").val());
-            var description=$("#food_description").val();
-            var foodPublish=$(".food_publish").is(":checked");
-            var nonveg=$(".food_nonveg").is(":checked");
-            var veg=!nonveg;
-            var foodTakeaway=$(".food_take_away_option").is(":checked");
-            var discount=$(".food_discount").val();
-            var item_quantity=$(".item_quantity").val();
+            
+            // Handle multiple subcategory selection
+            if (Array.isArray(subcategory) && subcategory.length > 0) {
+                subcategory = subcategory[0]; // Take the first selected subcategory
+            } else if (subcategory === '') {
+                subcategory = '';
+            }
+            
+            // Get checkbox values
+            var foodPublish = $(".food_publish").is(":checked");
             var foodIsAvailable = $(".food_is_available").is(":checked");
-            if(discount=='') {
-                discount="0";
-            }
-            if(!foodCalories) {
-                foodCalories=0;
-            }
-            if(!foodGrams) {
-                foodGrams=0;
-            }
-            if(!foodFats) {
-                foodFats=0;
-            }
-            if(!foodProteins) {
-                foodProteins=0;
-            }
-            var id=database.collection("tmp").doc().id;
-            if(name=='') {
+            var nonveg = $(".food_nonveg").is(":checked");
+            var veg = !nonveg;
+            var foodTakeaway = $(".food_take_away_option").is(":checked");
+            
+            // Get item features
+            var isSpotlight = $("#isSpotlight").is(":checked");
+            var isStealOfMoment = $("#isStealOfMoment").is(":checked");
+            var isFeature = $("#isFeature").is(":checked");
+            var isTrending = $("#isTrending").is(":checked");
+            var isNew = $("#isNew").is(":checked");
+            var isBestSeller = $("#isBestSeller").is(":checked");
+            var isSeasonal = $("#isSeasonal").is(":checked");
+            
+            // Debug checkbox states
+            console.log('🔍 Checkbox states:', {
+                isSpotlight, isStealOfMoment, isFeature, isTrending, isNew, isBestSeller, isSeasonal
+            });
+            
+            console.log('📝 Form values:', {
+                name, price, discount, description, quantity, restaurant, category, subcategory,
+                foodPublish, foodIsAvailable, nonveg, veg, foodTakeaway,
+                isSpotlight, isStealOfMoment, isFeature, isTrending, isNew, isBestSeller, isSeasonal
+            });
+            
+            // Validation
+            if (name == '') {
                 $(".error_top").show();
                 $(".error_top").html("");
                 $(".error_top").append("<p>{{ trans('lang.enter_food_name_error') }}</p>");
-                window.scrollTo(0,0);
-            } else if(price=='') {
+                window.scrollTo(0, 0);
+                return;
+            }
+            
+            if (price == '') {
                 $(".error_top").show();
                 $(".error_top").html("");
                 $(".error_top").append("<p>{{ trans('lang.enter_food_price_error') }}</p>");
-                window.scrollTo(0,0);
-            } else if(restaurant=='') {
+                window.scrollTo(0, 0);
+                return;
+            }
+            
+            if (restaurant == '') {
                 $(".error_top").show();
                 $(".error_top").html("");
                 $(".error_top").append("<p>Please select a mart</p>");
-                window.scrollTo(0,0);
-            } else if(category=='') {
+                window.scrollTo(0, 0);
+                return;
+            }
+            
+            if (category == '') {
                 $(".error_top").show();
                 $(".error_top").html("");
                 $(".error_top").append("<p>Please select a mart category</p>");
-                window.scrollTo(0,0);
-            } else if(parseInt(price)<parseInt(discount)) {
+                window.scrollTo(0, 0);
+                return;
+            }
+            
+            if (parseInt(price) < parseInt(discount || 0)) {
                 $(".error_top").show();
                 $(".error_top").html("");
                 $(".error_top").append("<p>{{ trans('lang.price_should_not_less_then_discount_error') }}</p>");
-                window.scrollTo(0,0);
-            } else if(item_quantity==''||item_quantity<-1) {
+                window.scrollTo(0, 0);
+                return;
+            }
+            
+            if (quantity < -1) {
                 $(".error_top").show();
                 $(".error_top").html("");
-                if(item_quantity=='') {
-                    $(".error_top").append("<p>{{ trans('lang.enter_item_quantity_error') }}</p>");
-                } else {
-                    $(".error_top").append(
-                        "<p>{{ trans('lang.invalid_item_quantity_error') }}</p>");
-                }
-                window.scrollTo(0,0);
-            } else if(description=='') {
+                $(".error_top").append("<p>{{ trans('lang.invalid_item_quantity_error') }}</p>");
+                window.scrollTo(0, 0);
+                return;
+            }
+            
+            if (description == '') {
                 $(".error_top").show();
                 $(".error_top").html("");
                 $(".error_top").append("<p>{{ trans('lang.enter_food_description_error') }}</p>");
-                window.scrollTo(0,0);
-            } else {
-                verifyRestaurant=await checkDocumentAndPlan(restaurant);
-                if(verifyRestaurant.documentVerify==true) {
-
-                    if(parseInt(verifyRestaurant.itemLimit)==-1||(parseInt(verifyRestaurant.itemLimit)>0&&parseInt(verifyRestaurant.itemLimit)>parseInt(totalProductCount))) {
-                        $(".error_top").hide();
-                        //start-item attribute
-                        var quantityerror=0;
-                        var priceerror=0;
-                        var attributes=[];
-                        var variants=[];
-                        if($("#item_attribute").val().length>0) {
-                            if($('#attributes').val().length>0) {
-                                var attributes=$.parseJSON($('#attributes').val());
-                            } else {
-                                alert('Please add your attribute value');
-                                return false;
-                            }
-                            if($("#item_attribute").val().length!==attributes.length) {
-                                alert('Please add your attribute value');
-                                return false;
-                            }
-                        }
-
-                        if($('#variants').val().length>0) {
-                            var variantsSet=$.parseJSON($('#variants').val());
-                            await storeVariantImageData().then(async (vIMG) => {
-                                $.each(variantsSet,function(key,variant) {
-                                    var variant_id=uniqid();
-                                    var variant_sku=variant;
-                                    var variant_price=$('[id="price_'+
-                                        variant+'"]').val();
-                                    var variant_quantity=$('[id="qty_'+
-                                        variant+'"]').val();
-                                    var variant_image=$('[id="variant_'+
-                                        variant+'_url"]').val();
-                                    if(variant_image) {
-                                        variants.push({
-                                            'variant_id': variant_id,
-                                            'variant_sku': variant_sku,
-                                            'variant_price': variant_price,
-                                            'variant_quantity': variant_quantity,
-                                            'variant_image': variant_image
-                                        });
-                                    } else {
-                                        variants.push({
-                                            'variant_id': variant_id,
-                                            'variant_sku': variant_sku,
-                                            'variant_price': variant_price,
-                                            'variant_quantity': variant_quantity
-                                        });
-                                    }
-                                    if(variant_quantity=''||
-                                        variant_quantity<-1||
-                                        variant_quantity==0) {
-                                        quantityerror++;
-                                    }
-                                    if(variant_price==""||variant_price<=
-                                        0) {
-                                        priceerror++;
-                                    }
-                                });
-                            }).catch(err => {
-                                jQuery("#data-table_processing").hide();
-                                $(".error_top").show();
-                                $(".error_top").html("");
-                                $(".error_top").append("<p>"+err+"</p>");
-                                window.scrollTo(0,0);
-                            });
-                        }
-
-
-                        var item_attribute=null;
-                        if(attributes.length>0&&variants.length>0) {
-                            if(quantityerror>0) {
-                                alert(
-                                    'Please add your variants quantity it should be -1 or greater than -1'
-                                );
-                                return false;
-                            }
-                            if(priceerror>0) {
-                                alert('Please add your variants  Price');
-                                return false;
-                            }
-                            var item_attribute={
-                                'attributes': attributes,
-                                'variants': variants
-                            };
-                        }
-                        jQuery("#data-table_processing").show();
-                        await storeProductImageData().then(async (IMG) => {
-                            if(IMG.length>0) {
-                                photo=IMG[0];
-                            }
-                            var objects={
-                                'name': name,
-                                'price': price.toString(),
-                                'quantity': parseInt(item_quantity),
-                                'disPrice': discount.toString(),
-                                'vendorID': restaurant,
-                                'categoryID': category,
-                                'photo': photo,
-                                'calories': foodCalories,
-                                "grams": foodGrams,
-                                'proteins': foodProteins,
-                                'fats': foodFats,
-                                'description': description,
-                                'publish': foodPublish,
-                                'nonveg': nonveg,
-                                'veg': veg,
-                                'addOnsTitle': addOnesTitle,
-                                'addOnsPrice': addOnesPrice,
-                                'takeawayOption': foodTakeaway,
-                                'product_specification': product_specification,
-                                'id': id,
-                                'item_attribute': item_attribute,
-                                'photos': IMG,
-                                'createdAt': firebase.firestore.FieldValue.serverTimestamp(),
-                                'isAvailable': foodIsAvailable
-                            };
-                            //end-item attribute
-                            database.collection('mart_items').doc(id).set(objects)
-                                .then(async function(result) {
-                                    console.log('✅ Mart item saved successfully, now logging activity...');
-                                    try {
-                                        if (typeof logActivity === 'function') {
-                                            console.log('🔍 Calling logActivity for mart item creation...');
-                                            await logActivity('mart_items', 'created', 'Created new mart item: ' + name);
-                                            console.log('✅ Activity logging completed successfully');
-                                        } else {
-                                            console.error('❌ logActivity function is not available');
-                                        }
-                                    } catch (error) {
-                                        console.error('❌ Error calling logActivity:', error);
-                                    }
-                                    if(reataurantIDDirec) {
-                                        window.location.href=
-                                            "{{ route('marts.mart-items', $id) }}";
-                                    } else {
-                                        window.location.href=
-                                            '{{ route('mart-items') }}';
-                                    }
-                                });
-                        }).catch(err => {
-                            jQuery("#data-table_processing").hide();
-                            $(".error_top").show();
-                            $(".error_top").html("");
-                            $(".error_top").append("<p>"+err+"</p>");
-                            window.scrollTo(0,0);
-                        });
+                window.scrollTo(0, 0);
+                return;
+            }
+            
+            console.log('✅ Validation passed, starting save process...');
+            $(".error_top").hide();
+            
+            const hasOptions = $(".has_options").is(":checked");
+            
+            if (hasOptions && optionsList.length === 0) {
+                alert('Please add at least one option when options are enabled.');
+                return;
+            }
+            
+            if (hasOptions) {
+                // Validate options
+                for (let option of optionsList) {
+                    if (!option.title || !option.price || option.price <= 0) {
+                        alert('Please fill all required fields for all options.');
+                        return;
                     }
-                    else {
-                        jQuery("#data-table_processing").hide();
-                        $(".error_top").show();
-                        $(".error_top").html("");
-                        $(".error_top").append(
-                            "<p>{{ trans('lang.food_limit_exceed_can_not_create_food') }}</p>");
-                        window.scrollTo(0,0);
-                    }
-                } else {
-                    jQuery("#data-table_processing").hide();
-                    $(".error_top").show();
-                    $(".error_top").html("");
-                    $(".error_top").append(
-                        "<p>{{ trans('lang.document_verification_pending_can_not_create_food') }}</p>"
-                    );
-                    window.scrollTo(0,0);
                 }
+                
+                // Prepare options data
+                const optionsData = optionsList.map((option, index) => ({
+                    id: option.id || `option_${Date.now()}_${index}`,
+                    option_type: option.type || 'size',
+                    option_title: option.title || '',
+                    option_subtitle: option.subtitle || '',
+                    price: parseFloat(option.price) || 0,
+                    original_price: parseFloat(option.original_price) || parseFloat(option.price) || 0,
+                    discount_amount: parseFloat(option.discount_amount) || 0,
+                    unit_price: parseFloat(option.unit_price) || 0,
+                    unit_measure: parseFloat(option.unit_measure) || 100,
+                    unit_measure_type: option.unit_measure_type || 'g',
+                    quantity: parseFloat(option.quantity) || 0,
+                    quantity_unit: option.quantity_unit || 'g',
+                    image: option.image || '',
+                    is_available: option.is_available !== false,
+                    is_featured: option.is_featured === true,
+                    sort_order: index + 1,
+                    created_at: new Date().toISOString()
+                }));
+                
+                // Calculate price range
+                const prices = optionsList.map(opt => opt.price);
+                const minPrice = Math.min(...prices);
+                const maxPrice = Math.max(...prices);
+                const defaultOptionId = optionsList.find(opt => opt.is_featured)?.id || optionsList[0]?.id;
+                
+                // Create single document with nested options
+                const itemData = {
+                    name: name,
+                    price: parseFloat(price) || 0,
+                    disPrice: parseFloat(discount) || parseFloat(price) || 0,
+                    vendorID: restaurant,
+                    categoryID: category,
+                    subcategoryID: subcategory || '', // Add subcategory
+                    photo: photo || '',
+                    description: description,
+                    publish: foodPublish,
+                    isAvailable: foodIsAvailable,
+                    nonveg: nonveg,
+                    veg: veg,
+                    takeawayOption: foodTakeaway,
+                    
+                    // Enhanced Filter Fields
+                    isSpotlight: isSpotlight,
+                    isStealOfMoment: isStealOfMoment,
+                    isFeature: isFeature,
+                    isTrending: isTrending,
+                    isNew: isNew,
+                    isBestSeller: isBestSeller,
+                    isSeasonal: isSeasonal,
+                    
+                    // Options configuration
+                    has_options: true,
+                    options_enabled: true,
+                    options_toggle: true,
+                    options_count: optionsList.length || 0,
+                    min_price: minPrice || 0,
+                    max_price: maxPrice || 0,
+                    price_range: `₹${minPrice || 0} - ₹${maxPrice || 0}`,
+                    default_option_id: defaultOptionId || '',
+                    best_value_option: optionsList.find(opt => opt.unit_price === Math.min(...optionsList.map(o => o.unit_price)))?.id || '',
+                    savings_percentage: Math.max(...optionsList.map(opt => opt.original_price > opt.price ? ((opt.original_price - opt.price) / opt.original_price) * 100 : 0)) || 0,
+                    
+                    // Nested options array
+                    options: optionsData,
+                    
+                    // Existing fields
+                    quantity: parseInt(quantity) || -1,
+                    calories: parseInt($(".food_calories").val()) || 0,
+                    grams: parseInt($(".food_grams").val()) || 0,
+                    proteins: parseInt($(".food_proteins").val()) || 0,
+                    fats: parseInt($(".food_fats").val()) || 0,
+                    addOnsTitle: addOnesTitle || [],
+                    addOnsPrice: addOnesPrice || [],
+                    product_specification: product_specification || {},
+                    item_attribute: null,
+                    photos: photos || [],
+                    created_at: firebase.firestore.FieldValue.serverTimestamp(),
+                    updated_at: firebase.firestore.FieldValue.serverTimestamp()
+                };
+                
+                console.log('📊 Saving item with options:', itemData);
+                
+                // Save single document
+                await database.collection('mart_items').add(itemData);
+                
+                // Log activity (optional - don't block save if it fails)
+                try {
+                    if (typeof logActivity === 'function') {
+                        await logActivity('mart_items', 'created', 'Created mart item with options: ' + itemData.name);
+                    }
+                } catch (error) {
+                    console.warn('⚠️ Activity logging failed, but item was saved successfully:', error);
+                }
+                
+                <?php if ($id != '') { ?>
+                    window.location.href = '{{ route("marts.mart-items", $id) }}';
+                <?php } else { ?>
+                    window.location.href = '{{ route("mart-items") }}';
+                <?php } ?>
+                
+            } else {
+                // Save regular item without options
+                const itemData = {
+                    name: name,
+                    price: parseFloat(price) || 0,
+                    disPrice: parseFloat(discount) || parseFloat(price) || 0,
+                    vendorID: restaurant,
+                    categoryID: category,
+                    subcategoryID: subcategory || '', // Add subcategory
+                    photo: photo || '',
+                    description: description,
+                    publish: foodPublish,
+                    isAvailable: foodIsAvailable,
+                    nonveg: nonveg,
+                    veg: veg,
+                    takeawayOption: foodTakeaway,
+                    
+                    // Enhanced Filter Fields
+                    isSpotlight: isSpotlight,
+                    isStealOfMoment: isStealOfMoment,
+                    isFeature: isFeature,
+                    isTrending: isTrending,
+                    isNew: isNew,
+                    isBestSeller: isBestSeller,
+                    isSeasonal: isSeasonal,
+                    
+                    // Options configuration
+                    has_options: false,
+                    options_enabled: false,
+                    options_toggle: false,
+                    options_count: 0,
+                    options: [],
+                    
+                    // Existing fields
+                    quantity: quantity,
+                    calories: parseInt($(".food_calories").val()) || 0,
+                    grams: parseInt($(".food_grams").val()) || 0,
+                    proteins: parseInt($(".food_proteins").val()) || 0,
+                    fats: parseInt($(".food_fats").val()) || 0,
+                    addOnsTitle: addOnesTitle || [],
+                    addOnsPrice: addOnesPrice || [],
+                    product_specification: product_specification || {},
+                    item_attribute: null,
+                    photos: photos || [],
+                    created_at: firebase.firestore.FieldValue.serverTimestamp(),
+                    updated_at: firebase.firestore.FieldValue.serverTimestamp()
+                };
+                
+                console.log('📊 Saving regular item:', itemData);
+                
+                await database.collection('mart_items').add(itemData);
+                
+                // Log activity (optional - don't block save if it fails)
+                try {
+                    if (typeof logActivity === 'function') {
+                        await logActivity('mart_items', 'created', 'Created mart item: ' + itemData.name);
+                    }
+                } catch (error) {
+                    console.warn('⚠️ Activity logging failed, but item was saved successfully:', error);
+                }
+                
+                <?php if ($id != '') { ?>
+                    window.location.href = '{{ route("marts.mart-items", $id) }}';
+                <?php } else { ?>
+                    window.location.href = '{{ route("mart-items") }}';
+                <?php } ?>
             }
         })
     })
@@ -1338,9 +1391,17 @@
     }
 
 // Category search and multi-select tag functionality for food categories
-$(document).ready(function() {
-    // 1. Filter dropdown options based on search
-    $('#food_category_search').on('keyup', function() {
+    $(document).ready(function() {
+        // Fix quantity input to prevent number rendering issues
+        $('.item_quantity').on('input', function() {
+            var value = parseInt($(this).val()) || -1;
+            if (value < -1) {
+                $(this).val(-1);
+            }
+        });
+        
+        // 1. Filter dropdown options based on search
+        $('#food_category_search').on('keyup', function() {
         var search = $(this).val().toLowerCase();
         $('#food_category option').each(function() {
             if ($(this).val() === "") {
@@ -1359,6 +1420,8 @@ $(document).ready(function() {
     // 2. When selecting from dropdown, add tag (multi-select support)
     $('#food_category').on('change', function() {
         updateSelectedFoodCategoryTags();
+        // Filter subcategories based on selected categories
+        filterSubcategoriesByCategories();
     });
 
     // 3. Remove tag and unselect in dropdown
@@ -1366,21 +1429,64 @@ $(document).ready(function() {
         var value = $(this).parent().data('value');
         $('#food_category option[value="' + value + '"]').prop('selected', false);
         updateSelectedFoodCategoryTags();
+        // Filter subcategories based on selected categories
+        filterSubcategoriesByCategories();
     });
 });
- // 4. Update tags display
- function updateSelectedFoodCategoryTags() {
-        var selected = $('#food_category').val() || [];
-        var html = '';
-        $('#food_category option:selected').each(function() {
-            if ($(this).val() !== "") {
-                html += '<span class="selected-category-tag" data-value="' + $(this).val() + '">' +
-                    $(this).text() +
-                    '<span class="remove-tag">&times;</span></span>';
-            }
-        });
-        $('#selected_categories').html(html);
+
+// 4. Update tags display
+function updateSelectedFoodCategoryTags() {
+    var selected = $('#food_category').val() || [];
+    var html = '';
+    $('#food_category option:selected').each(function() {
+        if ($(this).val() !== "") {
+            html += '<span class="selected-category-tag" data-value="' + $(this).val() + '">' +
+                $(this).text() +
+                '<span class="remove-tag">&times;</span></span>';
+        }
+    });
+    $('#selected_categories').html(html);
+}
+
+// Filter subcategories based on selected categories
+function filterSubcategoriesByCategories() {
+    var selectedCategories = $('#food_category').val() || [];
+    console.log('🔍 Filtering subcategories for selected categories:', selectedCategories);
+    
+    // Show all subcategories if no categories selected
+    if (selectedCategories.length === 0) {
+        $('#food_subcategory option').show();
+        return;
     }
+    
+    $('#food_subcategory option').each(function() {
+        var $option = $(this);
+        var parentCategoryId = $option.attr('data-parent');
+        
+        if ($option.val() === "") {
+            // Always show the placeholder option
+            $option.show();
+        } else if (parentCategoryId && selectedCategories.includes(parentCategoryId)) {
+            // Show subcategory if its parent category is selected
+            $option.show();
+            console.log('✅ Showing subcategory:', $option.text(), 'for parent:', parentCategoryId);
+        } else {
+            // Hide subcategory if its parent category is not selected
+            $option.hide();
+            console.log('❌ Hiding subcategory:', $option.text(), 'for parent:', parentCategoryId);
+        }
+    });
+    
+    // Clear selected subcategories that are no longer visible
+    $('#food_subcategory option:selected').each(function() {
+        if (!$(this).is(':visible') && $(this).val() !== "") {
+            $(this).prop('selected', false);
+            console.log('🗑️ Deselected hidden subcategory:', $(this).text());
+        }
+    });
+    
+    updateSelectedSubcategoryTags();
+}
 
 // Subcategory search and multi-select tag functionality
 $(document).ready(function() {
@@ -2024,153 +2130,7 @@ function updateDefaultOptionSelect() {
     });
 }
 
-// Enhanced save function - Single document approach
-$(".save-form-btn").click(async function() {
-    // ... existing validation ...
-    
-    const hasOptions = $(".has_options").is(":checked");
-    
-    if (hasOptions && optionsList.length === 0) {
-        alert('Please add at least one option when options are enabled.');
-        return;
-    }
-    
-    if (hasOptions) {
-        // Validate options
-        for (let option of optionsList) {
-            if (!option.title || !option.price || option.price <= 0) {
-                alert('Please fill all required fields for all options.');
-                return;
-            }
-        }
-        
-        // Prepare options data
-        const optionsData = optionsList.map((option, index) => ({
-            id: option.id || `option_${Date.now()}_${index}`,
-            option_type: option.type || 'size',
-            option_title: option.title || '',
-            option_subtitle: option.subtitle || '',
-            price: parseFloat(option.price) || 0,
-            original_price: parseFloat(option.original_price) || parseFloat(option.price) || 0,
-            discount_amount: parseFloat(option.discount_amount) || 0,
-            unit_price: parseFloat(option.unit_price) || 0,
-            unit_measure: parseFloat(option.unit_measure) || 100,
-            unit_measure_type: option.unit_measure_type || 'g',
-            quantity: parseFloat(option.quantity) || 0,
-            quantity_unit: option.quantity_unit || 'g',
-            image: option.image || '',
-            is_available: option.is_available !== false,
-            is_featured: option.is_featured === true,
-            sort_order: index + 1,
-            created_at: new Date().toISOString()
-        }));
-        
-        // Calculate price range
-        const prices = optionsList.map(opt => opt.price);
-        const minPrice = Math.min(...prices);
-        const maxPrice = Math.max(...prices);
-        const defaultOptionId = optionsList.find(opt => opt.is_featured)?.id || optionsList[0]?.id;
-        
-        // Create single document with nested options
-        const itemData = {
-            name: $(".food_name").val() || '',
-            price: $(".food_price").val() || '0',
-            disPrice: $(".food_discount").val() || $(".food_price").val() || '0',
-            vendorID: $("#food_restaurant").val() || '',
-            categoryID: $("#food_category").val() || '',
-            subcategoryID: $("#food_subcategory").val() || '', // Add subcategory
-            photo: photo || '',
-            description: $("#food_description").val() || '',
-            publish: $(".food_publish").is(":checked"),
-            isAvailable: $(".food_is_available").is(":checked"),
-            
-            // Debug logging
-            _debug: {
-                selectedSubcategory: $("#food_subcategory").val(),
-                selectedSubcategoryText: $("#food_subcategory option:selected").text(),
-                allSubcategoryOptions: $("#food_subcategory option").map(function() { return { value: $(this).val(), text: $(this).text() }; }).get()
-            },
-            
-            // Enhanced Filter Fields
-            isSpotlight: $("#isSpotlight").is(":checked"),
-            isStealOfMoment: $("#isStealOfMoment").is(":checked"),
-            isFeature: $("#isFeature").is(":checked"),
-            isTrending: $("#isTrending").is(":checked"),
-            isNew: $("#isNew").is(":checked"),
-            isBestSeller: $("#isBestSeller").is(":checked"),
-            isSeasonal: $("#isSeasonal").is(":checked"),
-            
-            // Options configuration
-            has_options: true,
-            options_enabled: true,
-            options_toggle: true,
-            options_count: optionsList.length || 0,
-            min_price: minPrice || 0,
-            max_price: maxPrice || 0,
-            price_range: `₹${minPrice || 0} - ₹${maxPrice || 0}`,
-            default_option_id: defaultOptionId || '',
-            best_value_option: optionsList.find(opt => opt.unit_price === Math.min(...optionsList.map(o => o.unit_price)))?.id || '',
-            savings_percentage: Math.max(...optionsList.map(opt => opt.original_price > opt.price ? ((opt.original_price - opt.price) / opt.original_price) * 100 : 0)) || 0,
-            
-            // Nested options array
-            options: optionsData,
-            
-            // Existing fields
-            item_attribute: null,
-            created_at: firebase.firestore.FieldValue.serverTimestamp(),
-            updated_at: firebase.firestore.FieldValue.serverTimestamp()
-        };
-        
-        // Save single document
-        await database.collection('mart_items').add(itemData);
-        
-        // Log activity
-        if (typeof logActivity === 'function') {
-            await logActivity('mart_items', 'created', 'Created mart item with options: ' + itemData.name);
-        }
-        
-        window.location.href = '{{ route("mart-items") }}';
-        
-    } else {
-        // Save regular item without options
-        const itemData = {
-            name: $(".food_name").val() || '',
-            price: $(".food_price").val() || '0',
-            disPrice: $(".food_discount").val() || $(".food_price").val() || '0',
-            vendorID: $("#food_restaurant").val() || '',
-            categoryID: $("#food_category").val() || '',
-            subcategoryID: $("#food_subcategory").val() || '', // Add subcategory
-            photo: photo || '',
-            description: $("#food_description").val() || '',
-            publish: $(".food_publish").is(":checked"),
-            isAvailable: $(".food_is_available").is(":checked"),
-            
-            // Enhanced Filter Fields
-            isSpotlight: $("#isSpotlight").is(":checked"),
-            isStealOfMoment: $("#isStealOfMoment").is(":checked"),
-            isFeature: $("#isFeature").is(":checked"),
-            isTrending: $("#isTrending").is(":checked"),
-            isNew: $("#isNew").is(":checked"),
-            isBestSeller: $("#isBestSeller").is(":checked"),
-            isSeasonal: $("#isSeasonal").is(":checked"),
-            
-            // Options configuration
-            has_options: false,
-            options_enabled: false,
-            options_toggle: false,
-            options_count: 0,
-            options: [],
-            
-            // Existing fields
-            item_attribute: null,
-            created_at: firebase.firestore.FieldValue.serverTimestamp(),
-            updated_at: firebase.firestore.FieldValue.serverTimestamp()
-        };
-        
-        await database.collection('mart_items').add(itemData);
-        window.location.href = '{{ route("mart-items") }}';
-    }
-});
+
 </script>
 
 <!-- Option Template (Hidden) -->

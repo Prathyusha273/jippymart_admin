@@ -110,7 +110,7 @@
                             <div class="form-group row width-50">
                                 <label class="col-3 control-label">{{trans('lang.item_quantity')}}</label>
                                 <div class="col-7">
-                                    <input type="number" class="form-control item_quantity" value="-1">
+                                    <input type="number" class="form-control item_quantity" value="-1" min="-1" step="1">
                                     <div class="form-text text-muted">
                                         {{ trans("lang.item_quantity_help") }}
                                     </div>
@@ -936,6 +936,42 @@
                     $(".food_is_available").prop('checked', true);
                 }
                 
+                // Handle item features checkboxes
+                if (product.hasOwnProperty('isSpotlight') && product.isSpotlight === true) {
+                    $("#isSpotlight").prop('checked', true);
+                    console.log('✅ Spotlight checkbox checked');
+                }
+                
+                if (product.hasOwnProperty('isStealOfMoment') && product.isStealOfMoment === true) {
+                    $("#isStealOfMoment").prop('checked', true);
+                    console.log('✅ Steal of Moment checkbox checked');
+                }
+                
+                if (product.hasOwnProperty('isFeature') && product.isFeature === true) {
+                    $("#isFeature").prop('checked', true);
+                    console.log('✅ Feature checkbox checked');
+                }
+                
+                if (product.hasOwnProperty('isTrending') && product.isTrending === true) {
+                    $("#isTrending").prop('checked', true);
+                    console.log('✅ Trending checkbox checked');
+                }
+                
+                if (product.hasOwnProperty('isNew') && product.isNew === true) {
+                    $("#isNew").prop('checked', true);
+                    console.log('✅ New checkbox checked');
+                }
+                
+                if (product.hasOwnProperty('isBestSeller') && product.isBestSeller === true) {
+                    $("#isBestSeller").prop('checked', true);
+                    console.log('✅ Best Seller checkbox checked');
+                }
+                
+                if (product.hasOwnProperty('isSeasonal') && product.isSeasonal === true) {
+                    $("#isSeasonal").prop('checked', true);
+                    console.log('✅ Seasonal checkbox checked');
+                }
+                
                 // Load existing options if any - moved here after product data is loaded
                 console.log('🔍 Checking for options in product:', product);
                 console.log('🔍 Product has_options:', product?.has_options);
@@ -965,20 +1001,36 @@
                 jQuery("#data-table_processing").hide();
             })
             $(".edit-form-btn").click( async function () {
-                var name = $(".food_name").val();
-                var price = $(".food_price").val();
-                var quantity = $(".item_quantity").val();
+                var name = $(".food_name").val().trim();
+                var price = $(".food_price").val().trim();
+                var quantity = parseInt($(".item_quantity").val()) || -1;
                 var restaurant = $("#food_restaurant option:selected").val();
                 var category = $("#food_category option:selected").val();
-                var foodCalories = parseInt($(".food_calories").val());
-                var foodGrams = parseInt($(".food_grams").val());
-                var foodProteins = parseInt($(".food_proteins").val());
-                var foodFats = parseInt($(".food_fats").val());
-                var description = $("#food_description").val();
+                var foodCalories = parseInt($(".food_calories").val()) || 0;
+                var foodGrams = parseInt($(".food_grams").val()) || 0;
+                var foodProteins = parseInt($(".food_proteins").val()) || 0;
+                var foodFats = parseInt($(".food_fats").val()) || 0;
+                var description = $("#food_description").val().trim();
                 var foodPublish = $(".food_publish").is(":checked");
                 var nonveg = $(".food_nonveg").is(":checked");
                 var veg = !nonveg;
                 var foodTakeaway = $(".food_take_away_option").is(":checked");
+                var foodIsAvailable = $(".food_is_available").is(":checked");
+                
+                // Get item features
+                var isSpotlight = $("#isSpotlight").is(":checked");
+                var isStealOfMoment = $("#isStealOfMoment").is(":checked");
+                var isFeature = $("#isFeature").is(":checked");
+                var isTrending = $("#isTrending").is(":checked");
+                var isNew = $("#isNew").is(":checked");
+                var isBestSeller = $("#isBestSeller").is(":checked");
+                var isSeasonal = $("#isSeasonal").is(":checked");
+                
+                // Debug checkbox states
+                console.log('🔍 Checkbox states:', {
+                    isSpotlight, isStealOfMoment, isFeature, isTrending, isNew, isBestSeller, isSeasonal
+                });
+                
                 var discount = $(".food_discount").val();
                 if (discount == '') {
                     discount = "0";
@@ -1025,14 +1077,10 @@
                     $(".error_top").html("");
                     $(".error_top").append("<p>{{trans('lang.price_should_not_less_then_discount_error')}}</p>");
                     window.scrollTo(0, 0);
-                } else if (quantity == '' || quantity < -1) {
+                } else if (quantity < -1) {
                     $(".error_top").show();
                     $(".error_top").html("");
-                    if (quantity == '') {
-                        $(".error_top").append("<p>{{trans('lang.enter_item_quantity_error')}}</p>");
-                    } else {
-                        $(".error_top").append("<p>{{trans('lang.invalid_item_quantity_error')}}</p>");
-                    }
+                    $(".error_top").append("<p>{{trans('lang.invalid_item_quantity_error')}}</p>");
                     window.scrollTo(0, 0);
                 } else if (description == '') {
                     $(".error_top").show();
@@ -1125,9 +1173,9 @@
                     const hasOptions = $(".has_options").is(":checked");
                     let updateData = {
                         'name': name || '',
-                        'price': price.toString() || '0',
-                        'quantity': parseInt(quantity) || 0,
-                        'disPrice': discount || '0',
+                        'price': parseFloat(price) || 0,
+                        'quantity': quantity,
+                        'disPrice': parseFloat(discount) || parseFloat(price) || 0,
                         'vendorID': restaurant || '',
                         'categoryID': category || '',
                         'subcategoryID': $("#food_subcategory").val() || '', // Add subcategory
@@ -1147,6 +1195,13 @@
                         'item_attribute': item_attribute || null,
                         'photos': IMG || [],
                         'isAvailable': foodIsAvailable,
+                        'isSpotlight': isSpotlight,
+                        'isStealOfMoment': isStealOfMoment,
+                        'isFeature': isFeature,
+                        'isTrending': isTrending,
+                        'isNew': isNew,
+                        'isBestSeller': isBestSeller,
+                        'isSeasonal': isSeasonal,
                         'updated_at': firebase.firestore.FieldValue.serverTimestamp()
                     };
                     
@@ -1628,6 +1683,14 @@
     //         $('#food_category').before('<div id="selected_food_categories" class="mb-2"></div><input type="text" id="food_category_search" class="form-control mb-2" placeholder="Search categories...">');
     //     }
     $(document).ready(function() {
+        // Fix quantity input to prevent number rendering issues
+        $('.item_quantity').on('input', function() {
+            var value = parseInt($(this).val()) || -1;
+            if (value < -1) {
+                $(this).val(-1);
+            }
+        });
+        
         // 1. Filter dropdown options based on search
         $('#food_category_search').on('keyup', function() {
             var search = $(this).val().toLowerCase();
@@ -2330,5 +2393,55 @@ function updateDefaultOptionSelect() {
         select.append(`<option value="${option.id}">${option.title}</option>`);
     });
 }
-</script>
+
+// Filter subcategories based on selected categories
+function filterSubcategoriesByCategories() {
+    var selectedCategories = $('#food_category').val() || [];
+    console.log('🔍 Filtering subcategories for selected categories:', selectedCategories);
+    
+    if (selectedCategories.length === 0) {
+        $('#food_subcategory option').show();
+        return;
+    }
+    
+    $('#food_subcategory option').each(function() {
+        var $option = $(this);
+        var parentCategoryId = $option.attr('data-parent');
+        
+        if ($option.val() === "") {
+            $option.show();
+        } else if (parentCategoryId && selectedCategories.includes(parentCategoryId)) {
+            $option.show();
+            console.log('✅ Showing subcategory:', $option.text(), 'for parent:', parentCategoryId);
+        } else {
+            $option.hide();
+            console.log('❌ Hiding subcategory:', $option.text(), 'for parent:', parentCategoryId);
+        }
+    });
+    
+    $('#food_subcategory option:selected').each(function() {
+        if (!$(this).is(':visible') && $(this).val() !== "") {
+            $(this).prop('selected', false);
+            console.log('🗑️ Deselected hidden subcategory:', $(this).text());
+        }
+    });
+    
+    updateSelectedSubcategoryTags();
+}
+
+// Add event listeners for category changes
+$(document).ready(function() {
+    $('#food_category').on('change', function() {
+        updateSelectedFoodCategoryTags();
+        filterSubcategoriesByCategories();
+    });
+
+    $('#selected_food_categories').on('click', '.remove-tag', function() {
+        var value = $(this).parent().data('value');
+        $('#food_category option[value="' + value + '"]').prop('selected', false);
+        updateSelectedFoodCategoryTags();
+        filterSubcategoriesByCategories();
+    });
+});
+    </script>
 @endsection

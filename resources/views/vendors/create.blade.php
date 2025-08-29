@@ -255,6 +255,10 @@ foreach ($countries as $keycountry => $valuecountry) {
         var country_code=$("#country_selector").val();
         var userPhone=$(".user_phone").val();
         var vendorType=$("#vendor_type").val();
+        // Set default vendor type to 'restaurant' if empty or not selected
+        if(vendorType=='' || vendorType==null || vendorType==undefined) {
+            vendorType='restaurant';
+        }
         var reststatus=true;
 
         var restaurant_active=false;
@@ -303,11 +307,6 @@ foreach ($countries as $keycountry => $valuecountry) {
             $(".error_top").show();
             $(".error_top").html("");
             $(".error_top").append("<p>{{trans('lang.enter_owners_phone')}}</p>");
-            window.scrollTo(0,0);
-        } else if(vendorType=='') {
-            $(".error_top").show();
-            $(".error_top").html("");
-            $(".error_top").append("<p>{{trans('lang.select_vendor_type_error')}}</p>");
             window.scrollTo(0,0);
         } else {
             jQuery("#data-table_processing").show();

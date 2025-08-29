@@ -144,25 +144,55 @@ placeholder.get().then(async function (snapshotsimage) {
 $(document).ready(function () {
     jQuery("#data-table_processing").show();
     ref.get().then(async function (snapshots) {
+        console.log('📊 Loading category data for ID:', id);
+        
+        if (snapshots.empty) {
+            console.error('❌ No category found with ID:', id);
+            alert('Category not found!');
+            return;
+        }
+        
         category = snapshots.docs[0].data();
+        console.log('📝 Category data loaded:', category);
+        
         $(".cat-name").val(category.title);
         $(".category_description").val(category.description);
         $("#category_section").val(category.section || 'General');
         $("#category_order").val(category.category_order || 1);
+        
+        console.log('📋 Form fields populated:', {
+            title: category.title,
+            description: category.description,
+            section: category.section || 'General',
+            category_order: category.category_order || 1
+        });
+        
         if (category.photo != '' && category.photo != null) {
-              photo = category.photo;
-              catImageFile=category.photo;
-              $(".cat_image").append('<img onerror="this.onerror=null;this.src=\'' + placeholderImage + '\'" class="rounded" style="width:50px" src="' + photo + '" alt="image">');
+            photo = category.photo;
+            catImageFile = category.photo;
+            $(".cat_image").append('<img onerror="this.onerror=null;this.src=\'' + placeholderImage + '\'" class="rounded" style="width:50px" src="' + photo + '" alt="image">');
+            console.log('🖼️ Category image loaded:', photo);
         } else {
             $(".cat_image").append('<img class="rounded" style="width:50px" src="' + placeholderImage + '" alt="image">');
+            console.log('🖼️ Using placeholder image');
         }
+        
         if (category.publish) {
             $("#item_publish").prop('checked', true);
+            console.log('✅ Publish checkbox checked');
         }
+        
         if (category.show_in_homepage) {
             $("#show_in_homepage").prop('checked', true);
+            console.log('✅ Show in homepage checkbox checked');
         }
+        
         jQuery("#data-table_processing").hide();
+        console.log('✅ Category data loading completed');
+    }).catch(function(error) {
+        console.error('❌ Error loading category data:', error);
+        jQuery("#data-table_processing").hide();
+        alert('Error loading category data: ' + error.message);
     })
     ref_review_attributes.get().then(async function (snapshots) {
         var ra_html = '';
@@ -177,35 +207,66 @@ $(document).ready(function () {
         $('#review_attributes').html(ra_html);
     })
     $(".edit-setting-btn").click(async function () {
+        console.log('🔍 Save button clicked - starting update process...');
+        
         var title = $(".cat-name").val();
         var description = $(".category_description").val();
         var item_publish = $("#item_publish").is(":checked");
         var show_in_homepage = $("#show_in_homepage").is(":checked");
         var review_attributes = [];
+        
+        console.log('📝 Form values:', {
+            title: title,
+            description: description,
+            item_publish: item_publish,
+            show_in_homepage: show_in_homepage
+        });
+        
         $('#review_attributes input').each(function () {
             if ($(this).is(':checked')) {
                 review_attributes.push($(this).val());
             }
         });
+        
         if (title == '') {
             $(".error_top").show();
             $(".error_top").html("");
-                            $(".error_top").append("<p>Please enter a mart category name</p>");
+            $(".error_top").append("<p>Please enter a mart category name</p>");
             window.scrollTo(0, 0);
-        } else {
+            return false;
+        }
+        
+        try {
             var count_mart_categories = 0;
             if (show_in_homepage) {
-                await database.collection('mart_categories').where('show_in_homepage', "==", true).where("id", "!=", id).get().then(async function (snapshots) {
-                    count_mart_categories = snapshots.docs.length;
-                });
+                // Get all categories with show_in_homepage = true, then filter in JavaScript
+                const snapshots = await database.collection('mart_categories').where('show_in_homepage', "==", true).get();
+                count_mart_categories = snapshots.docs.filter(doc => doc.data().id !== id).length;
+                console.log('📊 Found', count_mart_categories, 'other categories with show_in_homepage = true');
             }
+            
             if (count_mart_categories >= 5) {
                 alert("Already 5 mart categories are active for show in homepage..");
                 return false;
-            } else {
+            }
+            
+            console.log('🔄 Starting image processing...');
             jQuery("#data-table_processing").show();
-            storeImageData().then(IMG => {
-            database.collection('mart_categories').doc(id).update({
+            
+            // Process image first
+            let IMG;
+            try {
+                IMG = await storeImageData();
+                console.log('✅ Image processed:', IMG);
+            } catch (imageError) {
+                console.error('❌ Image processing error:', imageError);
+                // Use existing image if processing fails
+                IMG = photo || catImageFile;
+                console.log('🔄 Using existing image as fallback:', IMG);
+            }
+            
+            // Prepare update data
+            const updateData = {
                 'title': title,
                 'description': description,
                 'photo': IMG,
@@ -215,30 +276,37 @@ $(document).ready(function () {
                 'review_attributes': review_attributes,
                 'publish': item_publish,
                 'show_in_homepage': show_in_homepage,
-            }).then(async function (result) {
-                console.log('✅ Mart Category updated successfully, now logging activity...');
-                try {
-                    if (typeof logActivity === 'function') {
-                        console.log('🔍 Calling logActivity for mart category update...');
-                        await logActivity('mart_categories', 'updated', 'Updated mart category: ' + title);
-                        console.log('✅ Activity logging completed successfully');
-                    } else {
-                        console.error('❌ logActivity function is not available');
-                    }
-                } catch (error) {
-                    console.error('❌ Error calling logActivity:', error);
+            };
+            
+            console.log('📊 Update data:', updateData);
+            
+            // Update the document
+            await database.collection('mart_categories').doc(id).update(updateData);
+            console.log('✅ Mart Category updated successfully, now logging activity...');
+            
+            try {
+                if (typeof logActivity === 'function') {
+                    console.log('🔍 Calling logActivity for mart category update...');
+                    await logActivity('mart_categories', 'updated', 'Updated mart category: ' + title);
+                    console.log('✅ Activity logging completed successfully');
+                } else {
+                    console.error('❌ logActivity function is not available');
                 }
-                jQuery("#data-table_processing").hide();
-                window.location.href = '{{ route("mart-categories")}}';
-            });
-             }).catch(err => {
-                jQuery("#data-table_processing").hide();
-                $(".error_top").show();
-                $(".error_top").html("");
-                $(".error_top").append("<p>" + err + "</p>");
-                window.scrollTo(0, 0);
-            });
-        }
+            } catch (error) {
+                console.error('❌ Error calling logActivity:', error);
+            }
+            
+            jQuery("#data-table_processing").hide();
+            console.log('🎉 Update completed successfully!');
+            window.location.href = '{{ route("mart-categories")}}';
+            
+        } catch (error) {
+            console.error('❌ Error during update:', error);
+            jQuery("#data-table_processing").hide();
+            $(".error_top").show();
+            $(".error_top").html("");
+            $(".error_top").append("<p>Error updating category: " + error.message + "</p>");
+            window.scrollTo(0, 0);
         }
     });
 });
@@ -271,50 +339,84 @@ function handleFileSelect(evt) {
     reader.readAsDataURL(f);
 }
 async function storeImageData() {
-            var newPhoto = '';
+    console.log('🖼️ Starting image processing...');
+    console.log('📸 Current photo:', photo);
+    console.log('📁 Original file:', catImageFile);
+    console.log('📄 File name:', fileName);
+    
+    var newPhoto = '';
+    try {
+        // Delete old image if it's different from current
+        if (catImageFile != "" && photo != catImageFile) {
+            console.log('🗑️ Deleting old image...');
             try {
-                if (catImageFile != "" && photo != catImageFile) {
-                    var catOldImageUrlRef = await storage.refFromURL(catImageFile);
-                    imageBucket = catOldImageUrlRef.bucket; 
-                    var envBucket = "<?php echo env('FIREBASE_STORAGE_BUCKET'); ?>";
-                    if (imageBucket == envBucket) {
-                        await catOldImageUrlRef.delete().then(() => {
-                            console.log("Old file deleted!")
-                        }).catch((error) => {
-                            console.log("ERR File delete ===", error);
-                        });
-                    } else {
-                        console.log('Bucket not matched');  
-                    }
-                } 
-                if (photo != catImageFile) {
-                    photo = photo.replace(/^data:image\/[a-z]+;base64,/, "")
-                    var uploadTask = await storageRef.child(fileName).putString(photo, 'base64', { contentType: 'image/jpg' });
-                    var downloadURL = await uploadTask.ref.getDownloadURL();
-                    newPhoto = downloadURL;
-                    photo = downloadURL;
+                var catOldImageUrlRef = await storage.refFromURL(catImageFile);
+                var imageBucket = catOldImageUrlRef.bucket; 
+                var envBucket = "<?php echo env('FIREBASE_STORAGE_BUCKET'); ?>";
+                if (imageBucket == envBucket) {
+                    await catOldImageUrlRef.delete();
+                    console.log("✅ Old file deleted successfully!");
                 } else {
-                    newPhoto = photo;
+                    console.log('⚠️ Bucket not matched, skipping delete');
                 }
-            } catch (error) {
-                console.log("ERR ===", error);
+            } catch (deleteError) {
+                console.log("⚠️ Error deleting old file:", deleteError);
+                // Continue with update even if delete fails
             }
-            return newPhoto;
-        }  
+        } 
+        
+        // Upload new image if it's different from original
+        if (photo != catImageFile && photo && fileName) {
+            console.log('📤 Uploading new image...');
+            photo = photo.replace(/^data:image\/[a-z]+;base64,/, "");
+            var uploadTask = await storageRef.child(fileName).putString(photo, 'base64', { contentType: 'image/jpg' });
+            var downloadURL = await uploadTask.ref.getDownloadURL();
+            newPhoto = downloadURL;
+            photo = downloadURL;
+            console.log('✅ New image uploaded:', newPhoto);
+        } else {
+            newPhoto = photo;
+            console.log('ℹ️ Using existing image:', newPhoto);
+        }
+    } catch (error) {
+        console.error("❌ Error in storeImageData:", error);
+        // Return existing photo if upload fails
+        newPhoto = photo || catImageFile;
+    }
+    
+    console.log('🖼️ Final photo URL:', newPhoto);
+    return newPhoto;
+}  
 //upload image with compression
 $("#category_image").resizeImg({
     callback: function(base64str) {
-        var val = $('#category_image').val().toLowerCase();
-        var ext = val.split('.')[1];
-        var docName = val.split('fakepath')[1];
-        var filename = $('#category_image').val().replace(/C:\\fakepath\\/i, '')
-        var timestamp = Number(new Date());
-        var filename = filename.split('.')[0] + "_" + timestamp + '.' + ext;
-        photo=base64str;
-        fileName=filename;
-        $(".cat_image").empty();
-        $(".cat_image").append('<img class="rounded" style="width:50px" src="' + photo + '" alt="image">');
-        $("#category_image").val('');
+        try {
+            console.log('🖼️ Image compression callback triggered');
+            var val = $('#category_image').val().toLowerCase();
+            var ext = val.split('.')[1];
+            var docName = val.split('fakepath')[1];
+            var filename = $('#category_image').val().replace(/C:\\fakepath\\/i, '')
+            var timestamp = Number(new Date());
+            var filename = filename.split('.')[0] + "_" + timestamp + '.' + ext;
+            
+            console.log('📄 Generated filename:', filename);
+            console.log('📸 Base64 string length:', base64str.length);
+            
+            photo = base64str;
+            fileName = filename;
+            
+            $(".cat_image").empty();
+            $(".cat_image").append('<img class="rounded" style="width:50px" src="' + photo + '" alt="image">');
+            $("#category_image").val('');
+            
+            console.log('✅ Image processed and displayed successfully');
+        } catch (error) {
+            console.error('❌ Error in image compression callback:', error);
+        }
+    },
+    error: function(error) {
+        console.error('❌ Image compression error:', error);
+        alert('Error processing image: ' + error.message);
     }
 });
 </script>

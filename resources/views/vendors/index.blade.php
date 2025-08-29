@@ -211,28 +211,46 @@
     var zoneIdToName = {};
 
     // Load zones
+    console.log('🌍 Loading zones...');
     database.collection('zone').where('publish','==',true).orderBy('name','asc').get().then(async function(snapshots) {
-        console.log('Loading zones, found:', snapshots.docs.length);
+        console.log('✅ Zones loaded, found:', snapshots.docs.length);
+        
+        if (snapshots.empty) {
+            console.log('⚠️ No zones found');
+        }
+        
         snapshots.docs.forEach((listval) => {
             var data = listval.data();
             zones.push(data);
             $('.zone_selector').append($("<option></option>")
                 .attr("value", listval.id)
                 .text(data.name));
+            console.log('📍 Zone:', data.name, 'ID:', listval.id);
         });
+        
         // Build zoneId to name map
         zoneIdToName = {};
         snapshots.docs.forEach(function(doc) {
             var data = doc.data();
-            zoneIdToName[doc.id] = data.name;  // Use document ID as key
+            zoneIdToName[doc.id] = data.name;
         });
         window.zoneIdToName = zoneIdToName;
-        console.log('Zones loaded:', zones);
-        console.log('zoneIdToName map:', zoneIdToName);
-        // ✅ Initialize DataTable only after zones are loaded
+        
+        console.log('🗺️ Zone map created:', zoneIdToName);
+        
+        // Initialize DataTable only after zones are loaded
+        console.log('🚀 Initializing vendor DataTable...');
         initializeVendorDataTable();
+        
     }).catch(function(error) {
-        console.error('Error fetching zones:', error);
+        console.error('❌ Error fetching zones:', error);
+        console.error('❌ Zone error details:', {
+            message: error.message,
+            code: error.code
+        });
+        // Still initialize DataTable even if zones fail
+        console.log('🚀 Initializing vendor DataTable (without zones)...');
+        initializeVendorDataTable();
     });
 
     // Move DataTable initialization into a function
@@ -284,80 +302,93 @@
                     $('#data-table_processing').show();
                 }
                 // Fetch all vendors (users)
+                console.log('🔍 Starting vendor data fetch...');
                 ref.orderBy('createdAt','desc').get().then(async function(querySnapshot) {
+                    console.log('📊 Found', querySnapshot.docs.length, 'vendor users');
+                    
                     if(querySnapshot.empty) {
                         $('.vendor_count').text(0);
-                        console.error("No data found in Firestore.");
-                        $('#data-table_processing').hide(); // Hide loader
+                        console.log("No vendor users found in Firestore.");
+                        $('#data-table_processing').hide();
                         callback({
                             draw: data.draw,
                             recordsTotal: 0,
                             recordsFiltered: 0,
                             filteredData: [],
-                            data: [] // No data
+                            data: []
                         });
                         return;
                     }
+                    
                     let records = [];
                     let filteredRecords = [];
-                    let vendorIds = [];
                     let vendorsData = [];
+                    
+                    // Process each vendor user
                     querySnapshot.forEach(function(doc) {
                         let childData = doc.data();
                         childData.id = doc.id;
-                        childData.fullName = childData.firstName + ' ' + childData.lastName || " ";
+                        childData.fullName = (childData.firstName || '') + ' ' + (childData.lastName || '');
+                        childData.zoneId = childData.zoneId || ''; // Get zoneId from user data if available
                         vendorsData.push(childData);
-                        vendorIds.push(doc.id);
+                        console.log('📝 Processed vendor:', childData.fullName, 'ID:', childData.id);
                     });
-                    // After collecting vendorIds
-                    console.log('Vendor IDs:', vendorIds);
-                    // Fetch all restaurants (vendors collection) in batches of 10
-                    let vendorRestaurants = {};
-                    if (vendorIds.length > 0) {
-                        try {
-                            // Split vendorIds into chunks of 10
-                            function chunkArray(array, size) {
-                                const result = [];
-                                for (let i = 0; i < array.length; i += size) {
-                                    result.push(array.slice(i, i + size));
-                                }
-                                return result;
+                    
+                    // Try to fetch additional vendor details from vendors collection
+                    console.log('🔍 Fetching additional vendor details...');
+                    let vendorDetails = {};
+                    
+                    try {
+                        // Get all vendor documents
+                        const vendorSnapshot = await database.collection('vendors').get();
+                        console.log('📊 Found', vendorSnapshot.docs.length, 'vendor documents');
+                        
+                        vendorSnapshot.docs.forEach(function(doc) {
+                            const vendorData = doc.data();
+                            if (vendorData.author) {
+                                vendorDetails[vendorData.author] = vendorData;
+                                console.log('🏪 Vendor business:', vendorData.title, 'Author:', vendorData.author);
                             }
-                            const vendorIdChunks = chunkArray(vendorIds, 10);
-                            for (const chunk of vendorIdChunks) {
-                                // Use 'author' field instead of 'vendorId'
-                                const restaurantSnapshot = await database.collection('vendors').where('author', 'in', chunk).get();
-                                restaurantSnapshot.forEach(function(doc) {
-                                    const restaurantData = doc.data();
-                                    vendorRestaurants[restaurantData.author] = restaurantData;
-                                });
-                            }
-                            // Debug: log fetched restaurants
-                            console.log('Fetched vendorRestaurants:', vendorRestaurants);
-                        } catch (error) {
-                            console.error('Error fetching vendor restaurants:', error);
-                        }
+                        });
+                    } catch (error) {
+                        console.error('❌ Error fetching vendor details:', error);
                     }
-                    // Attach zoneId to each vendor
+                    
+                    // Merge vendor data
                     vendorsData.forEach(function(childData) {
-                        if (vendorRestaurants[childData.id]) {
-                            childData.zoneId = vendorRestaurants[childData.id].zoneId || '';
+                        // If we have vendor details, use them
+                        if (vendorDetails[childData.id]) {
+                            childData.zoneId = vendorDetails[childData.id].zoneId || childData.zoneId || '';
+                            childData.vendorType = vendorDetails[childData.id].vType || childData.vType || '';
+                            childData.vendorTitle = vendorDetails[childData.id].title || '';
                         } else {
-                            childData.zoneId = '';
+                            // Use data from user document
+                            childData.zoneId = childData.zoneId || '';
+                            childData.vendorType = childData.vType || '';
+                            childData.vendorTitle = '';
                         }
-                        // Debug: log zoneId mapping
-                        console.log('Vendor:', childData.fullName, 'ID:', childData.id, 'zoneId:', childData.zoneId);
+                        
+                        console.log('🔗 Final vendor data:', {
+                            name: childData.fullName,
+                            id: childData.id,
+                            zoneId: childData.zoneId,
+                            vendorType: childData.vendorType
+                        });
                     });
                     // Filtering and search
+                    console.log('🔍 Applying filters and search...');
                     vendorsData.forEach(function(childData) {
                         // Apply zone filter
                         let includeInResults = true;
                         if (window.selectedZone && window.selectedZone !== '') {
                             includeInResults = childData.zoneId === window.selectedZone;
+                            console.log('📍 Zone filter:', childData.fullName, 'zoneId:', childData.zoneId, 'selected:', window.selectedZone, 'include:', includeInResults);
                         }
+                        
                         if (!includeInResults) {
                             return;
                         }
+                        
                         // Search logic
                         var date = '';
                         var time = '';
@@ -365,25 +396,32 @@
                             try {
                                 date = childData.createdAt.toDate().toDateString();
                                 time = childData.createdAt.toDate().toLocaleTimeString('en-US');
-                            } catch(err) {}
+                            } catch(err) {
+                                console.log('⚠️ Error parsing date for vendor:', childData.fullName);
+                            }
                         }
                         var createdAt = date + ' ' + time;
+                        
                         if(searchValue) {
-                            if(
-                                (childData.fullName && childData.fullName.toLowerCase().toString().includes(searchValue)) ||
-                                (createdAt && createdAt.toString().toLowerCase().indexOf(searchValue) > -1) ||
-                                (childData.expiryDate && childData.expiryDate.toString().toLowerCase().indexOf(searchValue) > -1) ||
-                                (childData.hasOwnProperty('activePlanName') && childData.activePlanName.toLowerCase().toString().includes(searchValue)) ||
-                                (childData.email && childData.email.toLowerCase().toString().includes(searchValue)) ||
+                            const searchMatches = 
+                                (childData.fullName && childData.fullName.toLowerCase().includes(searchValue)) ||
+                                (createdAt && createdAt.toLowerCase().includes(searchValue)) ||
+                                (childData.expiryDate && childData.expiryDate.toString().toLowerCase().includes(searchValue)) ||
+                                (childData.hasOwnProperty('activePlanName') && childData.activePlanName.toLowerCase().includes(searchValue)) ||
+                                (childData.email && childData.email.toLowerCase().includes(searchValue)) ||
                                 (childData.phoneNumber && childData.phoneNumber.toString().includes(searchValue)) ||
-                                (window.zoneIdToName && childData.zoneId && window.zoneIdToName[childData.zoneId] && window.zoneIdToName[childData.zoneId].toLowerCase().toString().includes(searchValue))
-                            ) {
+                                (window.zoneIdToName && childData.zoneId && window.zoneIdToName[childData.zoneId] && window.zoneIdToName[childData.zoneId].toLowerCase().includes(searchValue));
+                            
+                            if(searchMatches) {
                                 filteredRecords.push(childData);
+                                console.log('✅ Search match found for:', childData.fullName);
                             }
                         } else {
                             filteredRecords.push(childData);
                         }
                     });
+                    
+                    console.log('📊 Filtered records count:', filteredRecords.length);
                     // Sort by zone if requested
                     if (window.selectedZoneSort === 'asc') {
                         filteredRecords.sort((a, b) => {
@@ -417,14 +455,19 @@
                         data: records // The actual data to display in the table
                     });
                 }).catch(function(error) {
-                    console.error("Error fetching data from Firestore:",error);
-                    $('#data-table_processing').hide(); // Hide loader
+                    console.error("❌ Error fetching data from Firestore:", error);
+                    console.error("❌ Error details:", {
+                        message: error.message,
+                        code: error.code,
+                        stack: error.stack
+                    });
+                    $('#data-table_processing').hide();
                     callback({
                         draw: data.draw,
                         recordsTotal: 0,
                         recordsFiltered: 0,
                         filteredData: [],
-                        data: [] // No data due to error
+                        data: []
                     });
                 });
             },
@@ -623,7 +666,9 @@
         }
 
         // Column 4: Vendor Type
-        if(val.hasOwnProperty('vType') && val.vType) {
+        if(val.hasOwnProperty('vendorType') && val.vendorType) {
+            html.push(val.vendorType.charAt(0).toUpperCase() + val.vendorType.slice(1));
+        } else if(val.hasOwnProperty('vType') && val.vType) {
             html.push(val.vType.charAt(0).toUpperCase() + val.vType.slice(1));
         } else {
             html.push('<span class="text-muted">Not Set</span>');
@@ -700,23 +745,8 @@
         // Debug: log the number of columns for each row
         console.log('🔍 buildHTML for vendor:', val.firstName + ' ' + val.lastName);
         console.log('🔍 Number of columns returned:', html.length);
-        console.log('🔍 Expected columns:', checkDeletePermission ? 11 : 10);
+        console.log('🔍 Expected columns:', expectedColumns);
         console.log('🔍 Columns:', html);
-
-        // Ensure we always return exactly the right number of columns
-        const expectedColumns = checkDeletePermission ? 11 : 10;
-        if (html.length !== expectedColumns) {
-            console.error('❌ Column count mismatch! Expected:', expectedColumns, 'Got:', html.length);
-            console.error('❌ This will cause DataTables warning!');
-            // Pad with empty columns if needed
-            while (html.length < expectedColumns) {
-                html.push('');
-            }
-            // Trim if too many
-            if (html.length > expectedColumns) {
-                html = html.slice(0, expectedColumns);
-            }
-        }
 
         return html;
     }

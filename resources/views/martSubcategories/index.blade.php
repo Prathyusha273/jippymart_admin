@@ -395,37 +395,42 @@
                 });
             }
             
-            // Try multiple possible field names
-            const possibleFields = ['subcategoryID', 'subcategory_id', 'subcategoryId', 'sub_category_id', 'sub_categoryID'];
-            let totalCount = 0;
+            // Query mart items using the correct field name
+            const querySnapshot = await database.collection('mart_items')
+                .where('subcategoryID', '==', subcategoryId)
+                .get();
             
-            for (const fieldName of possibleFields) {
-                try {
-                    console.log(`🔍 Trying field: ${fieldName}`);
-                    const querySnapshot = await database.collection('mart_items')
-                        .where(fieldName, '==', subcategoryId)
-                        .get();
-                    
-                    if (querySnapshot.size > 0) {
-                        console.log(`✅ Found ${querySnapshot.size} items using field: ${fieldName}`);
-                        totalCount = querySnapshot.size;
-                        
-                        // Log the items found for debugging
-                        querySnapshot.docs.forEach(doc => {
-                            const data = doc.data();
-                            console.log(`📦 Item: ${data.name || 'Unknown'} (ID: ${doc.id})`);
-                        });
-                        
-                        break; // Found items, no need to check other fields
-                    } else {
-                        console.log(`❌ No items found using field: ${fieldName}`);
-                    }
-                } catch (fieldError) {
-                    console.log(`❌ Error with field ${fieldName}:`, fieldError.message);
+            const totalCount = querySnapshot.size;
+            console.log('✅ Found', totalCount, 'items for sub-category', subcategoryId);
+            
+            // Log sample items for debugging
+            if (totalCount > 0) {
+                console.log('📋 Sample items for this sub-category:');
+                querySnapshot.docs.slice(0, 3).forEach(doc => {
+                    const data = doc.data();
+                    console.log(`📦 Item: ${data.name || 'Unknown'} (ID: ${doc.id})`);
+                });
+            } else {
+                console.log('❌ No items found for sub-category:', subcategoryId);
+                console.log('🔍 Checking if subcategoryID field exists in any items...');
+                
+                // Check if any items have subcategoryID field
+                const anyItemsWithSubcategory = await database.collection('mart_items')
+                    .where('subcategoryID', '!=', null)
+                    .limit(1)
+                    .get();
+                
+                if (anyItemsWithSubcategory.size > 0) {
+                    console.log('✅ Found items with subcategoryID field');
+                    anyItemsWithSubcategory.docs.forEach(doc => {
+                        const data = doc.data();
+                        console.log(`📦 Item with subcategoryID: ${data.name} (subcategoryID: ${data.subcategoryID})`);
+                    });
+                } else {
+                    console.log('❌ No items have subcategoryID field set');
                 }
             }
             
-            console.log('✅ Final product count for sub-category', subcategoryId, ':', totalCount);
             return totalCount;
             
         } catch (error) {

@@ -151,8 +151,8 @@
         
         $(".save-setting-btn").click(async function () {
             console.log('✅ Save button clicked');
-            var title = $(".subcategory-name").val();
-            var description = $(".subcategory_description").val();
+            var title = $(".subcategory-name").val().trim();
+            var description = $(".subcategory_description").val().trim();
             var item_publish = $("#item_publish").is(":checked");
             var show_in_homepage = $("#show_in_homepage").is(":checked");
             var review_attributes = [];
@@ -168,59 +168,68 @@
                 $(".error_top").html("");
                 $(".error_top").append("<p>Please enter a sub-category name</p>");
                 window.scrollTo(0, 0);
-            } else {
-                console.log('✅ Validation passed, starting save process');
-                if ($("#data-table_processing").length) {
-                    $("#data-table_processing").show();
-                }
-                storeImageData().then(IMG => {
-                    database.collection('mart_subcategories').doc(id_subcategory).set({
-                        'id': id_subcategory,
-                        'title': title,
-                        'description': description,
-                        'photo': IMG,
-                        'parent_category_id': categoryId,
-                        'parent_category_title': $('#parent_category_info').val(),
-                        'section': $('#section_info').val(),
-                        'section_order': 1,
-                        'category_order': 1,
-                        'subcategory_order': parseInt($('#subcategory_order').val()) || 1,
-                        'mart_id': '',
-                        'review_attributes': review_attributes,
-                        'publish': item_publish,
-                        'show_in_homepage': show_in_homepage,
-                        'migratedBy': 'migrate:mart-subcategories',
-                    }).then(async function (result) {
-                        console.log('✅ Sub-category saved successfully, now logging activity...');
-                        try {
-                            if (typeof logActivity === 'function') {
-                                console.log('🔍 Calling logActivity for sub-category creation...');
-                                await logActivity('mart_subcategories', 'created', 'Created new sub-category: ' + title);
-                                console.log('✅ Activity logging completed successfully');
-                            } else {
-                                console.error('❌ logActivity function is not available');
-                            }
-                        } catch (error) {
-                            console.error('❌ Error calling logActivity:', error);
+                return;
+            }
+            
+            if (title.length < 2) {
+                $(".error_top").show();
+                $(".error_top").html("");
+                $(".error_top").append("<p>Sub-category name must be at least 2 characters long</p>");
+                window.scrollTo(0, 0);
+                return;
+            }
+            
+            console.log('✅ Validation passed, starting save process');
+            if ($("#data-table_processing").length) {
+                $("#data-table_processing").show();
+            }
+            storeImageData().then(IMG => {
+                database.collection('mart_subcategories').doc(id_subcategory).set({
+                    'id': id_subcategory,
+                    'title': title,
+                    'description': description,
+                    'photo': IMG,
+                    'parent_category_id': categoryId,
+                    'parent_category_title': $('#parent_category_info').val(),
+                    'section': $('#section_info').val(),
+                    'section_order': 1,
+                    'category_order': 1,
+                    'subcategory_order': parseInt($('#subcategory_order').val()) || 1,
+                    'mart_id': '',
+                    'review_attributes': review_attributes,
+                    'publish': item_publish,
+                    'show_in_homepage': show_in_homepage,
+                    'migratedBy': 'migrate:mart-subcategories',
+                }).then(async function (result) {
+                    console.log('✅ Sub-category saved successfully, now logging activity...');
+                    try {
+                        if (typeof logActivity === 'function') {
+                            console.log('🔍 Calling logActivity for sub-category creation...');
+                            await logActivity('mart_subcategories', 'created', 'Created new sub-category: ' + title);
+                            console.log('✅ Activity logging completed successfully');
+                        } else {
+                            console.error('❌ logActivity function is not available');
                         }
-                        // Update parent category sub-category count
-                        updateParentCategoryCount();
-                        if ($("#data-table_processing").length) {
-                            $("#data-table_processing").hide();
-                        }
-                        console.log('✅ Redirecting to sub-categories list');
-                        window.location.href = '{{ route("mart-subcategories.index", ["category_id" => $categoryId]) }}';
-                    });
-                }).catch(function (error) {
+                    } catch (error) {
+                        console.error('❌ Error calling logActivity:', error);
+                    }
+                    // Update parent category sub-category count
+                    updateParentCategoryCount();
                     if ($("#data-table_processing").length) {
                         $("#data-table_processing").hide();
                     }
-                    $(".error_top").show();
-                    $(".error_top").html("");
-                    $(".error_top").append("<p>Error saving sub-category: " + error.message + "</p>");
-                    console.error("Error saving sub-category:", error);
-                })
-            }
+                    console.log('✅ Redirecting to sub-categories list');
+                    window.location.href = '{{ route("mart-subcategories.index", ["category_id" => $categoryId]) }}';
+                });
+            }).catch(function (error) {
+                if ($("#data-table_processing").length) {
+                    $("#data-table_processing").hide();
+                }
+                $(".error_top").show();
+                $(".error_top").html("");
+                $(".error_top").append("<p>Error saving sub-category: " + error.message + "</p>");
+                console.error("Error saving sub-category:", error);
+            })
         });
     });
 
