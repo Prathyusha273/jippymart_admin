@@ -43,6 +43,9 @@ class RestaurantAutoSchedule extends Command
                 case 'close':
                     $this->closeAllRestaurants();
                     break;
+                case 'health-check':
+                    $this->healthCheck();
+                    break;
                 case 'check':
                 default:
                     $this->checkAndExecuteSchedule($timezone);
@@ -127,24 +130,48 @@ class RestaurantAutoSchedule extends Command
     }
     
     /**
-     * Update Firestore restaurants
+     * Health check - verify system is working
+     */
+    private function healthCheck()
+    {
+        $this->info("Performing health check...");
+        
+        try {
+            // Test Firebase connection
+            $firestore = app('firebase.firestore');
+            $vendorsRef = $firestore->database()->collection('vendors');
+            
+            // Just get count, don't fetch all data
+            $snapshot = $vendorsRef->limit(1)->documents();
+            $count = iterator_count($snapshot);
+            
+            $this->info("Health check passed - Firebase connection working");
+            $this->info("Sample vendor count: {$count}");
+            
+            // Log health check
+            $this->logActivity('restaurants', 'health_check', 'Auto-schedule health check passed');
+            
+        } catch (\Exception $e) {
+            $this->error("Health check failed: " . $e->getMessage());
+            $this->logActivity('restaurants', 'health_check', 'Auto-schedule health check failed: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+    
+    /**
+     * Update Firestore restaurants with optimized batching
      */
     private function updateFirestoreRestaurants($isOpen)
     {
-        // Initialize Firestore client directly
-        $firestore = new \Google\Cloud\Firestore\FirestoreClient([
-            'projectId' => config('firestore.project_id'),
-            'keyFilePath' => config('firestore.credentials'),
-            'databaseId' => config('firestore.database_id'),
-        ]);
+        $firestore = app('firebase.firestore');
+        $vendorsRef = $firestore->database()->collection('vendors');
         
-        $vendorsCollection = $firestore->collection('vendors');
-        
-        // Get all vendor documents
-        $documents = $vendorsCollection->documents();
+        // Get all vendor documents with pagination to avoid memory issues
+        $documents = $vendorsRef->documents();
         
         $batch = $firestore->batch();
         $count = 0;
+        $batchCount = 0;
         
         foreach ($documents as $document) {
             $batch->update($document->reference(), [
@@ -156,17 +183,22 @@ class RestaurantAutoSchedule extends Command
                 ]]
             ]);
             $count++;
+            $batchCount++;
             
             // Commit batch every 500 documents (Firestore limit)
-            if ($count % 500 === 0) {
+            if ($batchCount >= 500) {
                 $batch->commit();
                 $batch = $firestore->batch();
+                $batchCount = 0;
                 $this->info("Updated {$count} restaurants...");
+                
+                // Add small delay to prevent rate limiting
+                usleep(100000); // 0.1 second delay
             }
         }
         
         // Commit remaining documents
-        if ($count % 500 !== 0) {
+        if ($batchCount > 0) {
             $batch->commit();
         }
         

@@ -1493,10 +1493,10 @@
                  clearInterval(scheduleInterval);
              }
 
-             // Update display every 30 seconds (for UI updates only)
+             // Update display every 5 minutes instead of 30 seconds to reduce server load
              scheduleInterval = setInterval(function() {
                  updateNextActionDisplay();
-             }, 30000);
+             }, 300000); // 5 minutes = 300,000 ms
 
              // Initial update
              updateNextActionDisplay();
