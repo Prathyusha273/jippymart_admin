@@ -243,149 +243,149 @@
                         if (currencyData.decimal_degits) {
                             decimal_degits = currencyData.decimal_degits;
                         }
-                        
+
                         // Now load order data after currency is loaded
                         ref.get().then(async function (snapshots) {
-                        var order = snapshots.docs[0].data();
-                        $(".customerName").text(order.author.firstName + " " + order.author.lastName);
-                        $(".orderId").text(id);
-                        var date = order.createdAt.toDate().toDateString();
-                        var time = order.createdAt.toDate().toLocaleTimeString('en-US');
-                        $(".orderDate").text(date + " " + time);
-                        var billingAddressstring = '';
-                        if (order.address.hasOwnProperty('address')) {
-                            billingAddressstring = billingAddressstring + order.address.address;
-                        }
-                        if (order.address.hasOwnProperty('locality')) {
-                            billingAddressstring = billingAddressstring + "," + order.address.locality;
-                        }
-                        if (order.address.hasOwnProperty('landmark')) {
-                            billingAddressstring = billingAddressstring + " " + order.address.landmark;
-                        }
-                        $(".customerAddress").text(billingAddressstring);
-                        if (order.author.hasOwnProperty('phoneNumber')) {
-                            $(".customerPhone").text(shortEditNumber(order.author.phoneNumber));
-                        } else {
-                            $(".customerPhone").text("");
-                        }
-                        if (order.address.hasOwnProperty('country')) {
-                            $("#billing_country").text(order.address.country);
-                        }
-                        if (order.address.hasOwnProperty('email')) {
-                            $("#billing_email").html('<a href="mailto:' + order.address.email + '">' + shortEmail(order.address.email) + '</a>');
-                        } else {
-                            $("#billing_email").html("");
-                        }
-                        if (order.createdAt) {
-                            var date1 = order.createdAt.toDate().toDateString();
-                            var date = new Date(date1);
-                            var dd = String(date.getDate()).padStart(2, '0');
-                            var mm = String(date.getMonth() + 1).padStart(2, '0'); //January is 0!
-                            var yyyy = date.getFullYear();
-                            var createdAt_val = yyyy + '-' + mm + '-' + dd;
+                            var order = snapshots.docs[0].data();
+                            $(".customerName").text(order.author.firstName + " " + order.author.lastName);
+                            $(".orderId").text(id);
+                            var date = order.createdAt.toDate().toDateString();
                             var time = order.createdAt.toDate().toLocaleTimeString('en-US');
-                            $('#createdAt').text(createdAt_val + ' ' + time);
-                        }
-                        if (order.payment_method) {
-                            if (order.payment_method == 'cod') {
-                                $('#payment_method').text('{{trans("lang.cash_on_delivery")}}');
-                            } else if (order.payment_method == 'paypal') {
-                                $('#payment_method').text('{{trans("lang.paypal")}}');
-                            } else {
-                                $('#payment_method').text(order.payment_method);
+                            $(".orderDate").text(date + " " + time);
+                            var billingAddressstring = '';
+                            if (order.address.hasOwnProperty('address')) {
+                                billingAddressstring = billingAddressstring + order.address.address;
                             }
-                        }
-                        if (order.hasOwnProperty('takeAway') && order.takeAway) {
-                            $('#driver_pending').hide();
-                            $('#driver_rejected').hide();
-                            $('#order_shipped').hide();
-                            $('#in_transit').hide();
-                            $('#order_type').text('{{trans("lang.order_takeaway")}}');
-                            $('.payment_method').hide();
-                            orderTakeAwayOption = true;
-                        } else {
-                            $('#order_type').text('{{trans("lang.order_delivery")}}');
-                            $('.payment_method').show();
-                        }
-                        if ((order.driver != '' && order.driver != undefined) && (order.takeAway)) {
-                            $('#driver_carName').text(order.driver.carName);
-                            $('#driver_carNumber').text(order.driver.carNumber);
-                            $('#driver_email').html('<a href="mailto:' + order.driver.email + '">' + shortEmail(order.driver.email) + '</a>');
-                            $('#driver_firstName').text(order.driver.firstName);
-                            $('#driver_lastName').text(order.driver.lastName);
-                            $('#driver_phone').text(shortEditNumber(order.driver.phoneNumber));
-                        } else {
-                            $('.order_edit-genrl').removeClass('col-md-4').addClass('col-md-6');
-                            $('.order_addre-edit').removeClass('col-md-4').addClass('col-md-6');
-                            $('.driver_details_hide').empty();
-                        }
-                        if (order.driverID != '' && order.driverID != undefined) {
-                            driverId = order.driverID;
-                        }
-                        if (order.vendor && order.vendor.author != '' && order.vendor.author != undefined) {
-                            vendorAuthor = order.vendor.author;
-                        }
-                        fcmToken = order.author.fcmToken;
-                        vendorname = order.vendor.title;
-                        fcmTokenVendor = order.vendor.fcmToken;
-                        customername = order.author.firstName;
-                        vendorId = order.vendor.id;
-                        old_order_status = order.status;
-                        if (order.payment_shared != undefined) {
-                            payment_shared = order.payment_shared;
-                        }
-                        append_procucts_list = document.getElementById('order_products');
-                        append_procucts_list.innerHTML = '';
-                        var productsListHTML = buildHTMLProductsList(order.products);
-                        var productstotalHTML = buildHTMLProductstotal(order);
-                        if (productsListHTML != '') {
-                            append_procucts_list.innerHTML = productsListHTML;
-                        }
-                        orderPreviousStatus = order.status;
-                        if (order.hasOwnProperty('payment_method')) {
-                            orderPaymentMethod = order.payment_method;
-                        }
-                        $("#order_status option[value='" + order.status + "']").attr("selected", "selected");
-                        if (order.status == "Order Rejected" || order.status == "Driver Rejected") {
-                            $("#order_status").prop("disabled", true);
-                        }
-                        var price = 0;
-                        if (order.vendorID) {
-                            var vendor = database.collection('vendors').where("id", "==", order.vendorID);
-                            vendor.get().then(async function (snapshotsnew) {
-                                if (snapshotsnew.hasData != '') {
-                                    var vendordata = snapshotsnew.docs[0].data();
-                                    if (vendordata.id) {
-                                        var route_view = '{{route("restaurants.view",":id")}}';
-                                        route_view = route_view.replace(':id', vendordata.id);
-                                        $('#resturant-view').attr('data-url', route_view);
-                                    }
-                                    if (vendordata.photo != null && vendordata.photo != "") {
-                                        $('.resturant-img').attr('src', vendordata.photo);
-                                    } else {
-                                        $('.resturant-img').attr('src', place_image);
-                                    }
-                                    if (vendordata.title != "" && vendordata.title != null) {
-                                        $('.storeName').html(vendordata.title);
-                                    }
-                                    if (vendordata.phonenumber != "" && vendordata.phonenumber != null) {
-                                        $('.storePhone').text(shortEditNumber(vendordata.phonenumber));
-                                    } else {
-                                        $('.storePhone').text("");
-                                    }
-                                    if (vendordata.location != "" && vendordata.location != null) {
-                                        $('.storeAddress').text(vendordata.location);
-                                    }
+                            if (order.address.hasOwnProperty('locality')) {
+                                billingAddressstring = billingAddressstring + "," + order.address.locality;
+                            }
+                            if (order.address.hasOwnProperty('landmark')) {
+                                billingAddressstring = billingAddressstring + " " + order.address.landmark;
+                            }
+                            $(".customerAddress").text(billingAddressstring);
+                            if (order.author.hasOwnProperty('phoneNumber')) {
+                                $(".customerPhone").text(shortEditNumber(order.author.phoneNumber));
+                            } else {
+                                $(".customerPhone").text("");
+                            }
+                            if (order.address.hasOwnProperty('country')) {
+                                $("#billing_country").text(order.address.country);
+                            }
+                            if (order.address.hasOwnProperty('email')) {
+                                $("#billing_email").html('<a href="mailto:' + order.address.email + '">' + shortEmail(order.address.email) + '</a>');
+                            } else {
+                                $("#billing_email").html("");
+                            }
+                            if (order.createdAt) {
+                                var date1 = order.createdAt.toDate().toDateString();
+                                var date = new Date(date1);
+                                var dd = String(date.getDate()).padStart(2, '0');
+                                var mm = String(date.getMonth() + 1).padStart(2, '0'); //January is 0!
+                                var yyyy = date.getFullYear();
+                                var createdAt_val = yyyy + '-' + mm + '-' + dd;
+                                var time = order.createdAt.toDate().toLocaleTimeString('en-US');
+                                $('#createdAt').text(createdAt_val + ' ' + time);
+                            }
+                            if (order.payment_method) {
+                                if (order.payment_method == 'cod') {
+                                    $('#payment_method').text('{{trans("lang.cash_on_delivery")}}');
+                                } else if (order.payment_method == 'paypal') {
+                                    $('#payment_method').text('{{trans("lang.paypal")}}');
+                                } else {
+                                    $('#payment_method').text(order.payment_method);
                                 }
-                            });
-                        }
-                        // Debug: Log order data to see delivery charge
-                        console.log('Order data for print:', order);
-                        console.log('Delivery charge from order:', order.deliveryCharge);
-                        console.log('Tip amount from order:', order.tip_amount);
-                        
-                        fillPrintOrderSummary(order);
-                        jQuery("#data-table_processing").hide();
+                            }
+                            if (order.hasOwnProperty('takeAway') && order.takeAway) {
+                                $('#driver_pending').hide();
+                                $('#driver_rejected').hide();
+                                $('#order_shipped').hide();
+                                $('#in_transit').hide();
+                                $('#order_type').text('{{trans("lang.order_takeaway")}}');
+                                $('.payment_method').hide();
+                                orderTakeAwayOption = true;
+                            } else {
+                                $('#order_type').text('{{trans("lang.order_delivery")}}');
+                                $('.payment_method').show();
+                            }
+                            if ((order.driver != '' && order.driver != undefined) && (order.takeAway)) {
+                                $('#driver_carName').text(order.driver.carName);
+                                $('#driver_carNumber').text(order.driver.carNumber);
+                                $('#driver_email').html('<a href="mailto:' + order.driver.email + '">' + shortEmail(order.driver.email) + '</a>');
+                                $('#driver_firstName').text(order.driver.firstName);
+                                $('#driver_lastName').text(order.driver.lastName);
+                                $('#driver_phone').text(shortEditNumber(order.driver.phoneNumber));
+                            } else {
+                                $('.order_edit-genrl').removeClass('col-md-4').addClass('col-md-6');
+                                $('.order_addre-edit').removeClass('col-md-4').addClass('col-md-6');
+                                $('.driver_details_hide').empty();
+                            }
+                            if (order.driverID != '' && order.driverID != undefined) {
+                                driverId = order.driverID;
+                            }
+                            if (order.vendor && order.vendor.author != '' && order.vendor.author != undefined) {
+                                vendorAuthor = order.vendor.author;
+                            }
+                            fcmToken = order.author.fcmToken;
+                            vendorname = order.vendor.title;
+                            fcmTokenVendor = order.vendor.fcmToken;
+                            customername = order.author.firstName;
+                            vendorId = order.vendor.id;
+                            old_order_status = order.status;
+                            if (order.payment_shared != undefined) {
+                                payment_shared = order.payment_shared;
+                            }
+                            append_procucts_list = document.getElementById('order_products');
+                            append_procucts_list.innerHTML = '';
+                            var productsListHTML = buildHTMLProductsList(order.products);
+                            var productstotalHTML = buildHTMLProductstotal(order);
+                            if (productsListHTML != '') {
+                                append_procucts_list.innerHTML = productsListHTML;
+                            }
+                            orderPreviousStatus = order.status;
+                            if (order.hasOwnProperty('payment_method')) {
+                                orderPaymentMethod = order.payment_method;
+                            }
+                            $("#order_status option[value='" + order.status + "']").attr("selected", "selected");
+                            if (order.status == "Order Rejected" || order.status == "Driver Rejected") {
+                                $("#order_status").prop("disabled", true);
+                            }
+                            var price = 0;
+                            if (order.vendorID) {
+                                var vendor = database.collection('vendors').where("id", "==", order.vendorID);
+                                vendor.get().then(async function (snapshotsnew) {
+                                    if (snapshotsnew.hasData != '') {
+                                        var vendordata = snapshotsnew.docs[0].data();
+                                        if (vendordata.id) {
+                                            var route_view = '{{route("restaurants.view",":id")}}';
+                                            route_view = route_view.replace(':id', vendordata.id);
+                                            $('#resturant-view').attr('data-url', route_view);
+                                        }
+                                        if (vendordata.photo != null && vendordata.photo != "") {
+                                            $('.resturant-img').attr('src', vendordata.photo);
+                                        } else {
+                                            $('.resturant-img').attr('src', place_image);
+                                        }
+                                        if (vendordata.title != "" && vendordata.title != null) {
+                                            $('.storeName').html(vendordata.title);
+                                        }
+                                        if (vendordata.phonenumber != "" && vendordata.phonenumber != null) {
+                                            $('.storePhone').text(shortEditNumber(vendordata.phonenumber));
+                                        } else {
+                                            $('.storePhone').text("");
+                                        }
+                                        if (vendordata.location != "" && vendordata.location != null) {
+                                            $('.storeAddress').text(vendordata.location);
+                                        }
+                                    }
+                                });
+                            }
+                            // Debug: Log order data to see delivery charge
+                            console.log('Order data for print:', order);
+                            console.log('Delivery charge from order:', order.deliveryCharge);
+                            console.log('Tip amount from order:', order.tip_amount);
+
+                            fillPrintOrderSummary(order);
+                            jQuery("#data-table_processing").hide();
                         });
                     });
 
@@ -509,7 +509,7 @@
                         var decimal_degits = decimal_degits || 2;
                         var currencyAtRight = currencyAtRight || false;
                         var currentCurrency = currentCurrency || '₹';
-                        
+
                         // Calculate subtotal from products
                         if (products) {
                             products.forEach((product) => {
@@ -519,14 +519,14 @@
                                 subtotal += price * (parseInt(product.quantity) || 1);
                             });
                         }
-                        
+
                         // Calculate total price including extras
                         var total_price = subtotal;
                         if (intRegex.test(extras_price) || floatRegex.test(extras_price)) {
                             total_price += parseFloat(extras_price);
                         }
                         var priceWithCommision = total_price;
-                        
+
                         // Apply discounts
                         if (intRegex.test(discount) || floatRegex.test(discount)) {
                             discount = parseFloat(discount).toFixed(decimal_degits);
@@ -536,7 +536,7 @@
                             var special_discount = parseFloat(specialDiscount.special_discount).toFixed(decimal_degits);
                             total_price -= parseFloat(special_discount);
                         }
-                        
+
                         // Calculate taxes
                         var sgst = subtotal * (sgstRate / 100); // SGST on subtotal only
                         var gst = 0;
@@ -551,18 +551,18 @@
                         } else {
                             gst = baseDeliveryCharge * (gstRate / 100); // 18% of base delivery charge only
                         }
-                        
+
                         var total_tax_amount = sgst + gst;
-                        
+
                         // Calculate final total
                         var totalAmount = parseFloat(total_price) + parseFloat(total_tax_amount);
-                        
+
                         // Add delivery charge to total
                         if (intRegex.test(deliveryCharge) || floatRegex.test(deliveryCharge)) {
                             deliveryCharge = parseFloat(deliveryCharge).toFixed(decimal_degits);
                             totalAmount += parseFloat(deliveryCharge);
                         }
-                        
+
                         // Add tip amount to total
                         if (intRegex.test(tip_amount) || floatRegex.test(tip_amount)) {
                             tip_amount = parseFloat(tip_amount).toFixed(decimal_degits);
@@ -647,7 +647,7 @@
                         var currencyAtRight = currencyAtRight || false;
                         var currentCurrency = currentCurrency || '₹';
                         var products = order.products;
-                        
+
                         // Calculate subtotal from products
                         if (products) {
                             products.forEach(function (product) {
@@ -657,36 +657,36 @@
                                 subtotal += price * (parseInt(product.quantity) || 1);
                             });
                         }
-                        
+
                         // Calculate total price including extras
                         var total_price = subtotal;
                         if (intRegex.test(order.extras_price) || floatRegex.test(order.extras_price)) {
                             total_price += parseFloat(order.extras_price);
                         }
                         var priceWithCommision = total_price;
-                        
+
                         // Apply discounts
                         var discount = order.discount;
                         if (intRegex.test(discount) || floatRegex.test(discount)) {
                             discount = parseFloat(discount).toFixed(decimal_degits);
                             total_price -= parseFloat(discount);
                         }
-                        
+
                         var specialDiscount = order.specialDiscount;
                         var special_discount = 0;
                         if (specialDiscount && specialDiscount.special_discount) {
                             special_discount = parseFloat(specialDiscount.special_discount).toFixed(decimal_degits);
                             total_price -= parseFloat(special_discount);
                         }
-                        
+
                         // Calculate taxes
                         var sgst = subtotal * (sgstRate / 100); // SGST on subtotal only
-                        
+
                         // Use delivery charge from order data (same as edit.blade.php)
                         var deliveryCharge = order.deliveryCharge || 0;
-                        
+
                         var gst = 0;
-                        
+
                         // Debug delivery charge
                         console.log('=== fillPrintOrderSummary Debug ===');
                         console.log('Order deliveryCharge:', order.deliveryCharge);
@@ -696,7 +696,7 @@
                         console.log('- Delivery charge:', deliveryCharge);
                         console.log('- Base delivery charge:', baseDeliveryCharge);
                         console.log('- GST rate:', gstRate + '%');
-                        
+
                         if (parseFloat(deliveryCharge) > 0) {
                             // If delivery charge equals base delivery charge (₹23), only calculate GST once
                             if (parseFloat(deliveryCharge) === baseDeliveryCharge) {
@@ -708,13 +708,13 @@
                         } else {
                             gst = baseDeliveryCharge * (gstRate / 100); // 18% of base delivery charge only
                         }
-                        
+
                         var total_tax_amount = sgst + gst;
                         console.log('GST calculation result:');
                         console.log('- SGST (5% on subtotal):', sgst.toFixed(2));
                         console.log('- GST (18% on delivery):', gst.toFixed(2));
                         console.log('- Total tax amount:', total_tax_amount.toFixed(2));
-                        
+
                         // Calculate final total
                         var totalAmount = parseFloat(total_price) + parseFloat(total_tax_amount);
                         console.log('Total after taxes:', totalAmount);
@@ -723,12 +723,12 @@
                         console.log('SGST:', sgst);
                         console.log('GST:', gst);
                         console.log('Total tax amount:', total_tax_amount);
-                        
+
                         // Add delivery charge to total
                         console.log('Delivery charge before adding:', deliveryCharge);
                         console.log('Delivery charge type:', typeof deliveryCharge);
                         console.log('Is delivery charge valid number?', intRegex.test(deliveryCharge) || floatRegex.test(deliveryCharge));
-                        
+
                         // Check if delivery charge is a valid number (either by regex or parseFloat)
                         var deliveryChargeNum = parseFloat(deliveryCharge);
                         if ((intRegex.test(deliveryCharge) || floatRegex.test(deliveryCharge)) && !isNaN(deliveryChargeNum) && deliveryChargeNum > 0) {
@@ -738,13 +738,13 @@
                         } else {
                             console.log('Delivery charge not added - invalid format or zero');
                         }
-                        
+
                         // Add tip amount to total
                         var tip_amount = order.tip_amount;
                         console.log('Tip amount before adding:', tip_amount);
                         console.log('Tip amount type:', typeof tip_amount);
                         console.log('Is tip amount valid number?', intRegex.test(tip_amount) || floatRegex.test(tip_amount));
-                        
+
                         // Check if tip amount is a valid number
                         var tipAmountNum = parseFloat(tip_amount);
                         if ((intRegex.test(tip_amount) || floatRegex.test(tip_amount)) && !isNaN(tipAmountNum) && tipAmountNum > 0) {
