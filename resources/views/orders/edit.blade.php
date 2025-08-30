@@ -1514,26 +1514,26 @@
                     subtotal += price * (parseInt(product.quantity) || 1);
                 });
             }
-            
+
             // Use delivery charge from order data (exact same logic as print.blade.php)
             var deliveryCharge = snapshotsProducts.deliveryCharge;
-            
-            // Debug delivery charge (same as print.blade.php)
-            console.log('=== buildHTMLProductstotal Debug ===');
-            console.log('Delivery charge from order data:', deliveryCharge);
-            console.log('Base delivery charge:', baseDeliveryCharge);
-            
+
+            // // Debug delivery charge (same as print.blade.php)
+            // console.log('=== buildHTMLProductstotal Debug ===');
+            // console.log('Delivery charge from order data:', deliveryCharge);
+            // console.log('Base delivery charge:', baseDeliveryCharge);
+
             // Initialize total_price with subtotal
             var total_price = subtotal;
-            console.log('Initial total_price (subtotal):', total_price);
-            
+            // console.log('Initial total_price (subtotal):', total_price);
+
             // Add extras to total_price if available
             if (intRegex.test(extras_price) || floatRegex.test(extras_price)) {
                 total_price += parseFloat(extras_price);
-                console.log('Added extras to total_price:', parseFloat(extras_price));
-                console.log('Total_price after extras:', total_price);
+                // console.log('Added extras to total_price:', parseFloat(extras_price));
+                // console.log('Total_price after extras:', total_price);
             }
-            
+
             var sgst = subtotal * (sgstRate / 100); // 5% of subtotal only
             var gst = 0;
             if (parseFloat(deliveryCharge) > 0) {
@@ -1597,30 +1597,29 @@
             var total_tax_amount = sgst + gst;
             total_price = parseFloat(total_price) + parseFloat(total_tax_amount);
             var totalAmount = total_price;
-            
-            // Debug takeAway value
-            console.log('=== takeAway Debug ===');
-            console.log('takeAway value:', takeAway);
-            console.log('takeAway type:', typeof takeAway);
-            console.log('takeAway == false:', takeAway == false);
-            console.log('takeAway === false:', takeAway === false);
-            console.log('takeAway == "":', takeAway == '');
-            console.log('takeAway == null:', takeAway == null);
-            console.log('takeAway == undefined:', takeAway == undefined);
-            
+
+            // // Debug takeAway value
+            // console.log('=== takeAway Debug ===');
+            // console.log('takeAway value:', takeAway);
+            // console.log('takeAway type:', typeof takeAway);
+            // console.log('takeAway == false:', takeAway == false);
+            // console.log('takeAway === false:', takeAway === false);
+            // console.log('takeAway == "":', takeAway == '');
+            // console.log('takeAway == null:', takeAway == null);
+            // console.log('takeAway == undefined:', takeAway == undefined);
+
             // Always show delivery charge for delivery orders (not takeaway)
             // Temporarily force show to debug
-            console.log('Forcing delivery charge display regardless of takeAway value');
-            if (true) { // Force show for debugging
+             if (true) { // Force show for debugging
                 html = html +
                     '<tr><td class="seprater" colspan="2"><hr><span>{{ trans('lang.delivery_charge') }}</span></td></tr>';
-                
+
                 // Check if delivery charge is a valid number
                 var deliveryChargeNum = parseFloat(deliveryCharge);
                 console.log('Delivery charge before display check:', deliveryCharge);
                 console.log('Delivery charge number:', deliveryChargeNum);
                 console.log('Is valid number?', !isNaN(deliveryChargeNum) && deliveryChargeNum >= 0);
-                
+
                 // Use same logic as print.blade.php for delivery charge
                 if (intRegex.test(deliveryCharge) || floatRegex.test(deliveryCharge)) {
                     deliveryCharge = parseFloat(deliveryCharge).toFixed(decimal_degits);
@@ -1654,13 +1653,13 @@
             console.log('Forcing tip amount display regardless of takeAway value');
             if (true) { // Force show for debugging
                 html = html + '<tr><td class="seprater" colspan="2"><hr><span>{{ trans('lang.tip') }}</span></td></tr>';
-                
+
                 // Check if tip amount is a valid number
                 var tipAmountNum = parseFloat(tip_amount);
                 console.log('Tip amount before display check:', tip_amount);
                 console.log('Tip amount number:', tipAmountNum);
                 console.log('Is tip valid number?', !isNaN(tipAmountNum) && tipAmountNum >= 0);
-                
+
                 // Use same logic as print.blade.php for tip amount
                 if (intRegex.test(tip_amount) || floatRegex.test(tip_amount)) {
                     tip_amount = parseFloat(tip_amount).toFixed(decimal_degits);
