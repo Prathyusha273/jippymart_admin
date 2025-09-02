@@ -107,12 +107,7 @@ Route::middleware(['permission:marts,marts.view'])->group(function () {
 Route::get('/marts/foods/{id}', [App\Http\Controllers\MartController::class, 'foods'])->name('marts.foods');
 Route::get('/marts/orders/{id}', [App\Http\Controllers\MartController::class, 'orders'])->name('marts.orders');
 
-// Restaurant Schedule Routes (Temporarily without middleware for testing)
-Route::get('/restaurants/schedule', [App\Http\Controllers\RestaurantScheduleController::class, 'getSchedule'])->name('restaurants.schedule.get');
-Route::post('/restaurants/schedule', [App\Http\Controllers\RestaurantScheduleController::class, 'updateSchedule'])->name('restaurants.schedule.update');
-Route::get('/restaurants/schedule/next-action', [App\Http\Controllers\RestaurantScheduleController::class, 'getNextAction'])->name('restaurants.schedule.next-action');
-Route::post('/restaurants/schedule/trigger', [App\Http\Controllers\RestaurantScheduleController::class, 'triggerAction'])->name('restaurants.schedule.trigger');
-Route::get('/restaurants/schedule/status', [App\Http\Controllers\RestaurantScheduleController::class, 'getStatus'])->name('restaurants.schedule.status');
+// Restaurant Schedule Routes have been removed - auto-schedule functionality disabled
 
 Route::middleware(['permission:coupons,coupons'])->group(function () {
     Route::get('/coupons', [App\Http\Controllers\CouponController::class, 'index'])->name('coupons');
