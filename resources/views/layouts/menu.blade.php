@@ -305,6 +305,14 @@ $role_has_permission = App\Models\Permission::where('role_id', $user->role_id)->
             </a>
         </li>
         @endif
+        @if(in_array('mart_banners', $role_has_permission))
+        <li>
+            <a class="waves-effect waves-dark" href="{!! url('mart-banners') !!}" aria-expanded="false">
+                <i class="mdi mdi-store"></i>
+                <span class="hide-menu">{{trans('lang.mart_banner_items')}}</span>
+            </a>
+        </li>
+        @endif
         @if(in_array('cms', $role_has_permission))
         <li><a class="waves-effect waves-dark" href="{!! url('cms') !!}" aria-expanded="false">
                 <i class="mdi mdi-book-open-page-variant"></i>

@@ -183,13 +183,13 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="form-group row width-100" id="attributes_div">
-                            <label class="col-3 control-label">{{ trans('lang.item_attribute_id') }}</label>
-                            <div class="col-7">
-                                <select id='item_attribute' class="form-control chosen-select" required
-                                    multiple="multiple" onchange="selectAttribute();"></select>
-                            </div>
-                        </div>
+{{--                        <div class="form-group row width-100" id="attributes_div">--}}
+{{--                            <label class="col-3 control-label">{{ trans('lang.item_attribute_id') }}</label>--}}
+{{--                            <div class="col-7">--}}
+{{--                                <select id='item_attribute' class="form-control chosen-select"--}}
+{{--                                    multiple="multiple" onchange="selectAttribute();"></select>--}}
+{{--                            </div>--}}
+{{--                        </div>--}}
                         <div class="form-group row width-100">
                             <div class="item_attributes" id="item_attributes"></div>
                             <div class="item_variants" id="item_variants"></div>
@@ -804,7 +804,7 @@
                     nonveg: nonveg,
                     veg: veg,
                     takeawayOption: foodTakeaway,
-                    
+
 
                     // Enhanced Filter Fields
                     isSpotlight: isSpotlight,

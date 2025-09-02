@@ -1645,6 +1645,8 @@ return [
 
     'menu_items_table' => 'Banner Items List',
 
+    'mart_banner_items' => 'Mart Banner Items',
+
     'photo' => 'Photo',
 
     'set_order' => 'Set Order',
