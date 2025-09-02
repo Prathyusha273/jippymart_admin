@@ -140,117 +140,13 @@
                         </div>
                     </div>
 
-                    <!-- Auto Schedule Section -->
-                    <div class="mt-3 pt-3 border-top">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <div class="d-flex align-items-center">
-                                <div class="mr-3">
-                                    <i class="mdi mdi-clock-outline text-info" style="font-size: 16px;"></i>
-                                </div>
-                                <div>
-                                    <label class="control-label mb-0" style="font-size: 14px; color: #333;">
-                                        <strong>Auto Schedule:</strong>
-                                    </label>
-                                    <small class="text-muted d-block" style="font-size: 12px;">
-                                        Automatically toggle status at scheduled times
-                                    </small>
-                                </div>
-                            </div>
-                            <div class="d-flex align-items-center">
-                                <div class="mr-3 d-flex align-items-center">
-                                    <input type="checkbox" id="auto_schedule_enabled">
-                                    <label class="control-label mb-0 ml-2" for="auto_schedule_enabled">
-                                        <span class="schedule-status-text">Disabled</span>
-                                    </label>
-                                </div>
-                                <button type="button" class="btn btn-sm btn-outline-info" id="configure_schedule" data-toggle="modal" data-target="#scheduleModal">
-                                    <i class="mdi mdi-cog mr-1"></i>Configure
-                                </button>
-                            </div>
-                        </div>
 
-                        <!-- Schedule Display -->
-                        <div id="schedule_display" class="mt-2" style="display: none;">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <small class="text-success">
-                                        <i class="mdi mdi-clock-start mr-1"></i>
-                                        <strong>Open:</strong> <span id="open_time_display">9:30 AM</span> daily
-                                    </small>
-                                </div>
-                                <div class="col-md-6">
-                                    <small class="text-danger">
-                                        <i class="mdi mdi-clock-end mr-1"></i>
-                                        <strong>Close:</strong> <span id="close_time_display">10:30 PM</span> daily
-                                    </small>
-                                </div>
-                            </div>
-                            <div class="mt-1">
-                                <small class="text-muted">
-                                    <i class="mdi mdi-information-outline mr-1"></i>
-                                    Next action: <span id="next_action_display">Opening at 9:30 AM tomorrow</span>
-                                </small>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Schedule Configuration Modal -->
-    <div class="modal fade" id="scheduleModal" tabindex="-1" role="dialog" aria-labelledby="scheduleModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="scheduleModalLabel">
-                        <i class="mdi mdi-clock-outline mr-2"></i>Configure Auto Schedule
-                    </h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label class="control-label">Opening Time:</label>
-                        <input type="time" id="open_time" class="form-control" value="09:30">
-                        <small class="form-text text-muted">Time when all restaurants will automatically open</small>
-                    </div>
-                    <div class="form-group">
-                        <label class="control-label">Closing Time:</label>
-                        <input type="time" id="close_time" class="form-control" value="22:30">
-                        <small class="form-text text-muted">Time when all restaurants will automatically close</small>
-                    </div>
-                    <div class="form-group">
-                        <label class="control-label">Time Zone:</label>
-                        <select id="timezone" class="form-control">
-                            <option value="Asia/Kolkata">India (IST)</option>
-                            <option value="UTC">UTC</option>
-                            <option value="America/New_York">Eastern Time</option>
-                            <option value="America/Chicago">Central Time</option>
-                            <option value="America/Denver">Mountain Time</option>
-                            <option value="America/Los_Angeles">Pacific Time</option>
-                            <option value="Europe/London">London (GMT)</option>
-                            <option value="Europe/Paris">Paris (CET)</option>
-                            <option value="Asia/Dubai">Dubai (GST)</option>
-                            <option value="Asia/Singapore">Singapore (SGT)</option>
-                        </select>
-                        <small class="form-text text-muted">Select your local time zone</small>
-                    </div>
-                    <div class="alert alert-info">
-                        <i class="mdi mdi-information-outline mr-2"></i>
-                        <strong>Note:</strong> The schedule will run automatically every day. Make sure your server is running continuously for this feature to work properly.
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" id="save_schedule">
-                        <i class="mdi mdi-content-save mr-1"></i>Save Schedule
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
+
 
     @if(session('success'))
         <div class="alert alert-success">{!! session('success') !!}</div>
@@ -1282,297 +1178,96 @@
         }
     });
 
-         // Global Restaurant Status Toggle Functionality
+         // Global Restaurant Status Toggle Functionality - SIMPLIFIED VERSION
          $(document).ready(function() {
-             // Auto Schedule Variables
-             var scheduleInterval = null;
-             var scheduleConfig = {
-                 enabled: false,
-                 open_time: '09:30',
-                 close_time: '22:30',
-                 timezone: 'Asia/Kolkata'
-             };
+             // Update status text when toggle changes
+             $('#global_restaurant_status').change(function() {
+                 var isChecked = $(this).is(':checked');
+                 $('.status-text').text(isChecked ? 'All Open' : 'All Closed');
+             });
 
-             // Load schedule configuration from server
-             loadScheduleConfig();
+             // Apply global status to all restaurants - SIMPLIFIED
+             $('#apply_global_status').click(async function() {
+                 var isOpen = $('#global_restaurant_status').is(':checked');
+                 var statusText = isOpen ? 'open' : 'closed';
 
-         // Update status text when toggle changes
-         $('#global_restaurant_status').change(function() {
-             var isChecked = $(this).is(':checked');
-             $('.status-text').text(isChecked ? 'All Open' : 'All Closed');
-         });
-
-         // Auto Schedule Toggle
-         $('#auto_schedule_enabled').change(function() {
-             var isEnabled = $(this).is(':checked');
-             scheduleConfig.enabled = isEnabled;
-             $('.schedule-status-text').text(isEnabled ? 'Enabled' : 'Disabled');
-
-             if (isEnabled) {
-                 $('#schedule_display').show();
-                 startSchedule();
-             } else {
-                 $('#schedule_display').hide();
-                 stopSchedule();
-             }
-
-             saveScheduleConfig();
-         });
-
-         // Configure Schedule Button
-         $('#configure_schedule').click(function() {
-             $('#open_time').val(scheduleConfig.open_time);
-             $('#close_time').val(scheduleConfig.close_time);
-             $('#timezone').val(scheduleConfig.timezone);
-         });
-
-         // Save Schedule Configuration
-         $('#save_schedule').click(function() {
-             scheduleConfig.open_time = $('#open_time').val();
-             scheduleConfig.close_time = $('#close_time').val();
-             scheduleConfig.timezone = $('#timezone').val();
-
-             saveScheduleConfig();
-             updateScheduleDisplay();
-
-             if (scheduleConfig.enabled) {
-                 stopSchedule();
-                 startSchedule();
-             }
-
-             $('#scheduleModal').modal('hide');
-
-             // Show success message
-             showNotification('Schedule saved successfully!', 'success');
-         });
-
-         // Apply global status to all restaurants
-         $('#apply_global_status').click(async function() {
-             var isOpen = $('#global_restaurant_status').is(':checked');
-             var statusText = isOpen ? 'open' : 'closed';
-
-             if (!confirm(`Are you sure you want to set ALL restaurants to ${statusText}? This action cannot be undone.`)) {
-                 return;
-             }
-
-             // Show loading state
-             var $btn = $(this);
-             var originalText = $btn.html();
-             $btn.html('<i class="mdi mdi-loading mdi-spin mr-1"></i>Updating...').prop('disabled', true);
-
-             try {
-                 // Get all restaurant IDs from the current filtered data
-                 var table = $('#storeTable').DataTable();
-                 var filteredData = table.ajax.json().filteredData || [];
-
-                 if (filteredData.length === 0) {
-                     alert('No restaurants found to update. Please check your filters.');
+                 if (!confirm(`Are you sure you want to set ALL restaurants to ${statusText}? This action cannot be undone.`)) {
                      return;
                  }
 
-                 // Update all restaurants in batches
-                 const batchSize = 500; // Firestore batch limit
-                 const restaurantIds = filteredData.map(restaurant => restaurant.id);
+                 // Show loading state
+                 var $btn = $(this);
+                 var originalText = $btn.html();
+                 $btn.html('<i class="mdi mdi-loading mdi-spin mr-1"></i>Updating...').prop('disabled', true);
 
-                 let updatedCount = 0;
-                 let totalCount = restaurantIds.length;
-
-                 // Process in batches
-                 for (let i = 0; i < restaurantIds.length; i += batchSize) {
-                     const batch = restaurantIds.slice(i, i + batchSize);
-                     const batchRef = database.batch();
-
-                     batch.forEach(restaurantId => {
-                         const restaurantRef = database.collection('vendors').doc(restaurantId);
-                         batchRef.update(restaurantRef, { isOpen: isOpen });
-                     });
-
-                     await batchRef.commit();
-                     updatedCount += batch.length;
-
-                     // Update progress
-                     $btn.html(`<i class="mdi mdi-loading mdi-spin mr-1"></i>Updated ${updatedCount}/${totalCount}...`);
-                 }
-
-                 // Show success message
-                 $btn.html('<i class="mdi mdi-check mr-1"></i>Success!').removeClass('btn-primary').addClass('btn-success');
-
-                 // Log activity if function exists
                  try {
-                     if (typeof logActivity === 'function') {
-                         await logActivity('restaurants', 'bulk_update', `Set ${updatedCount} restaurants to ${statusText}`);
+                     // Get all restaurant IDs from the current filtered data
+                     var table = $('#storeTable').DataTable();
+                     var filteredData = table.ajax.json().filteredData || [];
+
+                     if (filteredData.length === 0) {
+                         alert('No restaurants found to update. Please check your filters.');
+                         return;
                      }
+
+                     // Update all restaurants in batches - SIMPLIFIED
+                     const batchSize = 100; // Reduced batch size to prevent resource overload
+                     const restaurantIds = filteredData.map(restaurant => restaurant.id);
+
+                     let updatedCount = 0;
+                     let totalCount = restaurantIds.length;
+
+                     // Process in smaller batches with delays to prevent resource exhaustion
+                     for (let i = 0; i < restaurantIds.length; i += batchSize) {
+                         const batch = restaurantIds.slice(i, i + batchSize);
+                         const batchRef = database.batch();
+
+                         batch.forEach(restaurantId => {
+                             const restaurantRef = database.collection('vendors').doc(restaurantId);
+                             batchRef.update(restaurantRef, { isOpen: isOpen });
+                         });
+
+                         await batchRef.commit();
+                         updatedCount += batch.length;
+
+                         // Update progress
+                         $btn.html(`<i class="mdi mdi-loading mdi-spin mr-1"></i>Updated ${updatedCount}/${totalCount}...`);
+
+                         // Add delay between batches to prevent resource overload
+                         if (i + batchSize < restaurantIds.length) {
+                             await new Promise(resolve => setTimeout(resolve, 1000)); // 1 second delay
+                         }
+                     }
+
+                     // Show success message
+                     $btn.html('<i class="mdi mdi-check mr-1"></i>Success!').removeClass('btn-primary').addClass('btn-success');
+
+                     // Reload the table to reflect changes
+                     setTimeout(() => {
+                         table.ajax.reload();
+                         $btn.html(originalText).prop('disabled', false).removeClass('btn-success').addClass('btn-primary');
+                     }, 2000);
+
                  } catch (error) {
-                     console.error('Error logging activity:', error);
+                     console.error('Error updating restaurants:', error);
+                     alert('Error updating restaurants: ' + error.message);
+                     $btn.html(originalText).prop('disabled', false);
                  }
+             });
 
-                 // Reload the table to reflect changes
-                 setTimeout(() => {
-                     table.ajax.reload();
-                     $btn.html(originalText).prop('disabled', false).removeClass('btn-success').addClass('btn-primary');
-                 }, 2000);
-
-             } catch (error) {
-                 console.error('Error updating restaurants:', error);
-                 alert('Error updating restaurants: ' + error.message);
-                 $btn.html(originalText).prop('disabled', false);
-             }
+             // Simple styling for the status text
+             $('<style>')
+                 .prop('type', 'text/css')
+                 .html(`
+                     .status-text {
+                         font-weight: 500;
+                         color: #333;
+                         font-size: 13px;
+                         display: inline-block;
+                         white-space: nowrap;
+                     }
+                 `)
+                 .appendTo('head');
          });
-
-         // Auto Schedule Functions
-         function loadScheduleConfig() {
-             console.log('🔄 Loading schedule config...');
-             $.ajax({
-                 url: '{{ route("restaurants.schedule.get") }}',
-                 method: 'GET',
-                 success: function(response) {
-                     console.log('✅ Schedule config loaded:', response);
-                     if (response.success) {
-                         scheduleConfig = { ...scheduleConfig, ...response.data };
-                         console.log('📋 Updated scheduleConfig:', scheduleConfig);
-                         $('#auto_schedule_enabled').prop('checked', scheduleConfig.enabled);
-                         $('.schedule-status-text').text(scheduleConfig.enabled ? 'Enabled' : 'Disabled');
-
-                         if (scheduleConfig.enabled) {
-                             $('#schedule_display').show();
-                             updateScheduleDisplay();
-                             startSchedule();
-                         }
-                     }
-                 },
-                 error: function(xhr, status, error) {
-                     console.error('❌ Error loading schedule config:', error);
-                     console.error('Response:', xhr.responseText);
-                 }
-             });
-         }
-
-         function saveScheduleConfig() {
-             console.log('💾 Saving schedule config:', scheduleConfig);
-             $.ajax({
-                 url: '{{ route("restaurants.schedule.update") }}',
-                 method: 'POST',
-                 data: {
-                     enabled: scheduleConfig.enabled,
-                     open_time: scheduleConfig.open_time,
-                     close_time: scheduleConfig.close_time,
-                     timezone: scheduleConfig.timezone,
-                     _token: '{{ csrf_token() }}'
-                 },
-                 success: function(response) {
-                     console.log('✅ Save response:', response);
-                     if (response.success) {
-                         console.log('✅ Schedule saved to server');
-                     }
-                 },
-                 error: function(xhr, status, error) {
-                     console.error('❌ Error saving schedule config:', error);
-                     console.error('Response:', xhr.responseText);
-                 }
-             });
-         }
-
-         function updateScheduleDisplay() {
-             $('#open_time_display').text(formatTime(scheduleConfig.open_time));
-             $('#close_time_display').text(formatTime(scheduleConfig.close_time));
-             updateNextActionDisplay();
-         }
-
-         function formatTime(timeString) {
-             const [hours, minutes] = timeString.split(':');
-             const hour = parseInt(hours);
-             const ampm = hour >= 12 ? 'PM' : 'AM';
-             const displayHour = hour % 12 || 12;
-             return `${displayHour}:${minutes} ${ampm}`;
-         }
-
-         function updateNextActionDisplay() {
-             $.ajax({
-                 url: '{{ route("restaurants.schedule.next-action") }}',
-                 method: 'GET',
-                 success: function(response) {
-                     if (response.success) {
-                         const data = response.data;
-                         if (data.next_action && data.next_time) {
-                             $('#next_action_display').text(`${data.next_action} at ${data.next_time}`);
-                         } else {
-                             $('#next_action_display').text(data.next_action || 'Schedule disabled');
-                         }
-                     }
-                 },
-                 error: function(xhr, status, error) {
-                     console.error('Error getting next action:', error);
-                     $('#next_action_display').text('Error loading schedule');
-                 }
-             });
-         }
-
-         function startSchedule() {
-             if (scheduleInterval) {
-                 clearInterval(scheduleInterval);
-             }
-
-             // Update display every 5 minutes instead of 30 seconds to reduce server load
-             scheduleInterval = setInterval(function() {
-                 updateNextActionDisplay();
-             }, 300000); // 5 minutes = 300,000 ms
-
-             // Initial update
-             updateNextActionDisplay();
-         }
-
-         function stopSchedule() {
-             if (scheduleInterval) {
-                 clearInterval(scheduleInterval);
-                 scheduleInterval = null;
-             }
-         }
-
-         function showNotification(message, type = 'info') {
-             // Create notification element
-             const notification = $(`
-                 <div class="alert alert-${type} alert-dismissible fade show position-fixed"
-                      style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;">
-                     <i class="mdi mdi-${type === 'success' ? 'check-circle' : type === 'warning' ? 'alert-circle' : 'information'} mr-2"></i>
-                     ${message}
-                     <button type="button" class="close" data-dismiss="alert">
-                         <span>&times;</span>
-                     </button>
-                 </div>
-             `);
-
-             $('body').append(notification);
-
-             // Auto remove after 5 seconds
-             setTimeout(() => {
-                 notification.alert('close');
-             }, 5000);
-         }
-
-         // Simple styling for the status text
-         $('<style>')
-             .prop('type', 'text/css')
-             .html(`
-                 .status-text, .schedule-status-text {
-                     font-weight: 500;
-                     color: #333;
-                     font-size: 13px;
-                     display: inline-block;
-                     white-space: nowrap;
-                 }
-
-                 #schedule_display {
-                     background-color: #f8f9fa;
-                     border-radius: 4px;
-                     padding: 10px;
-                     margin-top: 10px;
-                 }
-
-                 .alert.position-fixed {
-                     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-                 }
-             `)
-             .appendTo('head');
-     });
 </script>
 @endsection
