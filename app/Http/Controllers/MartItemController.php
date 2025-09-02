@@ -13,7 +13,7 @@ class MartItemController extends Controller
     {
         $this->middleware('auth');
     }
-    
+
     public function index($id='')
     {
         return view("martItems.index")->with('id',$id);
@@ -28,7 +28,7 @@ class MartItemController extends Controller
     {
         return view('martItems.create')->with('id',$id);
     }
-    
+
     public function createItem()
     {
         return view('martItems.create');
@@ -199,7 +199,7 @@ class MartItemController extends Controller
                     'variants' => [],
                     'product_specification' => null,
                     'item_attribute' => null,
-                    'reviewAttributes' => null,
+                    ' Attributes' => null,
                     'reviewsCount' => 0,
                     'reviewsSum' => 0,
                     'takeawayOption' => false, // Auto-generated default

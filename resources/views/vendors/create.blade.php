@@ -108,12 +108,11 @@ foreach ($countries as $keycountry => $valuecountry) {
                                 <label class="col-3 control-label">{{trans('lang.vendor_type')}}</label>
                                 <div class="col-7">
                                     <select class="form-control" id="vendor_type">
-                                        <option value="" selected>{{trans('lang.select_vendor_type')}}</option>
-                                        <option value="restaurant">{{trans('lang.restaurant')}}</option>
+                                        <option value="restaurant" selected>{{trans('lang.restaurant')}} (Default)</option>
                                         <option value="mart">{{trans('lang.mart')}}</option>
                                     </select>
                                     <div class="form-text text-muted">
-                                        {{ trans("lang.vendor_type_help") }}
+                                        {{ trans("lang.vendor_type_help") }} - Restaurant is selected by default
                                     </div>
                                 </div>
                             </div>
@@ -214,6 +213,9 @@ foreach ($countries as $keycountry => $valuecountry) {
 
     $(document).ready(async function() {
 
+        // Set default vendor type to restaurant
+        $("#vendor_type").val('restaurant');
+
         jQuery("#country_selector").select2({
             templateResult: formatState,
             templateSelection: formatState2,
@@ -256,7 +258,7 @@ foreach ($countries as $keycountry => $valuecountry) {
         var userPhone=$(".user_phone").val();
         var vendorType=$("#vendor_type").val();
         // Set default vendor type to 'restaurant' if empty or not selected
-        if(vendorType=='' || vendorType==null || vendorType==undefined) {
+        if(!vendorType || vendorType=='' || vendorType==null || vendorType==undefined || vendorType=='') {
             vendorType='restaurant';
         }
         var reststatus=true;
@@ -404,10 +406,7 @@ foreach ($countries as $keycountry => $valuecountry) {
                     $(".error_top").append("<p>"+error+"</p>");
                 });
         }
-
     })
-
-
     async function storeImageData() {
         var newPhoto=[];
         newPhoto['ownerImage']='';

@@ -840,6 +840,11 @@
                     product_specification: product_specification || {},
                     item_attribute: null,
                     photos: photos || [],
+                    
+                    // Review fields with default values for new items
+                    reviewsCount: "0",
+                    reviewsSum: "0",
+                    
                     created_at: firebase.firestore.FieldValue.serverTimestamp(),
                     updated_at: firebase.firestore.FieldValue.serverTimestamp()
                 };
@@ -908,6 +913,11 @@
                     product_specification: product_specification || {},
                     item_attribute: null,
                     photos: photos || [],
+                    
+                    // Review fields with default values for new items
+                    reviewsCount: "0",
+                    reviewsSum: "0",
+                    
                     created_at: firebase.firestore.FieldValue.serverTimestamp(),
                     updated_at: firebase.firestore.FieldValue.serverTimestamp()
                 };

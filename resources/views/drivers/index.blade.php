@@ -136,9 +136,9 @@
     });
     var initialRef=ref;
     $('.status_selector').select2({
-        placeholder: "{{trans('lang.select_status')}}",  
+        placeholder: "{{trans('lang.select_status')}}",
         minimumResultsForSearch: Infinity,
-        allowClear: true 
+        allowClear: true
     });
     $('select').on("select2:unselecting", function(e) {
         var self = $(this);
@@ -149,10 +149,10 @@
     function setDate() {
         $('#daterange span').html('{{trans("lang.select_range")}}');
         $('#daterange').daterangepicker({
-            autoUpdateInput: false, 
+            autoUpdateInput: false,
         }, function (start, end) {
             $('#daterange span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
-            $('.filteredRecords').trigger('change'); 
+            $('.filteredRecords').trigger('change');
         });
         $('#daterange').on('apply.daterangepicker', function (ev, picker) {
             $('#daterange span').html(picker.startDate.format('MMMM D, YYYY') + ' - ' + picker.endDate.format('MMMM D, YYYY'));
@@ -160,10 +160,10 @@
         });
         $('#daterange').on('cancel.daterangepicker', function (ev, picker) {
             $('#daterange span').html('{{trans("lang.select_range")}}');
-            $('.filteredRecords').trigger('change'); 
+            $('.filteredRecords').trigger('change');
         });
     }
-    setDate(); 
+    setDate();
     $('.filteredRecords').change(async function() {
         var status=$('.status_selector').val();
         var daterangepicker = $('#daterange').data('daterangepicker');
@@ -176,7 +176,7 @@
         if ($('#daterange span').html() != '{{trans("lang.select_range")}}' && daterangepicker) {
             var from = moment(daterangepicker.startDate).toDate();
             var to = moment(daterangepicker.endDate).toDate();
-            if (from && to) { 
+            if (from && to) {
                 var fromDate = firebase.firestore.Timestamp.fromDate(new Date(from));
                 refData = refData.where('createdAt', '>=', fromDate);
                 var toDate = firebase.firestore.Timestamp.fromDate(new Date(to));
@@ -322,7 +322,7 @@
                             childData.isActive? '<label class="switch"><input type="checkbox" checked id="'+childData.id+'" name="isOnline"><span class="slider round"></span></label>':'<label class="switch"><input type="checkbox" id="'+childData.id+'" name="isOnline"><span class="slider round"></span></label>',
                             '<a href="'+walletTransactions+'">{{trans("lang.wallet_history")}}</a>',
                             '<a href="'+trroute2+'">'+childData.orders+'</a>',
-                            '<span class="action-btn"><a href="'+driverView+'"><i class="mdi mdi-eye"></i></a><a href="'+route1+'"><i class="mdi mdi-lead-pencil" title="Edit"></i></a><?php if (in_array('driver.delete', json_decode(@session('user_permissions'), true))) { ?> <a id="'+childData.id+'" name="driver-delete" class="delete-btn" href="javascript:void(0)"><i class="mdi mdi-delete"></i></a><?php } ?></span>'
+                            '<span class="action-btn"><a href="'+driverView+'"><i class="mdi mdi-eye"></i></a><a href="'+route1+'"><i class="mdi mdi-lead-pencil" title="Edit"></i></a><?php if (in_array('drivers.edit', json_decode(@session('user_permissions'), true))) { ?> <a id="'+childData.id+'" name="clear-order-request-data" class="clear-order-data-btn" href="javascript:void(0)" title="Clear Order Request Data"><i class="mdi mdi-refresh"></i></a><?php } ?><?php if (in_array('driver.delete', json_decode(@session('user_permissions'), true))) { ?> <a id="'+childData.id+'" name="driver-delete" class="delete-btn" href="javascript:void(0)"><i class="mdi mdi-delete"></i></a><?php } ?></span>'
                         ]);
                     });
                     $('#data-table_processing').hide(); // Hide loader
@@ -381,7 +381,7 @@
                             action: function (e, dt, button, config) {
                                 exportData(dt, 'pdf',fieldConfig);
                             }
-                        },   
+                        },
                         {
                             extend: 'csvHtml5',
                             text: 'Export CSV',
@@ -392,11 +392,16 @@
                     ]
                 }
             ],
-            initComplete: function() {
+                        initComplete: function() {
                 $(".dataTables_filter").append($(".dt-buttons").detach());
+
+                // Add clear all order request data button beside search
+                var clearAllButton = '<button id="clearAllOrderRequestData" class="btn btn-warning ml-2 rounded-full"><i class="mdi mdi-refresh mr-1"></i>Clear All Order Request Data</button>';
+                $(".dataTables_filter").append(clearAllButton);
+
                 $('.dataTables_filter input').attr('placeholder', 'Search here...').attr('autocomplete','new-password').val('');
                 $('.dataTables_filter label').contents().filter(function() {
-                    return this.nodeType === 3; 
+                    return this.nodeType === 3;
                 }).remove();
             }
         });
@@ -471,7 +476,7 @@
         } catch (error) {
             console.error('Error getting driver name:', error);
         }
-        
+
         if(ischeck) {
             database.collection('users').doc(id).update({'active': true}).then(async function(result) {
                 console.log('✅ Driver activated successfully, now logging activity...');
@@ -526,7 +531,7 @@
                         console.error('Error getting driver name:', error);
                     }
                 }
-                
+
                 $('#driverTable .is_open:checked').each(async function() {
                     var dataId=$(this).attr('dataId');
                     await deleteDocumentWithImage('users',dataId,'profilePictureURL');
@@ -568,7 +573,7 @@
         } catch (error) {
             console.error('Error getting driver name:', error);
         }
-        
+
         await deleteDocumentWithImage('users',id,'profilePictureURL');
         deleteDriverData(id).then(async function() {
             setTimeout(async function() {
@@ -589,7 +594,7 @@
         });
     });
     async function deleteDriverData(driverId) {
-        //delete user from authentication  
+        //delete user from authentication
         var dataObject={"data": {"uid": driverId}};
         var projectId='<?php echo env('FIREBASE_PROJECT_ID') ?>';
         jQuery.ajax({
@@ -628,5 +633,165 @@
         jQuery("#search").val('');
         searchtext();
     }
+
+    // Handle clear order request data button click
+    $(document).on("click", "a[name='clear-order-request-data']", async function(e) {
+        e.preventDefault();
+        var driverId = this.id;
+        var driverName = '';
+
+        // Get driver name for confirmation
+        try {
+            var doc = await database.collection('users').doc(driverId).get();
+            if (doc.exists) {
+                var driverData = doc.data();
+                driverName = (driverData.firstName || '') + ' ' + (driverData.lastName || 'Unknown');
+            }
+        } catch (error) {
+            console.error('Error getting driver name:', error);
+        }
+
+        // Show confirmation dialog
+        if (confirm('Clear orderRequestData for driver: ' + driverName + '?\n\nNote: This only clears the orderRequestData array used for requests. It will NOT delete any orders or change Total Orders.')) {
+            jQuery("#data-table_processing").show();
+
+            try {
+                // Try clearing directly via Firestore (frontend) to avoid disrupting existing flows
+                await database.collection('users').doc(driverId).update({ orderRequestData: [] });
+
+                if (typeof toastr !== 'undefined') {
+                    toastr.success('Order request data cleared for ' + driverName);
+                } else {
+                    alert('Order request data cleared for ' + driverName);
+                }
+
+                // Log activity if function exists
+                if (typeof logActivity === 'function') {
+                    logActivity('drivers', 'clear_order_request_data', 'Cleared order request data for driver: ' + driverName);
+                }
+            } catch (error) {
+                console.warn('Frontend clear failed, falling back to backend route:', error);
+                // Fallback to backend route if frontend update fails
+                $.ajax({
+                    url: '{{ route("drivers.clearOrderRequestData", ":id") }}'.replace(':id', driverId),
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            if (typeof toastr !== 'undefined') {
+                                toastr.success(response.message);
+                            } else {
+                                alert(response.message);
+                            }
+                            if (typeof logActivity === 'function') {
+                                logActivity('drivers', 'clear_order_request_data', 'Cleared order request data for driver: ' + driverName);
+                            }
+                        } else {
+                            if (typeof toastr !== 'undefined') {
+                                toastr.error(response.message);
+                            } else {
+                                alert('Error: ' + response.message);
+                            }
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error clearing order request data (backend):', error);
+                        var errorMessage = 'An error occurred while clearing order request data.';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMessage = xhr.responseJSON.message;
+                        }
+                        if (typeof toastr !== 'undefined') {
+                            toastr.error(errorMessage);
+                        } else {
+                            alert('Error: ' + errorMessage);
+                        }
+                    },
+                    complete: function() {
+                        jQuery("#data-table_processing").hide();
+                    }
+                });
+            }
+            jQuery("#data-table_processing").hide();
+        }
+    });
+
+    // Handle clear all order request data button click
+    $(document).on("click", "#clearAllOrderRequestData", async function(e) {
+        e.preventDefault();
+
+        // Show confirmation dialog
+        if (confirm('Are you sure you want to clear orderRequestData for ALL drivers?\n\nThis action will:\n- Clear orderRequestData array for every driver\n- NOT delete any actual orders\n- NOT change Total Orders counts\n- Cannot be undone\n\nType "YES" to confirm:')) {
+            // var userInput = prompt('Type "YES" to confirm clearing all drivers order request data:');
+            // if (userInput !== 'YES') {
+            //     return;
+            // }
+
+            jQuery("#data-table_processing").show();
+
+            try {
+                // Make AJAX call to clear all drivers order request data
+                $.ajax({
+                    url: '{{ route("drivers.clearAllOrderRequestData") }}',
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            // Show success message
+                            if (typeof toastr !== 'undefined') {
+                                toastr.success(response.message);
+                            } else {
+                                alert(response.message);
+                            }
+
+                            // Log activity if function exists
+                            if (typeof logActivity === 'function') {
+                                logActivity('drivers', 'clear_all_order_request_data', 'Cleared order request data for ' + response.cleared_count + ' drivers');
+                            }
+
+                            // Reload the table to reflect changes
+                            $('#driverTable').DataTable().ajax.reload();
+                        } else {
+                            // Show error message
+                            if (typeof toastr !== 'undefined') {
+                                toastr.error(response.message);
+                            } else {
+                                alert('Error: ' + response.message);
+                            }
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error clearing all drivers order request data:', error);
+                        var errorMessage = 'An error occurred while clearing all drivers order request data.';
+
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMessage = xhr.responseJSON.message;
+                        }
+
+                        if (typeof toastr !== 'undefined') {
+                            toastr.error(errorMessage);
+                        } else {
+                            alert('Error: ' + errorMessage);
+                        }
+                    },
+                    complete: function() {
+                        jQuery("#data-table_processing").hide();
+                    }
+                });
+            } catch (error) {
+                console.error('Error in clear all order request data:', error);
+                jQuery("#data-table_processing").hide();
+
+                if (typeof toastr !== 'undefined') {
+                    toastr.error('An unexpected error occurred.');
+                } else {
+                    alert('An unexpected error occurred.');
+                }
+            }
+        }
+    });
 </script>
 @endsection

@@ -43,7 +43,6 @@
         margin-left: 1rem;
     }
 </style>
-
 <div class="page-wrapper">
     <div class="row page-titles">
         <div class="col-md-5 align-self-center">
@@ -56,7 +55,7 @@
             </ol>
         </div>
     </div>
-
+    
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show" role="alert">
             {{ session('success') }}
@@ -113,7 +112,7 @@
                 </div>
             </div>
         </div>
-
+        
         <div class="row">
             <div class="col-12">
                 <div class="card border">
@@ -136,7 +135,7 @@
                                    class="display nowrap table table-hover table-striped table-bordered table table-striped"
                                    cellspacing="0" width="100%">
                                 <thead>
-                                    <tr>
+                                    <tr>                                 
                                         <th>User ID</th>
                                         <th>User Name</th>
                                         <th>User Type</th>
@@ -156,6 +155,7 @@
         </div>
     </div>
 </div>
+
 <script>
 // Wait for jQuery to be available
 $(document).ready(function() {
@@ -185,13 +185,13 @@ $(document).ready(function() {
 
     let currentModule = '';
     let initialRef = db.collection('activity_logs').orderBy('created_at', 'desc');
-
+    
     // Module filter change
     $('#module-filter').on('change', function() {
         currentModule = $(this).val();
         $('#activityLogsTable').DataTable().ajax.reload();
     });
-
+    
     // Refresh button
     $('#refresh-logs').on('click', function() {
         $('#activityLogsTable').DataTable().ajax.reload();
@@ -229,7 +229,7 @@ $(document).ready(function() {
                     });
                 return;
             }
-
+            
                 let records = [];
                 let filteredRecords = [];
 

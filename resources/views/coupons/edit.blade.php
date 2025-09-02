@@ -58,6 +58,13 @@
                             </div>
                         </div>
                         <div class="form-group row width-50">
+                            <label class="col-3 control-label">Usage Limit</label>
+                            <div class="col-7">
+                                <input type="number" class="form-control usage_limit" min="0" placeholder="0 for unlimited">
+                                <div class="form-text text-muted">Maximum number of users who can use this coupon (e.g., 100 for "First-100"). Leave empty or 0 for unlimited usage.</div>
+                            </div>
+                        </div>
+                        <div class="form-group row width-50">
                             <label class="col-3 control-label">{{trans('lang.coupon_expires_at')}}</label>
                             <div class="col-7">
                                 <div class='input-group date' id='datetimepicker1'>
@@ -184,13 +191,14 @@ $(document).ready(function () {
         $(".coupon_discount").val(parseInt(coupon.discount));
         $(".coupon_description").val(coupon.description);
         $(".item_value").val(coupon.item_value || 0);
-        const expireDate = new Date(coupon.expiresAt.toDate()); 
+        $(".usage_limit").val(coupon.usageLimit || 0);
+        const expireDate = new Date(coupon.expiresAt.toDate());
         const currentDate = new Date();
         const isExpired = expireDate < currentDate;
         if (isExpired){
             $(".coupon_enabled").prop("disabled", true);
         }
-        else if (coupon.isEnabled) { 
+        else if (coupon.isEnabled) {
             $(".coupon_enabled").prop("checked", true);
         }
          if (coupon.isPublic) {
@@ -227,13 +235,24 @@ $(document).ready(function () {
         var discount = $(".coupon_discount").val();
         var description = $(".coupon_description").val();
         var item_value = parseInt($(".item_value").val(), 10);
-        
+        var usage_limit = parseInt($(".usage_limit").val(), 10);
+
         // Item value validation
         if (isNaN(item_value) || item_value < 0) {
             $(".error_top").show();
             $(".error_top").html("");
             $(".error_top").append("<p>Item Value must be a valid number (0 or greater).</p>");
             $(".item_value").focus();
+            window.scrollTo(0, 0);
+            return;
+        }
+
+        // Usage limit validation
+        if (isNaN(usage_limit) || usage_limit < 0) {
+            $(".error_top").show();
+            $(".error_top").html("");
+            $(".error_top").append("<p>Usage Limit must be a valid number (0 or greater).</p>");
+            $(".usage_limit").focus();
             window.scrollTo(0, 0);
             return;
         }
@@ -304,10 +323,11 @@ $(document).ready(function () {
                         'image': IMG,
                         'resturant_id': resturant_id,
                         'isPublic': isPublic,
-                        'item_value': item_value
+                        'item_value': item_value,
+                        'usageLimit': usage_limit || 0
                     }).then(async function (result) {
                         console.log('✅ Coupon updated successfully, now logging activity...');
-                        
+
                         // Log the activity with error handling and await the Promise
                         try {
                             if (typeof logActivity === 'function') {
@@ -320,7 +340,7 @@ $(document).ready(function () {
                         } catch (error) {
                             console.error('❌ Error calling logActivity:', error);
                         }
-                        
+
                         <?php if (isset($_GET['eid']) && $_GET['eid'] != '') { ?>
                             window.location.href = "{{ route('restaurants.coupons', $_GET['eid']) }}";
                         <?php } else { ?>
@@ -386,3 +406,4 @@ function handleFileSelect(evt) {
 }
 </script>
     @endsection
+

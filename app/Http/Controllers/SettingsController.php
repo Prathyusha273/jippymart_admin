@@ -121,7 +121,10 @@ class SettingsController extends Controller
     {
         return view("settings.app.deliveryCharge");
     }
-
+    public function priceSetting()
+    {
+        return view("settings.app.priceSettings");
+    }
     public function languages()
     {
         return view('settings.languages.index');

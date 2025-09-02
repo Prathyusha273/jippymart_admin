@@ -15,7 +15,7 @@
         </div>
     </div>
     <div class="container-fluid">
-       <div class="admin-top-section"> 
+       <div class="admin-top-section">
         <div class="row">
             <div class="col-12">
                 <div class="d-flex top-title-section pb-4 justify-content-between">
@@ -26,12 +26,12 @@
                     </div>
                     <div class="d-flex top-title-right align-self-center">
                         <div class="select-box pl-3">
-                        
+
                         </div>
                     </div>
                 </div>
             </div>
-        </div> 
+        </div>
        </div>
        <div class="table-list">
        <div class="row">
@@ -71,14 +71,14 @@
                     <p class="mb-0 text-dark-2">{{trans('lang.coupons_table_text')}}</p>
                    </div>
                    <div class="card-header-right d-flex align-items-center">
-                        <div class="card-header-btn mr-3"> 
+                        <div class="card-header-btn mr-3">
                             <?php if ($id != '') { ?>
                                 <a class="btn-primary btn rounded-full" href="{!! route('coupons.create') !!}/{{$id}}"><i class="mdi mdi-plus mr-2"></i>{{trans('lang.coupon_create')}}</a>
                             <?php } else { ?>
                                 <a class="btn-primary btn rounded-full" href="{!! route('coupons.create') !!}"><i class="mdi mdi-plus mr-2"></i>{{trans('lang.coupon_create')}}</a>
                             <?php } ?>
                         </div>
-                   </div>                
+                   </div>
                  </div>
                  <div class="card-body">
                          <div class="table-responsive m-t-10">
@@ -92,6 +92,7 @@
                                     <th>{{trans('lang.coupon_code')}}</th>
                                     <th>{{trans('lang.coupon_discount')}}</th>
                                     <th>Item Value</th>
+                                    <th>Usage Limit</th>
                                     <th>{{trans('lang.coupon_privacy')}}</th>
                                     <th>{{trans('lang.coupon_restaurant_id')}}</th>
                                     <th>{{trans('lang.coupon_expires_at')}}</th>
@@ -163,14 +164,14 @@
                 const searchValue = data.search.value.toLowerCase();
                 const orderColumnIndex = data.order[0].column;
                 const orderDirection = data.order[0].dir;
-                const orderableColumns =(checkDeletePermission) ? ['','code', 'discount', 'isPublic', 'restaurantName', 'expiresAt','', 'description',''] : ['code', 'discount', 'isPublic', 'restaurantName', 'expiresAt', '', 'description', '']; // Ensure this matches the actual column names
+                const orderableColumns =(checkDeletePermission) ? ['','code', 'discount', 'item_value', 'usageLimit', 'isPublic', 'restaurantName', 'expiresAt','', 'description',''] : ['code', 'discount', 'item_value', 'usageLimit', 'isPublic', 'restaurantName', 'expiresAt', '', 'description', '']; // Ensure this matches the actual column names
                 const orderByField = orderableColumns[orderColumnIndex]; // Adjust the index to match your table
                 if (searchValue.length >= 3 || searchValue.length === 0) {
                     $('#data-table_processing').show();
                 }
                 ref.get().then(async function (querySnapshot) {
                     if (querySnapshot.empty) {
-                        $('.coupon_count').text(0); 
+                        $('.coupon_count').text(0);
                         console.error("No data found in Firestore.");
                         $('#data-table_processing').hide(); // Hide loader
                         callback({
@@ -200,7 +201,8 @@
                             var expiresAt = date + ' ' + time;
                             if (
                                 (childData.code && childData.code.toString().toLowerCase().includes(searchValue)) ||
-                                (expiresAt && expiresAt.toString().toLowerCase().indexOf(searchValue) > -1) || (childData.restaurantName && childData.restaurantName.toString().toLowerCase().includes(searchValue)) || (childData.description && childData.description.toString().toLowerCase().includes(searchValue))
+                                (expiresAt && expiresAt.toString().toLowerCase().indexOf(searchValue) > -1) || (childData.restaurantName && childData.restaurantName.toString().toLowerCase().includes(searchValue)) || (childData.description && childData.description.toString().toLowerCase().includes(searchValue)) ||
+                                (childData.usageLimit && childData.usageLimit.toString().toLowerCase().includes(searchValue))
                             ) {
                                 filteredRecords.push(childData);
                             }
@@ -219,6 +221,14 @@
                             aValue = a[orderByField] ? parseInt(a[orderByField] ) : 0;
                             bValue = b[orderByField] ? parseInt(b[orderByField]) : 0;
                         }
+                        if (orderByField === 'item_value') {
+                            aValue = a[orderByField] ? parseInt(a[orderByField] ) : 0;
+                            bValue = b[orderByField] ? parseInt(b[orderByField]) : 0;
+                        }
+                        if (orderByField === 'usageLimit') {
+                            aValue = a[orderByField] ? parseInt(a[orderByField] ) : 0;
+                            bValue = b[orderByField] ? parseInt(b[orderByField]) : 0;
+                        }
                         if (orderDirection === 'asc') {
                             return (aValue > bValue) ? 1 : -1;
                         } else {
@@ -226,7 +236,7 @@
                         }
                     });
                     const totalRecords = filteredRecords.length;
-                    $('.coupon_count').text(totalRecords); 
+                    $('.coupon_count').text(totalRecords);
                     const paginatedRecords = filteredRecords.slice(start, start + length);
                     paginatedRecords.forEach(function (childData) {
                         var route1 = '{{route("coupons.edit", ":id")}}';
@@ -258,7 +268,7 @@
                                 discount_price = currentCurrency + "" + parseFloat(childData.discount).toFixed(decimal_degits);
                             }
                         }
-                        const expireDate = new Date(childData.expiresAt.toDate()); 
+                        const expireDate = new Date(childData.expiresAt.toDate());
                         const currentDate = new Date();
                         const isExpired = expireDate < currentDate;
                         records.push([
@@ -266,6 +276,16 @@
                             '<a href="' + route1 + '"  class="redirecttopage">' + childData.code + '</a>',
                             discount_price,
                             (childData.item_value ? '<span class="item-value-td">' + childData.item_value + '</span>' : '<span class="text-muted">-</span>'),
+                            (() => {
+                                if (childData.usageLimit && childData.usageLimit > 0) {
+                                    var usedCount = childData.usedCount || 0;
+                                    var remaining = childData.usageLimit - usedCount;
+                                    var statusClass = remaining > 0 ? 'text-success' : 'text-danger';
+                                    return '<span class="' + statusClass + '">' + usedCount + '/' + childData.usageLimit + '</span>';
+                                } else {
+                                    return '<span class="text-muted">Unlimited</span>';
+                                }
+                            })(),
                             childData.hasOwnProperty('isPublic') && childData.isPublic ? '<td class="success"><span class="badge badge-success py-2 px-3">{{trans("lang.public")}}</sapn></td>' : '<td class="danger"><span class="badge badge-danger py-2 px-3">{{trans("lang.private")}}</sapn></td>',
                             '<td  data-url="' + route_view + '" class="redirecttopage storeName_' + childData.resturant_id + '" >' + childData.restaurantName + '</td>',
                             '<td class="dt-time">' + date + ' ' + time + '</td>',
@@ -296,9 +316,9 @@
                     });
                 });
             },
-            order: (checkDeletePermission) ? [5, 'desc'] : [4, 'desc'],
+            order: (checkDeletePermission) ? [6, 'desc'] : [5, 'desc'],
             columnDefs: [
-                { targets: (checkDeletePermission) ? [0, 6, 8] : [5, 7], orderable: false }
+                { targets: (checkDeletePermission) ? [0, 7, 9] : [6, 8], orderable: false }
             ],
             language: {
                 zeroRecords: "{{trans("lang.no_record_found")}}",
@@ -342,7 +362,7 @@
     $(document).on("click", "input[name='isActive']", async function (e) {
         var ischeck = $(this).is(':checked');
         var id = this.id;
-        
+
         // Get coupon code for logging
         var couponCode = '';
         try {
@@ -353,11 +373,11 @@
         } catch (error) {
             console.error('Error getting coupon code:', error);
         }
-        
+
         if (ischeck) {
             database.collection('coupons').doc(id).update({'isEnabled': true}).then(async function (result) {
                 console.log('✅ Coupon enabled successfully, now logging activity...');
-                
+
                 // Log the enable activity
                 try {
                     if (typeof logActivity === 'function') {
@@ -374,7 +394,7 @@
         } else {
             database.collection('coupons').doc(id).update({'isEnabled': false}).then(async function (result) {
                 console.log('✅ Coupon disabled successfully, now logging activity...');
-                
+
                 // Log the disable activity
                 try {
                     if (typeof logActivity === 'function') {
@@ -412,7 +432,7 @@
         if ($('#couponTable .is_open:checked').length) {
             if (confirm("{{trans('lang.selected_delete_alert')}}")) {
                 jQuery("#data-table_processing").show();
-                
+
                 // Get all selected coupon codes for logging
                 var selectedCoupons = [];
                 for (let i = 0; i < $('#couponTable .is_open:checked').length; i++) {
@@ -426,13 +446,13 @@
                         console.error('Error getting coupon code:', error);
                     }
                 }
-                
+
                 // Delete all selected coupons
                 for (let i = 0; i < $('#couponTable .is_open:checked').length; i++) {
                     var dataId = $('#couponTable .is_open:checked').eq(i).attr('dataId');
                     await deleteDocumentWithImage('coupons',dataId,'image');
                 }
-                
+
                 // Log the bulk deletion activity
                 console.log('✅ Bulk coupon deletion completed, now logging activity...');
                 try {
@@ -446,7 +466,7 @@
                 } catch (error) {
                     console.error('❌ Error calling logActivity:', error);
                 }
-                
+
                 window.location.reload();
             }
         } else {
@@ -455,7 +475,7 @@
     });
     $(document).on("click", "a[name='coupon_delete_btn']", async function (e) {
         var id = this.id;
-        
+
         // Get coupon code before deletion for logging
         var couponCode = '';
         try {
@@ -466,11 +486,11 @@
         } catch (error) {
             console.error('Error getting coupon code:', error);
         }
-        
+
         await deleteDocumentWithImage('coupons',id,'image');
-        
+
         console.log('✅ Coupon deleted successfully, now logging activity...');
-        
+
         // Log the deletion activity with error handling and await the Promise
         try {
             if (typeof logActivity === 'function') {
@@ -483,8 +503,9 @@
         } catch (error) {
             console.error('❌ Error calling logActivity:', error);
         }
-        
+
         window.location.reload();
     });
 </script>
 @endsection
+
