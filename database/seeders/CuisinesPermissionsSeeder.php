@@ -16,22 +16,22 @@ class CuisinesPermissionsSeeder extends Seeder
     public function run()
     {
         // Find Super Administrator role
-        $superAdminRole = Role::where('role_name', 'Super Administrator')->first();
-        
+        $superAdminRole = Role::where('role_name', 'Super Administrator','admin')->first();
+
         if (!$superAdminRole) {
             $this->command->error('Super Administrator role not found!');
             return;
         }
-        
+
         $this->command->info('Found Super Administrator role (ID: ' . $superAdminRole->id . ')');
-        
+
         // Define cuisines permissions
         $cuisinesPermissions = [
             'cuisines' => ['cuisines', 'cuisines.create', 'cuisines.edit', 'cuisines.delete']
         ];
-        
+
         $addedCount = 0;
-        
+
         foreach ($cuisinesPermissions as $permission => $routes) {
             foreach ($routes as $route) {
                 // Check if permission already exists
@@ -39,7 +39,7 @@ class CuisinesPermissionsSeeder extends Seeder
                     ->where('permission', $permission)
                     ->where('routes', $route)
                     ->first();
-                
+
                 if (!$existingPermission) {
                     // Create new permission
                     Permission::create([
@@ -47,7 +47,7 @@ class CuisinesPermissionsSeeder extends Seeder
                         'permission' => $permission,
                         'routes' => $route
                     ]);
-                    
+
                     $this->command->info('Added permission: ' . $permission . ' -> ' . $route);
                     $addedCount++;
                 } else {
@@ -55,7 +55,7 @@ class CuisinesPermissionsSeeder extends Seeder
                 }
             }
         }
-        
+
         $this->command->info('Successfully added ' . $addedCount . ' cuisines permissions to Super Administrator role!');
     }
 }

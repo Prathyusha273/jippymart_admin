@@ -18,9 +18,8 @@ class CheckUserRoleMiddleware
      */
     public function handle($request, Closure $next)
     {
-
         if (auth()->check()) {
-            
+
             $user = auth()->user();
 
             $role_has_permissions = Permission::where('role_id', $user->role_id)->pluck('routes')->toArray();

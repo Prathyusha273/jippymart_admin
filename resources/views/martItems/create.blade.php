@@ -65,7 +65,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Enhanced Item Features -->
                         <div class="form-group row width-100">
                             <label class="col-3 control-label">Item Features</label>
@@ -159,7 +159,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="form-group row width-100">
                             <label class="col-3 control-label">Mart Sub-Categories</label>
                             <div class="col-7">
@@ -234,11 +234,11 @@
                             <label class="col-3 control-label" for="food_is_available">Available</label>
                         </div>
                     </fieldset>
-                    
+
                     <!-- Options Configuration -->
                     <fieldset>
                         <legend>Options Configuration</legend>
-                        
+
                         <div class="form-check width-100">
                             <input type="checkbox" class="has_options" id="has_options">
                             <label class="col-3 control-label" for="has_options">
@@ -248,14 +248,14 @@
                                 Enable this to create different variants/sizes for this item
                             </div>
                         </div>
-                        
+
                         <div id="options_config" style="display:none;">
                             <div class="alert alert-info">
                                 <i class="mdi mdi-information-outline"></i>
                                 <strong>Options will be stored as part of this item.</strong>
                                 Each option can have its own price, image, and specifications.
                             </div>
-                            
+
                             <div class="form-group row width-50">
                                 <label class="col-3 control-label">Default Option</label>
                                 <div class="col-7">
@@ -263,22 +263,22 @@
                                         <option value="">Select default option</option>
                                     </select>
                                     <div class="form-text text-muted">
-                                        The default option will be automatically selected when customers view this item. 
+                                        The default option will be automatically selected when customers view this item.
                                         This is typically the featured option or the most popular choice.
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </fieldset>
-                    
+
                     <!-- Options Management -->
                     <fieldset id="options_fieldset" style="display:none;">
                         <legend>Item Options</legend>
-                        
+
                         <div class="options-list">
                             <!-- Dynamic options will be added here -->
                         </div>
-                        
+
                         <div class="form-group row width-100">
                             <div class="col-12 text-center">
                                 <button type="button" class="btn btn-primary" onclick="addNewOption()">
@@ -286,7 +286,7 @@
                                 </button>
                             </div>
                         </div>
-                        
+
                         <div class="options-summary" style="display:none;">
                             <h5>Options Summary</h5>
                             <div class="summary-content">
@@ -503,10 +503,10 @@
             }
         });
         jQuery("#data-table_processing").show();
-        
+
         // Debug: Check if collections exist
         console.log('🔍 Create page - Starting data fetch...');
-        
+
         // Fetch vendors with vType: 'mart' (case-insensitive)
         database.collection('vendors').get().then(async function(snapshots) {
             console.log('🔍 Create page - Found ' + snapshots.docs.length + ' total vendors');
@@ -547,7 +547,7 @@
         }).catch(function(error) {
             console.error('❌ Create page - Error fetching vendors:', error);
         });
-        
+
         // Fetch mart categories
         database.collection('mart_categories').where('publish','==',true).get().then(async function(snapshots) {
             console.log('🔍 Create page - Found ' + snapshots.docs.length + ' mart categories');
@@ -583,7 +583,7 @@
         }).catch(function(error) {
             console.error('❌ Create page - Error fetching categories:', error);
         });
-        
+
         // Fetch mart subcategories
         database.collection('mart_subcategories').where('publish','==',true).get().then(async function(snapshots) {
             console.log('🔍 Create page - Found ' + snapshots.docs.length + ' mart subcategories');
@@ -596,7 +596,7 @@
                     .text(data.title));
             });
             updateSelectedSubcategoryTags();
-            
+
             // Debug: Log the selected subcategory value
             $('#food_subcategory').on('change', function() {
                 console.log('🔍 Selected subcategory value:', $(this).val());
@@ -605,7 +605,7 @@
         }).catch(function(error) {
             console.error('❌ Create page - Error fetching subcategories:', error);
         });
-        
+
         // Fetch vendor attributes
         var attributes = database.collection('vendor_attributes');
         attributes.get().then(async function(snapshots) {
@@ -624,48 +624,48 @@
         }).catch(function(error) {
             console.error('❌ Create page - Error fetching attributes:', error);
         });
-        
+
         jQuery("#data-table_processing").hide();
         $(".save-form-btn").click(async function() {
             console.log('🔍 Save button clicked - starting validation...');
-            
+
             // Get form values
             var name = $(".food_name").val().trim();
             var price = $(".food_price").val().trim();
             var discount = $(".food_discount").val().trim();
             var description = $("#food_description").val().trim();
             var quantity = parseInt($(".item_quantity").val()) || -1;
-            
+
             <?php if ($id == '') { ?>
             var restaurant = $("#food_restaurant").val();
             <?php } else { ?>
             var restaurant = "<?php echo $id; ?>";
             <?php } ?>
-            
+
             var category = $("#food_category").val();
             var subcategory = $("#food_subcategory").val();
-            
+
             // Handle multiple category selection - take the first selected category
             if (Array.isArray(category) && category.length > 0) {
                 category = category[0]; // Take the first selected category
             } else if (category === '') {
                 category = '';
             }
-            
+
             // Handle multiple subcategory selection
             if (Array.isArray(subcategory) && subcategory.length > 0) {
                 subcategory = subcategory[0]; // Take the first selected subcategory
             } else if (subcategory === '') {
                 subcategory = '';
             }
-            
+
             // Get checkbox values
             var foodPublish = $(".food_publish").is(":checked");
             var foodIsAvailable = $(".food_is_available").is(":checked");
             var nonveg = $(".food_nonveg").is(":checked");
             var veg = !nonveg;
             var foodTakeaway = $(".food_take_away_option").is(":checked");
-            
+
             // Get item features
             var isSpotlight = $("#isSpotlight").is(":checked");
             var isStealOfMoment = $("#isStealOfMoment").is(":checked");
@@ -674,18 +674,18 @@
             var isNew = $("#isNew").is(":checked");
             var isBestSeller = $("#isBestSeller").is(":checked");
             var isSeasonal = $("#isSeasonal").is(":checked");
-            
+
             // Debug checkbox states
             console.log('🔍 Checkbox states:', {
                 isSpotlight, isStealOfMoment, isFeature, isTrending, isNew, isBestSeller, isSeasonal
             });
-            
+
             console.log('📝 Form values:', {
                 name, price, discount, description, quantity, restaurant, category, subcategory,
                 foodPublish, foodIsAvailable, nonveg, veg, foodTakeaway,
                 isSpotlight, isStealOfMoment, isFeature, isTrending, isNew, isBestSeller, isSeasonal
             });
-            
+
             // Validation
             if (name == '') {
                 $(".error_top").show();
@@ -694,7 +694,7 @@
                 window.scrollTo(0, 0);
                 return;
             }
-            
+
             if (price == '') {
                 $(".error_top").show();
                 $(".error_top").html("");
@@ -702,7 +702,7 @@
                 window.scrollTo(0, 0);
                 return;
             }
-            
+
             if (restaurant == '') {
                 $(".error_top").show();
                 $(".error_top").html("");
@@ -710,7 +710,7 @@
                 window.scrollTo(0, 0);
                 return;
             }
-            
+
             if (category == '') {
                 $(".error_top").show();
                 $(".error_top").html("");
@@ -718,7 +718,7 @@
                 window.scrollTo(0, 0);
                 return;
             }
-            
+
             if (parseInt(price) < parseInt(discount || 0)) {
                 $(".error_top").show();
                 $(".error_top").html("");
@@ -726,7 +726,7 @@
                 window.scrollTo(0, 0);
                 return;
             }
-            
+
             if (quantity < -1) {
                 $(".error_top").show();
                 $(".error_top").html("");
@@ -734,7 +734,7 @@
                 window.scrollTo(0, 0);
                 return;
             }
-            
+
             if (description == '') {
                 $(".error_top").show();
                 $(".error_top").html("");
@@ -742,17 +742,17 @@
                 window.scrollTo(0, 0);
                 return;
             }
-            
+
             console.log('✅ Validation passed, starting save process...');
             $(".error_top").hide();
-            
+
             const hasOptions = $(".has_options").is(":checked");
-            
+
             if (hasOptions && optionsList.length === 0) {
                 alert('Please add at least one option when options are enabled.');
                 return;
             }
-            
+
             if (hasOptions) {
                 // Validate options
                 for (let option of optionsList) {
@@ -761,7 +761,7 @@
                         return;
                     }
                 }
-                
+
                 // Prepare options data
                 const optionsData = optionsList.map((option, index) => ({
                     id: option.id || `option_${Date.now()}_${index}`,
@@ -782,13 +782,13 @@
                     sort_order: index + 1,
                     created_at: new Date().toISOString()
                 }));
-                
+
                 // Calculate price range
                 const prices = optionsList.map(opt => opt.price);
                 const minPrice = Math.min(...prices);
                 const maxPrice = Math.max(...prices);
                 const defaultOptionId = optionsList.find(opt => opt.is_featured)?.id || optionsList[0]?.id;
-                
+
                 // Create single document with nested options
                 const itemData = {
                     name: name,
@@ -805,6 +805,7 @@
                     veg: veg,
                     takeawayOption: foodTakeaway,
                     
+
                     // Enhanced Filter Fields
                     isSpotlight: isSpotlight,
                     isStealOfMoment: isStealOfMoment,
@@ -813,7 +814,7 @@
                     isNew: isNew,
                     isBestSeller: isBestSeller,
                     isSeasonal: isSeasonal,
-                    
+
                     // Options configuration
                     has_options: true,
                     options_enabled: true,
@@ -825,10 +826,10 @@
                     default_option_id: defaultOptionId || '',
                     best_value_option: optionsList.find(opt => opt.unit_price === Math.min(...optionsList.map(o => o.unit_price)))?.id || '',
                     savings_percentage: Math.max(...optionsList.map(opt => opt.original_price > opt.price ? ((opt.original_price - opt.price) / opt.original_price) * 100 : 0)) || 0,
-                    
+
                     // Nested options array
                     options: optionsData,
-                    
+
                     // Existing fields
                     quantity: parseInt(quantity) || -1,
                     calories: parseInt($(".food_calories").val()) || 0,
@@ -843,12 +844,12 @@
                     created_at: firebase.firestore.FieldValue.serverTimestamp(),
                     updated_at: firebase.firestore.FieldValue.serverTimestamp()
                 };
-                
+
                 console.log('📊 Saving item with options:', itemData);
-                
+
                 // Save single document
                 await database.collection('mart_items').add(itemData);
-                
+
                 // Log activity (optional - don't block save if it fails)
                 try {
                     if (typeof logActivity === 'function') {
@@ -857,13 +858,13 @@
                 } catch (error) {
                     console.warn('⚠️ Activity logging failed, but item was saved successfully:', error);
                 }
-                
+
                 <?php if ($id != '') { ?>
                     window.location.href = '{{ route("marts.mart-items", $id) }}';
                 <?php } else { ?>
                     window.location.href = '{{ route("mart-items") }}';
                 <?php } ?>
-                
+
             } else {
                 // Save regular item without options
                 const itemData = {
@@ -880,7 +881,11 @@
                     nonveg: nonveg,
                     veg: veg,
                     takeawayOption: foodTakeaway,
-                    
+
+                    // Review fields
+                    reviewCount: '0', // Default review count as string
+                    reviewSum: '0', // Default review sum as string
+
                     // Enhanced Filter Fields
                     isSpotlight: isSpotlight,
                     isStealOfMoment: isStealOfMoment,
@@ -889,14 +894,14 @@
                     isNew: isNew,
                     isBestSeller: isBestSeller,
                     isSeasonal: isSeasonal,
-                    
+
                     // Options configuration
                     has_options: false,
                     options_enabled: false,
                     options_toggle: false,
                     options_count: 0,
                     options: [],
-                    
+
                     // Existing fields
                     quantity: quantity,
                     calories: parseInt($(".food_calories").val()) || 0,
@@ -911,11 +916,11 @@
                     created_at: firebase.firestore.FieldValue.serverTimestamp(),
                     updated_at: firebase.firestore.FieldValue.serverTimestamp()
                 };
-                
+
                 console.log('📊 Saving regular item:', itemData);
-                
+
                 await database.collection('mart_items').add(itemData);
-                
+
                 // Log activity (optional - don't block save if it fails)
                 try {
                     if (typeof logActivity === 'function') {
@@ -924,7 +929,7 @@
                 } catch (error) {
                     console.warn('⚠️ Activity logging failed, but item was saved successfully:', error);
                 }
-                
+
                 <?php if ($id != '') { ?>
                     window.location.href = '{{ route("marts.mart-items", $id) }}';
                 <?php } else { ?>
@@ -1399,7 +1404,7 @@
                 $(this).val(-1);
             }
         });
-        
+
         // 1. Filter dropdown options based on search
         $('#food_category_search').on('keyup', function() {
         var search = $(this).val().toLowerCase();
@@ -1452,17 +1457,17 @@ function updateSelectedFoodCategoryTags() {
 function filterSubcategoriesByCategories() {
     var selectedCategories = $('#food_category').val() || [];
     console.log('🔍 Filtering subcategories for selected categories:', selectedCategories);
-    
+
     // Show all subcategories if no categories selected
     if (selectedCategories.length === 0) {
         $('#food_subcategory option').show();
         return;
     }
-    
+
     $('#food_subcategory option').each(function() {
         var $option = $(this);
         var parentCategoryId = $option.attr('data-parent');
-        
+
         if ($option.val() === "") {
             // Always show the placeholder option
             $option.show();
@@ -1476,7 +1481,7 @@ function filterSubcategoriesByCategories() {
             console.log('❌ Hiding subcategory:', $option.text(), 'for parent:', parentCategoryId);
         }
     });
-    
+
     // Clear selected subcategories that are no longer visible
     $('#food_subcategory option:selected').each(function() {
         if (!$(this).is(':visible') && $(this).val() !== "") {
@@ -1484,7 +1489,7 @@ function filterSubcategoriesByCategories() {
             console.log('🗑️ Deselected hidden subcategory:', $(this).text());
         }
     });
-    
+
     updateSelectedSubcategoryTags();
 }
 
@@ -1556,19 +1561,19 @@ $(document).ready(function() {
 function addNewOption() {
     const optionId = 'option_' + Date.now();
     const template = $('#option_template .option-item').clone();
-    
+
     template.attr('data-option-id', optionId);
     template.find('.option-number').text(optionsList.length + 1);
-    
+
     // Update checkbox IDs to be unique
     template.find('.option-available').attr('id', 'option_available_' + optionId);
     template.find('.option-featured').attr('id', 'option_featured_' + optionId);
     template.find('label[for="option_available_"]').attr('for', 'option_available_' + optionId);
     template.find('label[for="option_featured_"]').attr('for', 'option_featured_' + optionId);
-    
+
     $('.options-list').append(template);
     template.show();
-    
+
     optionsList.push({
         id: optionId,
         type: 'size',
@@ -1587,7 +1592,7 @@ function addNewOption() {
         is_available: true,
         is_featured: false
     });
-    
+
     attachOptionEventListeners(optionId);
     updateOptionsSummary();
     updateDefaultOptionSelect();
@@ -1596,13 +1601,13 @@ function addNewOption() {
 function removeOption(button) {
     const optionItem = $(button).closest('.option-item');
     const optionId = optionItem.data('option-id');
-    
+
     // Remove from array
     optionsList = optionsList.filter(opt => opt.id !== optionId);
-    
+
     // Remove from DOM
     optionItem.remove();
-    
+
     updateOptionNumbers();
     updateOptionsSummary();
     updateDefaultOptionSelect();
@@ -1610,34 +1615,34 @@ function removeOption(button) {
 
 function attachOptionEventListeners(optionId) {
     const optionItem = $(`[data-option-id="${optionId}"]`);
-    
+
     // Initialize checkbox states
     const optionData = optionsList.find(opt => opt.id === optionId);
     if (optionData) {
         optionItem.find('.option-available').prop('checked', optionData.is_available !== false);
         optionItem.find('.option-featured').prop('checked', optionData.is_featured === true);
-        
+
         // Apply initial visual states
         if (optionData.is_available !== false) {
             optionItem.addClass('option-enabled');
         } else {
             optionItem.addClass('option-disabled');
         }
-        
+
         if (optionData.is_featured === true) {
             optionItem.addClass('option-featured-highlight');
         }
     }
-    
+
     // Update optionsList when form fields change
     // Enhanced option type change with smart defaults
     optionItem.find('.option-type').on('change', function() {
         const optionType = $(this).val();
         updateOptionInList(optionId, 'type', optionType);
-        
+
         // Get smart defaults for this option type
         const defaults = getOptionTypeDefaults(optionType);
-        
+
         // Auto-suggest compatible units
         const unitSelect = optionItem.find('.option-quantity-unit');
         unitSelect.empty();
@@ -1651,72 +1656,72 @@ function attachOptionEventListeners(optionId) {
             unitSelect.append(`<option value="${unit}">${unitLabels[unit] || unit}</option>`);
         });
         unitSelect.val(defaults.default_unit);
-        
+
         // Auto-suggest unit measure
         optionItem.find('.option-unit-measure').val(defaults.unit_measure);
-        
+
         // Update option data
         updateOptionInList(optionId, 'quantity_unit', defaults.default_unit);
         updateOptionInList(optionId, 'unit_measure', defaults.unit_measure);
-        
+
         // Trigger calculations
         calculateOptionCalculations(optionId);
     });
-    
+
     optionItem.find('.option-title').on('input', function() {
         updateOptionInList(optionId, 'title', $(this).val());
         updateOptionsSummary();
         updateDefaultOptionSelect();
     });
-    
+
     optionItem.find('.option-subtitle').on('input', function() {
         updateOptionInList(optionId, 'subtitle', $(this).val());
     });
-    
+
     optionItem.find('.option-price').on('input', function() {
         const price = parseFloat($(this).val()) || 0;
         updateOptionInList(optionId, 'price', price);
         calculateOptionCalculations(optionId);
         updateOptionsSummary();
     });
-    
+
     optionItem.find('.option-original-price').on('input', function() {
         const originalPrice = parseFloat($(this).val()) || 0;
         updateOptionInList(optionId, 'original_price', originalPrice);
         calculateOptionCalculations(optionId);
     });
-    
+
     optionItem.find('.option-quantity').on('input', function() {
         const quantity = parseFloat($(this).val()) || 0;
         updateOptionInList(optionId, 'quantity', quantity);
         calculateOptionCalculations(optionId);
     });
-    
+
     // Enhanced quantity unit change with smart defaults
     optionItem.find('.option-quantity-unit').on('change', function() {
         const unit = $(this).val();
         updateOptionInList(optionId, 'quantity_unit', unit);
         updateOptionInList(optionId, 'unit_measure_type', unit);
-        
+
         // Auto-suggest unit measure base
         const smartBase = getSmartUnitMeasureBase(unit);
         optionItem.find('.option-unit-measure').val(smartBase.base);
         updateOptionInList(optionId, 'unit_measure', smartBase.base);
-        
+
         calculateOptionCalculations(optionId);
     });
-    
+
     optionItem.find('.option-unit-measure').on('input', function() {
         const unitMeasure = parseFloat($(this).val()) || 100;
         updateOptionInList(optionId, 'unit_measure', unitMeasure);
         calculateOptionCalculations(optionId);
     });
-    
+
     optionItem.find('.option-available').on('change', function() {
         const isChecked = $(this).is(':checked');
         console.log('🔍 Option Available changed for', optionId, ':', isChecked);
         updateOptionInList(optionId, 'is_available', isChecked);
-        
+
         // Visual feedback
         if (isChecked) {
             $(this).closest('.option-item').removeClass('option-disabled').addClass('option-enabled');
@@ -1724,12 +1729,12 @@ function attachOptionEventListeners(optionId) {
             $(this).closest('.option-item').removeClass('option-enabled').addClass('option-disabled');
         }
     });
-    
+
     optionItem.find('.option-featured').on('change', function() {
         const isFeatured = $(this).is(':checked');
         console.log('🔍 Option Featured changed for', optionId, ':', isFeatured);
         updateOptionInList(optionId, 'is_featured', isFeatured);
-        
+
         if (isFeatured) {
             // Uncheck other featured options
             $('.option-featured').not(this).prop('checked', false);
@@ -1738,18 +1743,18 @@ function attachOptionEventListeners(optionId) {
                     opt.is_featured = false;
                 }
             });
-            
+
             // Visual feedback
             $('.option-item').removeClass('option-featured-highlight');
             $(this).closest('.option-item').addClass('option-featured-highlight');
         } else {
             $(this).closest('.option-item').removeClass('option-featured-highlight');
         }
-        
+
         updateOptionsSummary();
         updateDefaultOptionSelect();
     });
-    
+
     // Image upload
     optionItem.find('.option-image-input').change(function() {
         handleOptionImageUpload(this, optionId);
@@ -1766,7 +1771,7 @@ function updateOptionInList(optionId, field, value) {
 // Smart Auto-generation Functions
 function autoGenerateTitle(optionData) {
     const { quantity, quantity_unit, option_type, unit_measure } = optionData;
-    
+
     switch(option_type) {
         case 'pack':
             return `Pack of ${quantity} (${unit_measure}${quantity_unit} each)`;
@@ -1788,7 +1793,7 @@ function autoGenerateTitle(optionData) {
 
 function autoGenerateSubtitle(optionData) {
     const { quantity, quantity_unit, option_type, unit_measure } = optionData;
-    
+
     switch(option_type) {
         case 'pack':
             const totalQuantity = quantity * unit_measure;
@@ -1814,35 +1819,35 @@ function validateAndEnhanceOption(optionData) {
     const errors = [];
     const warnings = [];
     const autoCorrections = {};
-    
+
     // Price validation
     if (optionData.price > optionData.original_price) {
         errors.push('Price cannot be greater than Original Price');
     }
-    
+
     // Quantity validation
     if (optionData.quantity < 0) {
         errors.push('Quantity cannot be negative');
         autoCorrections.quantity = 0;
     }
-    
+
     // Auto-disable when quantity is 0
     if (optionData.quantity === 0) {
         autoCorrections.is_available = false;
         warnings.push('Option automatically disabled due to zero quantity');
     }
-    
+
     // Low stock warning
     if (optionData.quantity > 0 && optionData.quantity < 10) {
         warnings.push('Low stock warning: Only ' + optionData.quantity + ' units remaining');
     }
-    
+
     // Unit compatibility check
     const compatibleUnits = getCompatibleUnits(optionData.option_type);
     if (!compatibleUnits.includes(optionData.quantity_unit)) {
         warnings.push(`Unit "${optionData.quantity_unit}" may not be ideal for "${optionData.option_type}" type`);
     }
-    
+
     return { errors, warnings, autoCorrections };
 }
 
@@ -1873,56 +1878,56 @@ function getSmartUnitMeasureBase(quantity_unit) {
         'dozen': { base: 12, description: 'per dozen' },
         'custom': { base: 100, description: 'per 100 units' }
     };
-    
+
     return smartDefaults[quantity_unit] || { base: 100, description: 'per 100 units' };
 }
 
 function getOptionTypeDefaults(optionType) {
     const defaults = {
-        'size': { 
-            suggested_units: ['g', 'kg'], 
+        'size': {
+            suggested_units: ['g', 'kg'],
             default_unit: 'g',
             unit_measure: 100,
             description: 'Weight-based options'
         },
-        'volume': { 
-            suggested_units: ['L', 'ml'], 
+        'volume': {
+            suggested_units: ['L', 'ml'],
             default_unit: 'ml',
             unit_measure: 100,
             description: 'Volume-based options'
         },
-        'quantity': { 
-            suggested_units: ['pcs', 'units'], 
+        'quantity': {
+            suggested_units: ['pcs', 'units'],
             default_unit: 'pcs',
             unit_measure: 1,
             description: 'Count-based options'
         },
-        'pack': { 
-            suggested_units: ['pcs', 'dozen'], 
+        'pack': {
+            suggested_units: ['pcs', 'dozen'],
             default_unit: 'pcs',
             unit_measure: 1,
             description: 'Packaged options'
         },
-        'bundle': { 
-            suggested_units: ['pcs', 'custom'], 
+        'bundle': {
+            suggested_units: ['pcs', 'custom'],
             default_unit: 'pcs',
             unit_measure: 1,
             description: 'Mixed item bundles'
         },
-        'addon': { 
-            suggested_units: ['pcs', 'units'], 
+        'addon': {
+            suggested_units: ['pcs', 'units'],
             default_unit: 'pcs',
             unit_measure: 1,
             description: 'Additional items'
         },
-        'variant': { 
-            suggested_units: ['pcs', 'units'], 
+        'variant': {
+            suggested_units: ['pcs', 'units'],
             default_unit: 'pcs',
             unit_measure: 1,
             description: 'Product variants'
         }
     };
-    
+
     return defaults[optionType] || defaults['quantity'];
 }
 
@@ -1935,13 +1940,13 @@ function calculateOptionCalculations(optionId) {
     const unitMeasure = parseFloat(optionItem.find('.option-unit-measure').val()) || 100;
     const quantityUnit = optionItem.find('.option-quantity-unit').val() || 'g';
     const optionType = optionItem.find('.option-type').val();
-    
+
     // Enhanced unit price calculation
     let unitPrice = 0;
     let unitPriceDisplay = '';
     let savingsPercentage = 0;
     let savingsAmount = 0;
-    
+
     if (quantity > 0) {
         switch(optionType) {
             case 'size':
@@ -1962,29 +1967,29 @@ function calculateOptionCalculations(optionId) {
                 unitPrice = price / quantity;
                 unitPriceDisplay = `₹${unitPrice.toFixed(2)}/${quantityUnit}`;
         }
-        
+
         optionItem.find('.option-unit-price-display').val(unitPriceDisplay);
     }
-    
+
     // Enhanced discount calculation
     if (originalPrice > 0 && originalPrice > price) {
         savingsAmount = originalPrice - price;
         savingsPercentage = ((savingsAmount / originalPrice) * 100);
-        
+
         optionItem.find('.option-discount').val(savingsAmount.toFixed(2));
-        
+
         // Add savings percentage display
         const savingsDisplay = `Save ₹${savingsAmount.toFixed(2)} (${savingsPercentage.toFixed(1)}%)`;
         if (optionItem.find('.option-savings-display').length) {
             optionItem.find('.option-savings-display').val(savingsDisplay);
         }
     }
-    
+
     // Update in optionsList
     updateOptionInList(optionId, 'unit_price', unitPrice);
     updateOptionInList(optionId, 'discount_amount', savingsAmount);
     updateOptionInList(optionId, 'savings_percentage', savingsPercentage);
-    
+
     // Auto-generate title and subtitle
     const optionData = {
         quantity: quantity,
@@ -1992,21 +1997,21 @@ function calculateOptionCalculations(optionId) {
         option_type: optionType,
         unit_measure: unitMeasure
     };
-    
+
     const autoTitle = autoGenerateTitle(optionData);
     const autoSubtitle = autoGenerateSubtitle(optionData);
-    
+
     // Only auto-fill if fields are empty
     if (!optionItem.find('.option-title').val()) {
         optionItem.find('.option-title').val(autoTitle);
         updateOptionInList(optionId, 'title', autoTitle);
     }
-    
+
     if (!optionItem.find('.option-subtitle').val()) {
         optionItem.find('.option-subtitle').val(autoSubtitle);
         updateOptionInList(optionId, 'subtitle', autoSubtitle);
     }
-    
+
     // Show validation feedback
     showValidationFeedback(optionId, optionData);
 }
@@ -2015,13 +2020,13 @@ function calculateOptionCalculations(optionId) {
 function showValidationFeedback(optionId, optionData) {
     const optionItem = $(`[data-option-id="${optionId}"]`);
     const validation = validateAndEnhanceOption(optionData);
-    
+
     // Clear previous feedback
     optionItem.find('.validation-feedback').remove();
-    
+
     // Create feedback container
     let feedbackHtml = '<div class="validation-feedback mt-2">';
-    
+
     // Show errors
     if (validation.errors.length > 0) {
         feedbackHtml += '<div class="alert alert-danger alert-sm">';
@@ -2031,7 +2036,7 @@ function showValidationFeedback(optionId, optionData) {
         });
         feedbackHtml += '</ul></div>';
     }
-    
+
     // Show warnings
     if (validation.warnings.length > 0) {
         feedbackHtml += '<div class="alert alert-warning alert-sm">';
@@ -2041,7 +2046,7 @@ function showValidationFeedback(optionId, optionData) {
         });
         feedbackHtml += '</ul></div>';
     }
-    
+
     // Show smart suggestions
     const optionType = optionData.option_type;
     if (optionType) {
@@ -2052,12 +2057,12 @@ function showValidationFeedback(optionId, optionData) {
         feedbackHtml += `<div>Suggested units: ${defaults.suggested_units.join(', ')}</div>`;
         feedbackHtml += '</div>';
     }
-    
+
     feedbackHtml += '</div>';
-    
+
     // Append feedback after the option item
     optionItem.append(feedbackHtml);
-    
+
     // Apply auto-corrections
     Object.keys(validation.autoCorrections).forEach(field => {
         const value = validation.autoCorrections[field];
@@ -2078,7 +2083,7 @@ function handleOptionImageUpload(input, optionId) {
             optionItem.find('.option-image-preview').html(
                 `<img src="${e.target.result}" style="max-width: 100px; max-height: 100px; border-radius: 4px;">`
             );
-            
+
             // Store image data
             const optionIndex = optionsList.findIndex(opt => opt.id === optionId);
             if (optionIndex !== -1) {
@@ -2100,7 +2105,7 @@ function updateOptionsSummary() {
         const prices = optionsList.map(opt => opt.price).filter(p => p > 0);
         const minPrice = Math.min(...prices);
         const maxPrice = Math.max(...prices);
-        
+
         $('.options-summary').show();
         $('.summary-content').html(`
             <div class="row">
@@ -2124,7 +2129,7 @@ function updateDefaultOptionSelect() {
     const select = $('#default_option');
     select.empty();
     select.append('<option value="">Select default option</option>');
-    
+
     optionsList.forEach(option => {
         select.append(`<option value="${option.id}">${option.title}</option>`);
     });
@@ -2142,7 +2147,7 @@ function updateDefaultOptionSelect() {
                 <i class="mdi mdi-delete"></i>
             </button>
         </div>
-        
+
         <div class="row">
             <div class="col-md-6">
                 <div class="form-group">
@@ -2158,7 +2163,7 @@ function updateDefaultOptionSelect() {
                     </select>
                 </div>
             </div>
-            
+
             <div class="col-md-6">
                 <div class="form-group">
                     <label>Option Title</label>
@@ -2166,7 +2171,7 @@ function updateDefaultOptionSelect() {
                 </div>
             </div>
         </div>
-        
+
         <div class="row">
             <div class="col-md-6">
                 <div class="form-group">
@@ -2174,7 +2179,7 @@ function updateDefaultOptionSelect() {
                     <input type="text" class="form-control option-subtitle" placeholder="e.g., 180 g X 2">
                 </div>
             </div>
-            
+
             <div class="col-md-6">
                 <div class="form-group">
                     <label>Price (₹)</label>
@@ -2182,7 +2187,7 @@ function updateDefaultOptionSelect() {
                 </div>
             </div>
         </div>
-        
+
         <div class="row">
             <div class="col-md-6">
                 <div class="form-group">
@@ -2190,7 +2195,7 @@ function updateDefaultOptionSelect() {
                     <input type="number" class="form-control option-original-price" step="0.01" min="0">
                 </div>
             </div>
-            
+
             <div class="col-md-6">
                 <div class="form-group">
                     <label>Quantity</label>
@@ -2198,7 +2203,7 @@ function updateDefaultOptionSelect() {
                 </div>
             </div>
         </div>
-        
+
         <div class="row">
             <div class="col-md-6">
                 <div class="form-group">
@@ -2223,7 +2228,7 @@ function updateDefaultOptionSelect() {
                 </div>
             </div>
         </div>
-        
+
         <div class="row">
             <div class="col-md-6">
                 <div class="form-group">
@@ -2231,7 +2236,7 @@ function updateDefaultOptionSelect() {
                     <input type="text" class="form-control option-unit-price-display" readonly>
                 </div>
             </div>
-            
+
             <div class="col-md-6">
                 <div class="form-group">
                     <label>Discount Amount</label>
@@ -2239,7 +2244,7 @@ function updateDefaultOptionSelect() {
                 </div>
             </div>
         </div>
-        
+
         <div class="row">
             <div class="col-md-6">
                 <div class="form-group">
@@ -2247,7 +2252,7 @@ function updateDefaultOptionSelect() {
                     <input type="text" class="form-control option-savings-display" readonly>
                 </div>
             </div>
-            
+
             <div class="col-md-6">
                 <div class="form-group">
                     <label>Smart Suggestions</label>
@@ -2257,18 +2262,18 @@ function updateDefaultOptionSelect() {
                 </div>
             </div>
         </div>
-        
+
         <div class="form-group">
             <label>Option Image</label>
             <input type="file" class="option-image-input" accept="image/*">
             <div class="option-image-preview"></div>
         </div>
-        
+
         <div class="form-check">
             <input type="checkbox" class="option-available" id="option_available_" checked>
             <label class="form-check-label" for="option_available_">Available</label>
         </div>
-        
+
         <div class="form-check">
             <input type="checkbox" class="option-featured" id="option_featured_">
             <label class="form-check-label" for="option_featured_">Featured (Show first)</label>

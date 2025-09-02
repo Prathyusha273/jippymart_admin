@@ -466,7 +466,8 @@
             <div class="col-md-6">
                 <div class="form-group">
                     <label>Quantity</label>
-                    <input type="number" class="form-control option-quantity" min="0">
+                    <input type="number" class="form-control option-quantity" min="-1" step="1" placeholder="-1 for unlimited">
+                    <small class="form-text text-muted">Use -1 for unlimited quantity</small>
                 </div>
             </div>
         </div>
@@ -537,13 +538,13 @@
         </div>
         
         <div class="form-check">
-            <input type="checkbox" class="option-available" id="option_available_" checked>
-            <label class="form-check-label" for="option_available_">Available</label>
+            <input type="checkbox" class="option-available" id="option_available_placeholder" checked>
+            <label class="form-check-label" for="option_available_placeholder">Available</label>
         </div>
         
         <div class="form-check">
-            <input type="checkbox" class="option-featured" id="option_featured_">
-            <label class="form-check-label" for="option_featured_">Featured (Show first)</label>
+            <input type="checkbox" class="option-featured" id="option_featured_placeholder">
+            <label class="form-check-label" for="option_featured_placeholder">Featured (Show first)</label>
         </div>
     </div>
 </div>
@@ -603,6 +604,37 @@
     padding: 10px;
     border-radius: 4px;
     background: #f8f9fa;
+}
+
+/* Quantity input styling */
+.option-quantity {
+    border-color: #007bff;
+}
+
+.option-quantity:focus {
+    border-color: #0056b3;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Image preview styling */
+.option-image-preview img {
+    border: 2px solid #dee2e6;
+    transition: border-color 0.3s ease;
+}
+
+.option-image-preview img:hover {
+    border-color: #007bff;
+}
+
+/* Validation feedback styling */
+.validation-feedback .alert-sm {
+    padding: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.validation-feedback .alert-sm ul {
+    padding-left: 1.2rem;
+    margin-bottom: 0;
 }
 
 .option-item .form-check input[type="checkbox"] {
@@ -1134,7 +1166,7 @@
                                         'variant_quantity': variant_quantity
                                     });
                                 }
-                                if (variant_quantity = '' || variant_quantity < -1 || variant_quantity == 0) {
+                                if (variant_quantity == '' || variant_quantity < -1) {
                                     quantityerror++;
                                 }
                                 if (variant_price == "" || variant_price <= 0) {
@@ -1151,7 +1183,7 @@
                     }
                     if (attributes.length > 0 && variants.length > 0) {
                         if (quantityerror > 0) {
-                            alert('Please add your variants quantity it should be -1 or greater than -1');
+                            alert('Please add your variants quantity it should be -1 (unlimited) or greater than 0');
                             return false;
                         }
                         if (priceerror > 0) {
@@ -1202,11 +1234,15 @@
                         'isNew': isNew,
                         'isBestSeller': isBestSeller,
                         'isSeasonal': isSeasonal,
+                        'reviewCount': '0', // Default review count as string
+                        'reviewSum': '0', // Default review sum as string
                         'updated_at': firebase.firestore.FieldValue.serverTimestamp()
                     };
                     
                     // Handle options
                     if (hasOptions && optionsList.length > 0) {
+                        console.log('🔧 Processing options for save:', optionsList);
+                        
                         // Validate options
                         for (let option of optionsList) {
                             if (!option.title || !option.price || option.price <= 0) {
@@ -1229,7 +1265,7 @@
                             unit_measure_type: option.unit_measure_type || 'g',
                             quantity: parseFloat(option.quantity) || 0,
                             quantity_unit: option.quantity_unit || 'g',
-                            image: option.image || '',
+                            image: option.image || '', // Stored as base64 for options
                             is_available: option.is_available !== false,
                             is_featured: option.is_featured === true,
                             sort_order: index + 1,
@@ -1827,9 +1863,18 @@ function loadExistingOption(optionData, optionNumber) {
     
     // Load image if exists
     if (optionData.image) {
-        template.find('.option-image-preview').html(
-            `<img src="${optionData.image}" style="max-width: 100px; max-height: 100px; border-radius: 4px;">`
-        );
+        // Check if image is base64 or Firebase URL
+        if (optionData.image.startsWith('data:image/')) {
+            // Base64 image - display directly
+            template.find('.option-image-preview').html(
+                `<img src="${optionData.image}" style="max-width: 100px; max-height: 100px; border-radius: 4px;">`
+            );
+        } else {
+            // Firebase URL - check if it's accessible
+            template.find('.option-image-preview').html(
+                `<img src="${optionData.image}" style="max-width: 100px; max-height: 100px; border-radius: 4px;" onerror="this.onerror=null;this.src='${placeholderImage}';this.style.display='none';this.nextElementSibling.style.display='block';"><div style="display:none;color:#999;font-size:12px;">Image not accessible</div>`
+            );
+        }
     }
     
     $('.options-list').append(template);
@@ -1911,11 +1956,23 @@ function removeOption(button) {
 function attachOptionEventListeners(optionId) {
     const optionItem = $(`[data-option-id="${optionId}"]`);
     
+    // Make checkbox IDs unique for this option
+    const availableCheckbox = optionItem.find('.option-available');
+    const featuredCheckbox = optionItem.find('.option-featured');
+    
+    // Update IDs to be unique
+    availableCheckbox.attr('id', `option_available_${optionId}`);
+    featuredCheckbox.attr('id', `option_featured_${optionId}`);
+    
+    // Update labels to match new IDs
+    optionItem.find('label[for="option_available_placeholder"]').attr('for', `option_available_${optionId}`);
+    optionItem.find('label[for="option_featured_placeholder"]').attr('for', `option_featured_${optionId}`);
+    
     // Initialize checkbox states
     const optionData = optionsList.find(opt => opt.id === optionId);
     if (optionData) {
-        optionItem.find('.option-available').prop('checked', optionData.is_available !== false);
-        optionItem.find('.option-featured').prop('checked', optionData.is_featured === true);
+        availableCheckbox.prop('checked', optionData.is_available !== false);
+        featuredCheckbox.prop('checked', optionData.is_featured === true);
         
         // Apply initial visual states
         if (optionData.is_available !== false) {
@@ -1958,7 +2015,14 @@ function attachOptionEventListeners(optionId) {
     });
     
     optionItem.find('.option-quantity').on('input', function() {
-        const quantity = parseFloat($(this).val()) || 0;
+        let quantity = parseInt($(this).val()) || 0;
+        
+        // Allow -1 for unlimited quantity
+        if (quantity < -1) {
+            quantity = -1;
+            $(this).val(-1);
+        }
+        
         updateOptionInList(optionId, 'quantity', quantity);
         calculateOptionCalculations(optionId);
     });
@@ -2085,9 +2149,9 @@ function validateAndEnhanceOption(optionData) {
     }
     
     // Quantity validation
-    if (optionData.quantity < 0) {
-        errors.push('Quantity cannot be negative');
-        autoCorrections.quantity = 0;
+    if (optionData.quantity < -1) {
+        errors.push('Quantity cannot be less than -1 (unlimited)');
+        autoCorrections.quantity = -1;
     }
     
     // Auto-disable when quantity is 0
@@ -2096,9 +2160,14 @@ function validateAndEnhanceOption(optionData) {
         warnings.push('Option automatically disabled due to zero quantity');
     }
     
-    // Low stock warning
+    // Low stock warning (only for positive quantities)
     if (optionData.quantity > 0 && optionData.quantity < 10) {
         warnings.push('Low stock warning: Only ' + optionData.quantity + ' units remaining');
+    }
+    
+    // Unlimited quantity info
+    if (optionData.quantity === -1) {
+        warnings.push('Unlimited quantity enabled (-1)');
     }
     
     // Unit compatibility check
@@ -2336,19 +2405,52 @@ function showValidationFeedback(optionId, optionData) {
 function handleOptionImageUpload(input, optionId) {
     const file = input.files[0];
     if (file) {
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            alert('Please select a valid image file');
+            return;
+        }
+        
+        // Validate file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            alert('Image size should be less than 5MB');
+            return;
+        }
+        
         const reader = new FileReader();
         reader.onload = function(e) {
             const optionItem = $(`[data-option-id="${optionId}"]`);
-            optionItem.find('.option-image-preview').html(
-                `<img src="${e.target.result}" style="max-width: 100px; max-height: 100px; border-radius: 4px;">`
-            );
             
-            // Store image data
+            // Create image element with error handling
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.style.cssText = 'max-width: 100px; max-height: 100px; border-radius: 4px;';
+            img.onerror = function() {
+                this.style.display = 'none';
+                const errorDiv = this.nextElementSibling;
+                if (errorDiv) errorDiv.style.display = 'block';
+            };
+            
+            // Create error message div
+            const errorDiv = document.createElement('div');
+            errorDiv.style.cssText = 'display:none; color:#999; font-size:12px; margin-top:5px;';
+            errorDiv.textContent = 'Image not accessible';
+            
+            // Clear previous content and add new
+            optionItem.find('.option-image-preview').empty().append(img).append(errorDiv);
+            
+            // Store image data as base64
             const optionIndex = optionsList.findIndex(opt => opt.id === optionId);
             if (optionIndex !== -1) {
                 optionsList[optionIndex].image = e.target.result;
+                console.log('✅ Option image stored as base64 for option:', optionId);
             }
         };
+        
+        reader.onerror = function() {
+            alert('Error reading image file. Please try again.');
+        };
+        
         reader.readAsDataURL(file);
     }
 }

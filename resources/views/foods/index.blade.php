@@ -591,25 +591,25 @@
             if(val.hasOwnProperty('disPrice') && val.disPrice != '' && val.disPrice != '0' && val.disPrice != val.price) {
                 // Has discount - show original price with strikethrough
                 if(currencyAtRight) {
-                    html.push('<span class="editable-price text-muted" style="text-decoration: line-through; cursor: pointer;" data-id="'+val.id+'" data-field="price" data-value="'+val.price+'">'+parseFloat(val.price).toFixed(decimal_degits)+''+currentCurrency+'</span>');
+                    html.push('<span class="text-muted" style="text-decoration: line-through;" data-id="'+val.id+'" data-field="price" data-value="'+val.price+'">'+parseFloat(val.price).toFixed(decimal_degits)+''+currentCurrency+'</span>');
                 } else {
-                    html.push('<span class="editable-price text-muted" style="text-decoration: line-through; cursor: pointer;" data-id="'+val.id+'" data-field="price" data-value="'+val.price+'">'+currentCurrency+''+parseFloat(val.price).toFixed(decimal_degits)+'</span>');
+                    html.push('<span class="text-muted" style="text-decoration: line-through;" data-id="'+val.id+'" data-field="price" data-value="'+val.price+'">'+currentCurrency+''+parseFloat(val.price).toFixed(decimal_degits)+'</span>');
                 }
                 // Show discount price in green - editable
                 if(currencyAtRight) {
-                    html.push('<span class="editable-price text-green" style="cursor: pointer;" data-id="'+val.id+'" data-field="disPrice" data-value="'+val.disPrice+'">'+parseFloat(val.disPrice).toFixed(decimal_degits)+''+currentCurrency+'</span>');
+                    html.push('<span class="text-green" data-id="'+val.id+'" data-field="disPrice" data-value="'+val.disPrice+'">'+parseFloat(val.disPrice).toFixed(decimal_degits)+''+currentCurrency+'</span>');
                 } else {
-                    html.push('<span class="editable-price text-green" style="cursor: pointer;" data-id="'+val.id+'" data-field="disPrice" data-value="'+val.disPrice+'">'+currentCurrency+''+parseFloat(val.disPrice).toFixed(decimal_degits)+'</span>');
+                    html.push('<span class="text-green" data-id="'+val.id+'" data-field="disPrice" data-value="'+val.disPrice+'">'+currentCurrency+''+parseFloat(val.disPrice).toFixed(decimal_degits)+'</span>');
                 }
             } else {
                 // No discount - show regular price - editable
                 if(currencyAtRight) {
-                    html.push('<span class="editable-price text-green" style="cursor: pointer;" data-id="'+val.id+'" data-field="price" data-value="'+val.price+'">'+parseFloat(val.price).toFixed(decimal_degits)+''+currentCurrency+'</span>');
+                    html.push('<span class="text-green" data-id="'+val.id+'" data-field="price" data-value="'+val.price+'">'+parseFloat(val.price).toFixed(decimal_degits)+''+currentCurrency+'</span>');
                 } else {
-                    html.push('<span class="editable-price text-green" style="cursor: pointer;" data-id="'+val.id+'" data-field="price" data-value="'+val.price+'">'+currentCurrency+''+parseFloat(val.price).toFixed(decimal_degits)+'</span>');
+                    html.push('<span class="text-green" data-id="'+val.id+'" data-field="price" data-value="'+val.price+'">'+currentCurrency+''+parseFloat(val.price).toFixed(decimal_degits)+'</span>');
                 }
                 // Empty cell where discount price would be - editable
-                html.push('<span class="editable-price text-muted" style="cursor: pointer;" data-id="'+val.id+'" data-field="disPrice" data-value="0">-</span>');
+                html.push('<span class="text-muted" data-id="'+val.id+'" data-field="disPrice" data-value="0">-</span>');
             }
             <?php if ($id == '') { ?>
             var restaurantroute='{{route("restaurants.view", ":id")}}';

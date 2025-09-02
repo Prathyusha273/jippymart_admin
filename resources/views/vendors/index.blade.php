@@ -285,19 +285,37 @@
             ],
             fileName: "{{trans('lang.vendor_list')}}",
         };
-        const table=$('#userTable').DataTable({
+        try {
+            const table=$('#userTable').DataTable({
             pageLength: 10, // Number of rows per page
             processing: false, // Show processing indicator
             serverSide: true, // Enable server-side processing
             responsive: true,
+            searching: true,
+            info: true,
+            paging: true,
             ajax: function(data,callback,settings) {
                 const start=data.start;
                 const length=data.length;
                 const searchValue=data.search.value.toLowerCase();
-                const orderColumnIndex=data.order[0].column;
-                const orderDirection=data.order[0].dir;
-                const orderableColumns=(checkDeletePermission)? ['','vendorInfo','email','zone','vType','currentPlan','expiryDate','date','documents','active','actions']:['vendorInfo','email','zone','vType','currentPlan','expiryDate','date','documents','active','actions']; // Match the actual column structure
-                const orderByField=orderableColumns[orderColumnIndex]; // Adjust the index to match your table
+                
+                // Handle ordering safely - only if order data exists
+                let orderColumnIndex = 0;
+                let orderDirection = 'desc';
+                if (data.order && data.order.length > 0) {
+                    orderColumnIndex = data.order[0].column || 0;
+                    orderDirection = data.order[0].dir || 'desc';
+                }
+                
+                // Define orderable columns based on whether delete permission exists
+                const orderableColumns = (checkDeletePermission) 
+                    ? ['','vendorInfo','email','zone','vType','currentPlan','expiryDate','date','documents','active','actions']
+                    : ['vendorInfo','email','zone','vType','currentPlan','expiryDate','date','documents','active','actions'];
+                
+                // Safely get the order field, handling cases where column index might be out of bounds
+                const orderByField = (orderColumnIndex >= 0 && orderColumnIndex < orderableColumns.length) 
+                    ? orderableColumns[orderColumnIndex] 
+                    : 'createdAt'; // Default fallback
                 if(searchValue.length>=3||searchValue.length===0) {
                     $('#data-table_processing').show();
                 }
@@ -375,19 +393,26 @@
                             vendorType: childData.vendorType
                         });
                     });
-                    // Filtering and search
-                    console.log('🔍 Applying filters and search...');
-                    vendorsData.forEach(function(childData) {
-                        // Apply zone filter
-                        let includeInResults = true;
-                        if (window.selectedZone && window.selectedZone !== '') {
-                            includeInResults = childData.zoneId === window.selectedZone;
-                            console.log('📍 Zone filter:', childData.fullName, 'zoneId:', childData.zoneId, 'selected:', window.selectedZone, 'include:', includeInResults);
-                        }
-                        
-                        if (!includeInResults) {
-                            return;
-                        }
+                                         // Filtering and search
+                     console.log('🔍 Applying filters and search...');
+                     vendorsData.forEach(function(childData) {
+                         // Apply zone filter
+                         let includeInResults = true;
+                         if (window.selectedZone && window.selectedZone !== '') {
+                             includeInResults = childData.zoneId === window.selectedZone;
+                             console.log('📍 Zone filter:', childData.fullName, 'zoneId:', childData.zoneId, 'selected:', window.selectedZone, 'include:', includeInResults);
+                         }
+                         
+                         // Apply vendor type filter
+                         if (includeInResults && window.selectedVendorType && window.selectedVendorType !== '') {
+                             const vendorType = childData.vendorType || childData.vType || '';
+                             includeInResults = vendorType === window.selectedVendorType;
+                             console.log('🏪 Vendor type filter:', childData.fullName, 'vendorType:', vendorType, 'selected:', window.selectedVendorType, 'include:', includeInResults);
+                         }
+                         
+                         if (!includeInResults) {
+                             return;
+                         }
                         
                         // Search logic
                         var date = '';
@@ -402,15 +427,17 @@
                         }
                         var createdAt = date + ' ' + time;
                         
-                        if(searchValue) {
-                            const searchMatches = 
-                                (childData.fullName && childData.fullName.toLowerCase().includes(searchValue)) ||
-                                (createdAt && createdAt.toLowerCase().includes(searchValue)) ||
-                                (childData.expiryDate && childData.expiryDate.toString().toLowerCase().includes(searchValue)) ||
-                                (childData.hasOwnProperty('activePlanName') && childData.activePlanName.toLowerCase().includes(searchValue)) ||
-                                (childData.email && childData.email.toLowerCase().includes(searchValue)) ||
-                                (childData.phoneNumber && childData.phoneNumber.toString().includes(searchValue)) ||
-                                (window.zoneIdToName && childData.zoneId && window.zoneIdToName[childData.zoneId] && window.zoneIdToName[childData.zoneId].toLowerCase().includes(searchValue));
+                                                 if(searchValue) {
+                             const vendorType = childData.vendorType || childData.vType || '';
+                             const searchMatches = 
+                                 (childData.fullName && childData.fullName.toLowerCase().includes(searchValue)) ||
+                                 (createdAt && createdAt.toLowerCase().includes(searchValue)) ||
+                                 (childData.expiryDate && childData.expiryDate.toString().toLowerCase().includes(searchValue)) ||
+                                 (childData.hasOwnProperty('activePlanName') && childData.activePlanName.toLowerCase().includes(searchValue)) ||
+                                 (childData.email && childData.email.toLowerCase().includes(searchValue)) ||
+                                 (childData.phoneNumber && childData.phoneNumber.toString().includes(searchValue)) ||
+                                 (vendorType && vendorType.toLowerCase().includes(searchValue)) ||
+                                 (window.zoneIdToName && childData.zoneId && window.zoneIdToName[childData.zoneId] && window.zoneIdToName[childData.zoneId].toLowerCase().includes(searchValue));
                             
                             if(searchMatches) {
                                 filteredRecords.push(childData);
@@ -443,7 +470,22 @@
                         var getData=await buildHTML(childData);
                         console.log('🔍 Data returned for vendor:', childData.firstName + ' ' + childData.lastName);
                         console.log('🔍 Data length:', getData.length);
-                        console.log('🔍 Data:', getData);
+                        console.log('🔍 Expected columns:', checkDeletePermission ? 11 : 10);
+                        
+                        // Ensure the data array has the correct length
+                        const expectedColumns = checkDeletePermission ? 11 : 10;
+                        if (getData.length !== expectedColumns) {
+                            console.error('❌ Column mismatch for vendor:', childData.firstName + ' ' + childData.lastName);
+                            console.error('❌ Expected:', expectedColumns, 'Got:', getData.length);
+                            // Pad or trim the array to match expected columns
+                            while (getData.length < expectedColumns) {
+                                getData.push('');
+                            }
+                            if (getData.length > expectedColumns) {
+                                getData = getData.slice(0, expectedColumns);
+                            }
+                        }
+                        
                         records.push(getData);
                     }));
                     $('#data-table_processing').hide(); // Hide loader
@@ -471,16 +513,21 @@
                     });
                 });
             },
-            order: (checkDeletePermission)? [[7,'desc']]:[[6,'desc']], // Date column is at index 7 (with delete) or 6 (without delete)
+            order: [], // Disable ordering temporarily to fix the error
             columnDefs: [
+                // Add default renderer for all columns to prevent "unknown parameter" errors
                 {
-                    targets: (checkDeletePermission)? 7:6, // Date column index
-                    type: 'date',
-                    render: function(data) {
+                    targets: '_all',
+                    defaultContent: '',
+                    orderable: false, // Disable ordering for all columns temporarily
+                    render: function(data, type, row, meta) {
+                        // Return empty string if data is undefined or null
+                        if (data === undefined || data === null) {
+                            return '';
+                        }
                         return data;
                     }
-                },
-                {orderable: false,targets: (checkDeletePermission)? [0,8,9,10]:[7,8,9]}, // Non-orderable columns: Documents, Active, Actions
+                }
             ],
             "language": {
                 "zeroRecords": "{{trans("lang.no_record_found")}}",
@@ -524,8 +571,23 @@
                 $('.dataTables_filter label').contents().filter(function() {
                     return this.nodeType === 3;
                 }).remove();
+            },
+            error: function(xhr, error, thrown) {
+                console.error('DataTable error:', error);
+                console.error('Error details:', thrown);
+                $('#data-table_processing').hide();
             }
         });
+        } catch (error) {
+            console.error('❌ DataTable initialization error:', error);
+            console.error('❌ Error details:', {
+                message: error.message,
+                stack: error.stack
+            });
+            $('#data-table_processing').hide();
+            // Show a user-friendly error message
+            $('#userTable').html('<div class="alert alert-danger">Error loading vendor data. Please refresh the page.</div>');
+        }
         function debounce(func,wait) {
             let timeout;
             const context=this;
@@ -545,6 +607,11 @@
             }
         },300));
     }
+    $('.vendor_type_selector').select2({
+        placeholder: '{{trans("lang.vendor_type")}}',
+        minimumResultsForSearch: Infinity,
+        allowClear: true
+    });
     $('.status_selector').select2({
         placeholder: '{{trans("lang.status")}}',
         minimumResultsForSearch: Infinity,
@@ -592,6 +659,13 @@
         var zoneSort = $('.zone_sort_selector').val();
         var daterangepicker = $('#daterange').data('daterangepicker');
         var refData = initialRef;
+        
+                 console.log('🔍 Filter change detected:');
+         console.log('  Status:', status);
+         console.log('  Vendor Type:', vendorType);
+         console.log('  Zone:', zone);
+         console.log('  Zone Sort:', zoneSort);
+         console.log('  → Stored vendor type filter:', window.selectedVendorType);
 
         if(status) {
             refData = (status === "active")
@@ -599,9 +673,8 @@
                 : refData.where('active','==',false);
         }
 
-        if(vendorType) {
-            refData = refData.where('vType','==',vendorType);
-        }
+        // Store vendor type filter for use in ajax function
+        window.selectedVendorType = vendorType;
 
         if ($('#daterange span').html() != '{{trans("lang.select_range")}}' && daterangepicker) {
             var from = moment(daterangepicker.startDate).toDate();
@@ -671,7 +744,8 @@
         } else if(val.hasOwnProperty('vType') && val.vType) {
             html.push(val.vType.charAt(0).toUpperCase() + val.vType.slice(1));
         } else {
-            html.push('<span class="text-muted">Not Set</span>');
+            // Default to Restaurant if no vendor type is set
+            html.push('<span class="text-primary">Restaurant</span>');
         }
 
         // Column 5: Current Plan

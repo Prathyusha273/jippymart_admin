@@ -305,8 +305,10 @@ Route::middleware(['permission:drivers,drivers.view'])->group(function () {
     Route::get('/drivers/view/{id}', [App\Http\Controllers\DriverController::class, 'view'])->name('drivers.view');
 
 });
-
-
+Route::middleware(['permission:drivers,drivers.edit'])->group(function () {
+    Route::post('/drivers/clear-order-request-data/{id}', [App\Http\Controllers\DriverController::class, 'clearOrderRequestData'])->name('drivers.clearOrderRequestData');
+    Route::post('/drivers/clear-all-order-request-data', [App\Http\Controllers\DriverController::class, 'clearAllOrderRequestData'])->name('drivers.clearAllOrderRequestData');
+}); 
 Route::get('/users/profile', [App\Http\Controllers\UserController::class, 'profile'])->name('users.profile');
 Route::post('/users/profile/update/{id}', [App\Http\Controllers\UserController::class, 'update'])->name('users.profile.update');
 
@@ -384,6 +386,9 @@ Route::prefix('settings')->group(function () {
     Route::middleware(['permission:delivery-charge,settings.app.deliveryCharge'])->group(function () {
         Route::get('app/deliveryCharge', [App\Http\Controllers\SettingsController::class, 'deliveryCharge'])->name('settings.app.deliveryCharge');
     });
+    // Route::middleware(['permission:price-setting,settings.app.priceSetting'])->group(function () {
+        Route::get('app/priceSetting', [App\Http\Controllers\SettingsController::class, 'priceSetting'])->name('settings.app.priceSettings');
+    // });
     Route::middleware(['permission:document-verification,settings.app.documentVerification'])->group(function () {
         Route::get('app/documentVerification', [App\Http\Controllers\SettingsController::class, 'documentVerification'])->name('settings.app.documentVerification');
     });
