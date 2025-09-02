@@ -6,6 +6,16 @@ use Illuminate\Http\Request;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Google\Cloud\Firestore\FirestoreClient;
 
+/**
+ * MartItemController
+ * 
+ * Handles CRUD operations for mart items.
+ * 
+ * Default Fields for New Items:
+ * - reviewCount: "0" (string) - Number of reviews
+ * - reviewSum: "0" (string) - Sum of review ratings
+ * - These fields are automatically set to "0" for all new items
+ */
 class MartItemController extends Controller
 {
 
@@ -13,7 +23,7 @@ class MartItemController extends Controller
     {
         $this->middleware('auth');
     }
-
+    
     public function index($id='')
     {
         return view("martItems.index")->with('id',$id);
@@ -28,7 +38,7 @@ class MartItemController extends Controller
     {
         return view('martItems.create')->with('id',$id);
     }
-
+    
     public function createItem()
     {
         return view('martItems.create');
@@ -199,9 +209,10 @@ class MartItemController extends Controller
                     'variants' => [],
                     'product_specification' => null,
                     'item_attribute' => null,
-                    ' Attributes' => null,
-                    'reviewsCount' => 0,
-                    'reviewsSum' => 0,
+                    'reviewAttributes' => null,
+                    // Review fields - automatically set to "0" for new items
+                    'reviewCount' => '0', // Default review count as string
+                    'reviewSum' => '0', // Default review sum as string
                     'takeawayOption' => false, // Auto-generated default
                     'migratedBy' => 'excel_import',
                     'createdAt' => new \Google\Cloud\Core\Timestamp(new \DateTime()), // Fixed to match Firestore

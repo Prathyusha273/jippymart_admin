@@ -92,7 +92,7 @@
                                     </div>
                                 </div>
                             </div>
-
+                            
                             <div class="form-group row width-100">
                                 <label class="col-3 control-label">Mart Sub-Categories</label>
                                 <div class="col-7">
@@ -136,7 +136,6 @@
                                     <input type="file" id="product_image">
                                     <div class="placeholder_img_thumb product_image"></div>
                                     <div id="uploding_image"></div>
-                                    <button type="button" id="test_upload" class="btn btn-sm btn-info mt-2" style="display: none;">Test Upload Connection</button>
                                     <div class="form-text text-muted">
                                         {{ trans("lang.food_image_help") }}
                                     </div>
@@ -168,7 +167,7 @@
                             <input type="checkbox" class="food_is_available" id="food_is_available">
                             <label class="col-3 control-label" for="food_is_available">Available</label>
                         </div>
-
+                        
                         <!-- Enhanced Item Features -->
                         <div class="form-group row width-100">
                             <label class="col-3 control-label">Item Features</label>
@@ -225,11 +224,11 @@
                             </div>
                         </div>
                     </fieldset>
-
+                    
                     <!-- Options Configuration -->
                     <fieldset>
                         <legend>Options Configuration</legend>
-
+                        
                         <div class="form-check width-100">
                             <input type="checkbox" class="has_options" id="has_options">
                             <label class="col-3 control-label" for="has_options">
@@ -239,14 +238,14 @@
                                 Enable this to create different variants/sizes for this item
                             </div>
                         </div>
-
+                        
                         <div id="options_config" style="display:none;">
                             <div class="alert alert-info">
                                 <i class="mdi mdi-information-outline"></i>
                                 <strong>Options will be stored as part of this item.</strong>
                                 Each option can have its own price, image, and specifications.
                             </div>
-
+                            
                             <div class="form-group row width-50">
                                 <label class="col-3 control-label">Default Option</label>
                                 <div class="col-7">
@@ -254,22 +253,22 @@
                                         <option value="">Select default option</option>
                                     </select>
                                     <div class="form-text text-muted">
-                                        The default option will be automatically selected when customers view this item.
+                                        The default option will be automatically selected when customers view this item. 
                                         This is typically the featured option or the most popular choice.
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </fieldset>
-
+                    
                     <!-- Options Management -->
                     <fieldset id="options_fieldset" style="display:none;">
                         <legend>Item Options</legend>
-
+                        
                         <div class="options-list">
                             <!-- Dynamic options will be added here -->
                         </div>
-
+                        
                         <div class="form-group row width-100">
                             <div class="col-12 text-center">
                                 <button type="button" class="btn btn-primary" onclick="addNewOption()">
@@ -277,7 +276,7 @@
                                 </button>
                             </div>
                         </div>
-
+                        
                         <div class="options-summary" style="display:none;">
                             <h5>Options Summary</h5>
                             <div class="summary-content">
@@ -415,7 +414,7 @@
                 <i class="mdi mdi-delete"></i>
             </button>
         </div>
-
+        
         <div class="row">
             <div class="col-md-6">
                 <div class="form-group">
@@ -431,7 +430,7 @@
                     </select>
                 </div>
             </div>
-
+            
             <div class="col-md-6">
                 <div class="form-group">
                     <label>Option Title</label>
@@ -439,7 +438,7 @@
                 </div>
             </div>
         </div>
-
+        
         <div class="row">
             <div class="col-md-6">
                 <div class="form-group">
@@ -447,7 +446,7 @@
                     <input type="text" class="form-control option-subtitle" placeholder="e.g., 180 g X 2">
                 </div>
             </div>
-
+            
             <div class="col-md-6">
                 <div class="form-group">
                     <label>Price (₹)</label>
@@ -455,7 +454,7 @@
                 </div>
             </div>
         </div>
-
+        
         <div class="row">
             <div class="col-md-6">
                 <div class="form-group">
@@ -463,16 +462,16 @@
                     <input type="number" class="form-control option-original-price" step="0.01" min="0">
                 </div>
             </div>
-
+            
             <div class="col-md-6">
                 <div class="form-group">
                     <label>Quantity</label>
-                    <input type="number" class="form-control option-quantity" min="-1" step="1">
-                    <small class="form-text text-muted">Use -1 for unlimited stock, 0 for out of stock, or positive numbers for limited stock</small>
+                    <input type="number" class="form-control option-quantity" min="-1" step="1" placeholder="-1 for unlimited">
+                    <small class="form-text text-muted">Use -1 for unlimited quantity</small>
                 </div>
             </div>
         </div>
-
+        
         <div class="row">
             <div class="col-md-6">
                 <div class="form-group">
@@ -497,7 +496,7 @@
                 </div>
             </div>
         </div>
-
+        
         <div class="row">
             <div class="col-md-6">
                 <div class="form-group">
@@ -505,7 +504,7 @@
                     <input type="text" class="form-control option-unit-price-display" readonly>
                 </div>
             </div>
-
+            
             <div class="col-md-6">
                 <div class="form-group">
                     <label>Discount Amount</label>
@@ -513,7 +512,7 @@
                 </div>
             </div>
         </div>
-
+        
         <div class="row">
             <div class="col-md-6">
                 <div class="form-group">
@@ -521,7 +520,7 @@
                     <input type="text" class="form-control option-savings-display" readonly>
                 </div>
             </div>
-
+            
             <div class="col-md-6">
                 <div class="form-group">
                     <label>Smart Suggestions</label>
@@ -531,21 +530,21 @@
                 </div>
             </div>
         </div>
-
+        
         <div class="form-group">
             <label>Option Image</label>
             <input type="file" class="option-image-input" accept="image/*">
             <div class="option-image-preview"></div>
         </div>
-
-                  <div class="form-check">
-              <input type="checkbox" class="option-available" id="option_available_template" checked>
-              <label class="form-check-label" for="option_available_template">Available</label>
-          </div>
-
+        
         <div class="form-check">
-            <input type="checkbox" class="option-featured" id="option_featured_">
-            <label class="form-check-label" for="option_featured_">Featured (Show first)</label>
+            <input type="checkbox" class="option-available" id="option_available_placeholder" checked>
+            <label class="form-check-label" for="option_available_placeholder">Available</label>
+        </div>
+        
+        <div class="form-check">
+            <input type="checkbox" class="option-featured" id="option_featured_placeholder">
+            <label class="form-check-label" for="option_featured_placeholder">Featured (Show first)</label>
         </div>
     </div>
 </div>
@@ -575,127 +574,10 @@
 
 .option-image-preview {
     margin-top: 10px;
-    text-align: center;
 }
 
 .option-image-preview img {
     border: 1px solid #ddd;
-    border-radius: 4px;
-    max-width: 100%;
-    height: auto;
-    object-fit: cover;
-}
-
-/* Mobile-responsive option image styles */
-@media (max-width: 768px) {
-    .option-image-preview img {
-        max-width: 80px !important;
-        max-height: 80px !important;
-        width: 80px !important;
-        height: 80px !important;
-    }
-
-    .option-image-input {
-        width: 100%;
-        max-width: 250px;
-    }
-
-    .option-item {
-        padding: 15px;
-    }
-
-    .option-image-preview {
-        margin: 10px auto;
-        text-align: center;
-    }
-}
-
-/* Option image loading and error states */
-.option-image-preview {
-    min-height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.option-image-preview img {
-    transition: opacity 0.3s ease;
-}
-
-.option-image-preview img:not([src]) {
-    opacity: 0;
-}
-
-.option-image-preview .text-muted {
-    font-size: 12px;
-    color: #6c757d;
-    font-style: italic;
-}
-
-/* Option image upload button styling */
-.option-image-input {
-    border: 2px dashed #dee2e6;
-    border-radius: 4px;
-    padding: 8px;
-    transition: border-color 0.3s ease;
-}
-
-.option-image-input:hover {
-    border-color: #007bff;
-}
-
-.option-image-input:focus {
-    border-color: #007bff;
-    outline: none;
-    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-}
-
-/* Help text styling */
-.form-text.text-muted {
-    font-size: 12px;
-    color: #6c757d;
-    margin-top: 4px;
-    font-style: italic;
-}
-
-/* Quantity input special styling for negative values */
-.option-quantity[value="-1"],
-.option-quantity.unlimited-quantity {
-    border-color: #28a745;
-    background-color: #f8fff9;
-}
-
-.option-quantity[value="0"],
-.option-quantity.zero-quantity {
-    border-color: #dc3545;
-    background-color: #fff8f8;
-}
-
-/* Special quantity state indicators */
-.unlimited-quantity {
-    position: relative;
-}
-
-.unlimited-quantity::after {
-    content: "∞";
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #28a745;
-    font-weight: bold;
-    font-size: 16px;
-}
-
-.zero-quantity::after {
-    content: "0";
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #dc3545;
-    font-weight: bold;
-    font-size: 14px;
 }
 
 /* Visual feedback for option states */
@@ -722,6 +604,37 @@
     padding: 10px;
     border-radius: 4px;
     background: #f8f9fa;
+}
+
+/* Quantity input styling */
+.option-quantity {
+    border-color: #007bff;
+}
+
+.option-quantity:focus {
+    border-color: #0056b3;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Image preview styling */
+.option-image-preview img {
+    border: 2px solid #dee2e6;
+    transition: border-color 0.3s ease;
+}
+
+.option-image-preview img:hover {
+    border-color: #007bff;
+}
+
+/* Validation feedback styling */
+.validation-feedback .alert-sm {
+    padding: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.validation-feedback .alert-sm ul {
+    padding-left: 1.2rem;
+    margin-bottom: 0;
 }
 
 .option-item .form-check input[type="checkbox"] {
@@ -766,84 +679,6 @@
     padding: 2px 8px;
     border-radius: 12px;
     margin: 2px;
-}
-
-/* Mobile-responsive image upload styles */
-.image-item {
-    display: inline-block;
-    position: relative;
-    margin: 5px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    padding: 2px;
-    background: white;
-}
-
-.image-item img {
-    display: block;
-    max-width: 100%;
-    height: auto;
-    border-radius: 2px;
-}
-
-.remove-btn {
-    position: absolute;
-    top: -8px;
-    right: -8px;
-    background: #dc3545;
-    color: white;
-    border: 2px solid white;
-    border-radius: 50%;
-    width: 20px;
-    height: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    font-size: 12px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-}
-
-.remove-btn:hover {
-    background: #c82333;
-}
-
-#uploding_image {
-    margin-top: 10px;
-    padding: 8px;
-    background: #f8f9fa;
-    border-radius: 4px;
-    font-size: 14px;
-    color: #495057;
-}
-
-/* Mobile responsiveness */
-@media (max-width: 768px) {
-    .image-item {
-        margin: 3px;
-    }
-
-    .image-item img {
-        width: 60px !important;
-        height: 60px !important;
-        object-fit: cover;
-    }
-
-    .remove-btn {
-        width: 18px;
-        height: 18px;
-        font-size: 10px;
-    }
-
-    #product_image {
-        width: 100%;
-        max-width: 300px;
-    }
-
-    .placeholder_img_thumb {
-        text-align: center;
-    }
-}
     font-size: 12px;
     position: relative;
 }
@@ -923,15 +758,7 @@
             <?php } else{?>
                 $(".food_restaurant_div").show();
             <?php } ?>
-            $("#attributes_div").show();
-
-            // Add event listener for main product image upload
-            $("#product_image").on('change', function(e) {
-                console.log('📸 Product image file selected:', e.target.files[0]);
-                handleFileSelectProduct(e);
-            });
-
-
+            $("#attributes_div").show(); 
             jQuery(document).on("click", ".mdi-cloud-upload", function () {
                 var variant = jQuery(this).data('variant');
                 var fileurl = $('[id="variant_' + variant + '_url"]').val();
@@ -1020,7 +847,7 @@
                         updateSelectedFoodCategoryTags();
                     })
                 });
-
+                
                 // Load subcategories
                 await database.collection('mart_subcategories').where('publish', '==', true).get().then(async function (snapshots) {
                     snapshots.docs.forEach((listval) => {
@@ -1094,7 +921,7 @@
                             photos.push(photo);
                         }
                     }
-                    if (photos != '' && photos != null) {
+                    if (photos != '' && photos != null) {  
                         photos.forEach((element, index) => {
                             $(".product_image").append('<span class="image-item" id="photo_' + index + '"><span class="remove-btn" data-id="' + index + '" data-img="' + photos[index] + '" data-status="old"><i class="fa fa-remove"></i></span><img onerror="this.onerror=null;this.src=\'' + placeholderImage + '\'" class="rounded" width="50px" id="" height="auto" src="' + photos[index] + '"></span>');
                         })
@@ -1140,45 +967,49 @@
                 if (product.hasOwnProperty('isAvailable') && product.isAvailable) {
                     $(".food_is_available").prop('checked', true);
                 }
-
+                
                 // Handle item features checkboxes
                 if (product.hasOwnProperty('isSpotlight') && product.isSpotlight === true) {
                     $("#isSpotlight").prop('checked', true);
                     console.log('✅ Spotlight checkbox checked');
                 }
-
+                
                 if (product.hasOwnProperty('isStealOfMoment') && product.isStealOfMoment === true) {
                     $("#isStealOfMoment").prop('checked', true);
                     console.log('✅ Steal of Moment checkbox checked');
                 }
-
+                
                 if (product.hasOwnProperty('isFeature') && product.isFeature === true) {
                     $("#isFeature").prop('checked', true);
                     console.log('✅ Feature checkbox checked');
                 }
-
+                
                 if (product.hasOwnProperty('isTrending') && product.isTrending === true) {
                     $("#isTrending").prop('checked', true);
                     console.log('✅ Trending checkbox checked');
                 }
-
+                
                 if (product.hasOwnProperty('isNew') && product.isNew === true) {
                     $("#isNew").prop('checked', true);
                     console.log('✅ New checkbox checked');
                 }
-
+                
                 if (product.hasOwnProperty('isBestSeller') && product.isBestSeller === true) {
                     $("#isBestSeller").prop('checked', true);
                     console.log('✅ Best Seller checkbox checked');
                 }
-
+                
                 if (product.hasOwnProperty('isSeasonal') && product.isSeasonal === true) {
                     $("#isSeasonal").prop('checked', true);
                     console.log('✅ Seasonal checkbox checked');
                 }
-
-
-
+                
+                // Load existing options if any - moved here after product data is loaded
+                console.log('🔍 Checking for options in product:', product);
+                console.log('🔍 Product has_options:', product?.has_options);
+                console.log('🔍 Product options:', product?.options);
+                console.log('🔍 Options length:', product?.options?.length);
+                
                 if (product && product.has_options && product.options && product.options.length > 0) {
                     console.log('✅ Loading existing options...');
                     $('.has_options').prop('checked', true);
@@ -1186,70 +1017,19 @@
                     $('#options_fieldset').show();
                     console.log('🔧 Options fieldset shown:', $('#options_fieldset').is(':visible'));
                     console.log('🔧 Options config shown:', $('#options_config').is(':visible'));
-
-                                    // Load existing options
-        product.options.forEach((option, index) => {
-            console.log('📋 Loading option:', option);
-            
-            // Validate and process option image if it exists
-            if (option.image) {
-                console.log('🖼️ Processing option image:', option.image.substring(0, 50) + '...');
-                
-                // Check if image is a Firebase URL or base64
-                if (option.image.startsWith('http') && option.image.includes('firebase')) {
-                    console.log('✅ Option image is Firebase URL');
-                } else if (option.image.startsWith('data:image')) {
-                    console.log('✅ Option image is base64 data');
-                } else {
-                    console.warn('⚠️ Unknown image format for option:', option.image.substring(0, 100));
-                }
-                
-                // Validate image accessibility
-                validateOptionImage(option.image).then(validImage => {
-                    if (!validImage) {
-                        console.warn('⚠️ Option image validation failed, may not display properly');
-                    }
-                });
-            } else {
-                console.log('ℹ️ No image for option:', option.option_title || option.id);
-            }
-            
-            loadExistingOption(option, index + 1);
-        });
-        
-        // Debug: Log all option checkboxes after loading
-        setTimeout(() => {
-            console.log('🔍 Debug: Checking all option checkboxes...');
-            $('.option-available').each(function(index) {
-                const optionId = $(this).closest('.option-item').data('option-id');
-                const isChecked = $(this).is(':checked');
-                const checkboxId = $(this).attr('id');
-                console.log(`📋 Option ${index + 1}: ID=${optionId}, Checkbox ID=${checkboxId}, Checked=${isChecked}`);
-            });
-            
-            // Test checkbox independence
-            console.log('🧪 Testing checkbox independence...');
-            $('.option-available').each(function() {
-                const $checkbox = $(this);
-                const optionId = $checkbox.closest('.option-item').data('option-id');
-                const originalState = $checkbox.is(':checked');
-                
-                // Simulate a click to test if it affects other checkboxes
-                $checkbox.trigger('change');
-                
-                setTimeout(() => {
-                    const newState = $checkbox.is(':checked');
-                    console.log(`✅ Option ${optionId} checkbox test: ${originalState} → ${newState}`);
-                }, 100);
-            });
-        }, 1000);
-
+                    
+                    // Load existing options
+                    product.options.forEach((option, index) => {
+                        console.log('📋 Loading option:', option);
+                        loadExistingOption(option, index + 1);
+                    });
+                    
                     updateOptionsSummary();
                     updateDefaultOptionSelect();
                 } else {
                     console.log('❌ No options found or conditions not met');
                 }
-
+                
                 jQuery("#data-table_processing").hide();
             })
             $(".edit-form-btn").click( async function () {
@@ -1268,7 +1048,7 @@
                 var veg = !nonveg;
                 var foodTakeaway = $(".food_take_away_option").is(":checked");
                 var foodIsAvailable = $(".food_is_available").is(":checked");
-
+                
                 // Get item features
                 var isSpotlight = $("#isSpotlight").is(":checked");
                 var isStealOfMoment = $("#isStealOfMoment").is(":checked");
@@ -1277,12 +1057,12 @@
                 var isNew = $("#isNew").is(":checked");
                 var isBestSeller = $("#isBestSeller").is(":checked");
                 var isSeasonal = $("#isSeasonal").is(":checked");
-
+                
                 // Debug checkbox states
                 console.log('🔍 Checkbox states:', {
                     isSpotlight, isStealOfMoment, isFeature, isTrending, isNew, isBestSeller, isSeasonal
                 });
-
+                
                 var discount = $(".food_discount").val();
                 if (discount == '') {
                     discount = "0";
@@ -1360,7 +1140,7 @@
                         console.log($("#item_attribute").val());
                         console.log($('#attributes').val());
                     }
-
+                  
                     if ($('#variants').val().length > 0) {
                         var variantsSet = $.parseJSON($('#variants').val());
                         await storeVariantImageData().then(async (vIMG) => {
@@ -1386,7 +1166,7 @@
                                         'variant_quantity': variant_quantity
                                     });
                                 }
-                                if (variant_quantity = '' || variant_quantity < -1 || variant_quantity == 0) {
+                                if (variant_quantity == '' || variant_quantity < -1) {
                                     quantityerror++;
                                 }
                                 if (variant_price == "" || variant_price <= 0) {
@@ -1403,7 +1183,7 @@
                     }
                     if (attributes.length > 0 && variants.length > 0) {
                         if (quantityerror > 0) {
-                            alert('Please add your variants quantity it should be -1 or greater than -1');
+                            alert('Please add your variants quantity it should be -1 (unlimited) or greater than 0');
                             return false;
                         }
                         if (priceerror > 0) {
@@ -1412,21 +1192,14 @@
                         }
                         var item_attribute = {'attributes': attributes, 'variants': variants};
                     }
-
+                   
                     if ($.isEmptyObject(product_specification)) {
                         product_specification = null;
                     }
                     jQuery("#data-table_processing").show();
-                await storeImageData().then(async (IMG) => {
-                    console.log('🖼️ Stored image data:', IMG);
-                    console.log('📸 Current photos array:', photos);
-                    console.log('🖼️ Current photo variable:', photo);
-
+                await storeImageData().then(async (IMG) => { 
                     if (IMG.length > 0) {
                         photo = IMG[0];
-                        console.log('✅ Primary photo set to:', photo);
-                    } else {
-                        console.warn('⚠️ No images found in IMG array');
                     }
                     var foodIsAvailable = $(".food_is_available").is(":checked");
                     const hasOptions = $(".has_options").is(":checked");
@@ -1461,11 +1234,15 @@
                         'isNew': isNew,
                         'isBestSeller': isBestSeller,
                         'isSeasonal': isSeasonal,
+                        'reviewCount': '0', // Default review count as string
+                        'reviewSum': '0', // Default review sum as string
                         'updated_at': firebase.firestore.FieldValue.serverTimestamp()
                     };
-
+                    
                     // Handle options
                     if (hasOptions && optionsList.length > 0) {
+                        console.log('🔧 Processing options for save:', optionsList);
+                        
                         // Validate options
                         for (let option of optionsList) {
                             if (!option.title || !option.price || option.price <= 0) {
@@ -1473,44 +1250,34 @@
                                 return;
                             }
                         }
-
-                        // Prepare options data with image processing
-                        const optionsData = await Promise.all(optionsList.map(async (option, index) => {
-                            let processedImage = option.image || '';
-
-                            // Upload option image to Firebase if it's base64
-                            if (processedImage && processedImage.startsWith('data:image')) {
-                                console.log('📤 Processing option image for Firebase upload:', option.id);
-                                processedImage = await uploadOptionImageToFirebase(processedImage, option.id);
-                            }
-
-                            return {
-                                id: option.id || `option_${Date.now()}_${index}`,
-                                option_type: option.type || 'size',
-                                option_title: option.title || '',
-                                option_subtitle: option.subtitle || '',
-                                price: parseFloat(option.price) || 0,
-                                original_price: parseFloat(option.original_price) || parseFloat(option.price) || 0,
-                                discount_amount: parseFloat(option.discount_amount) || 0,
-                                unit_price: parseFloat(option.unit_price) || 0,
-                                unit_measure: parseFloat(option.unit_measure) || 100,
-                                unit_measure_type: option.unit_measure_type || 'g',
-                                quantity: parseFloat(option.quantity) || 0,
-                                quantity_unit: option.quantity_unit || 'g',
-                                image: processedImage,
-                                is_available: option.is_available !== false,
-                                is_featured: option.is_featured === true,
-                                sort_order: index + 1,
-                                updated_at: new Date().toISOString()
-                            };
+                        
+                        // Prepare options data
+                        const optionsData = optionsList.map((option, index) => ({
+                            id: option.id || `option_${Date.now()}_${index}`,
+                            option_type: option.type || 'size',
+                            option_title: option.title || '',
+                            option_subtitle: option.subtitle || '',
+                            price: parseFloat(option.price) || 0,
+                            original_price: parseFloat(option.original_price) || parseFloat(option.price) || 0,
+                            discount_amount: parseFloat(option.discount_amount) || 0,
+                            unit_price: parseFloat(option.unit_price) || 0,
+                            unit_measure: parseFloat(option.unit_measure) || 100,
+                            unit_measure_type: option.unit_measure_type || 'g',
+                            quantity: parseFloat(option.quantity) || 0,
+                            quantity_unit: option.quantity_unit || 'g',
+                            image: option.image || '', // Stored as base64 for options
+                            is_available: option.is_available !== false,
+                            is_featured: option.is_featured === true,
+                            sort_order: index + 1,
+                            updated_at: new Date().toISOString()
                         }));
-
+                        
                         // Calculate price range
                         const prices = optionsList.map(opt => opt.price);
                         const minPrice = Math.min(...prices);
                         const maxPrice = Math.max(...prices);
                         const defaultOptionId = optionsList.find(opt => opt.is_featured)?.id || optionsList[0]?.id;
-
+                        
                         updateData = {
                             ...updateData,
                             has_options: true,
@@ -1531,7 +1298,7 @@
                             options: []
                         };
                     }
-
+                    
                     database.collection('mart_items').doc(id).update(updateData).then(async function (result) {
                         console.log('✅ Mart item updated successfully, now logging activity...');
                         try {
@@ -1630,95 +1397,30 @@
         }
         function handleFileSelectProduct(evt) {
             var f = evt.target.files[0];
-            if (!f) return;
-
-            // Check if Firebase is initialized
-            if (typeof firebase === 'undefined' || !firebase.storage) {
-                jQuery("#uploding_image").text("Error: Firebase not initialized. Please refresh the page.");
-                console.error('Firebase not initialized');
-                return;
-            }
-
-            // Check if storageRef is available
-            if (!storageRef) {
-                jQuery("#uploding_image").text("Error: Storage reference not available. Please refresh the page.");
-                console.error('Storage reference not available');
-                return;
-            }
-
-            // Show upload status
-            jQuery("#uploding_image").text("Processing image...");
-
             var reader = new FileReader();
             reader.onload = (function (theFile) {
                 return function (e) {
                     var filePayload = e.target.result;
                     var val = f.name;
                     var ext = val.split('.')[1];
+                    var docName = val.split('fakepath')[1];
+                    var filename = (f.name).replace(/C:\\fakepath\\/i, '')
                     var timestamp = Number(new Date());
-                    var filename = val.split('.')[0] + "_" + timestamp + '.' + ext;
-
-                    // Create a new file from the FileReader result
-                    var newFile = new File([theFile], filename, { type: f.type });
-
-                    var uploadTask = storageRef.child(filename).put(newFile);
+                    var filename = filename.split('.')[0] + "_" + timestamp + '.' + ext;
+                    var uploadTask = storageRef.child(filename).put(theFile);
                     uploadTask.on('state_changed', function (snapshot) {
                         var progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
                         console.log('Upload is ' + progress + '% done');
-                        jQuery("#uploding_image").text("Image is uploading... " + Math.round(progress) + "%");
+                        $('.product_image').find(".uploding_image_photos").text("Image is uploading...");
                     }, function (error) {
-                        console.error('Upload error:', error);
-                        jQuery("#uploding_image").text("Upload failed: " + error.message);
-
-                        // Show error details for debugging
-                        if (error.code === 'storage/unauthorized') {
-                            jQuery("#uploding_image").text("Upload failed: Unauthorized access. Please check Firebase configuration.");
-                        } else if (error.code === 'storage/quota-exceeded') {
-                            jQuery("#uploding_image").text("Upload failed: Storage quota exceeded.");
-                        } else {
-                            jQuery("#uploding_image").text("Upload failed: " + error.message);
-                        }
                     }, function () {
                         uploadTask.snapshot.ref.getDownloadURL().then(function (downloadURL) {
-                            jQuery("#uploding_image").text("Upload completed successfully!");
-
+                            jQuery("#uploding_image").text("Upload is completed");
                             if (downloadURL) {
-                                console.log('🖼️ Preparing to display image:', downloadURL);
-
-                                // Check if the image container exists
-                                if ($(".product_image").length === 0) {
-                                    console.error('❌ Image container not found!');
-                                    jQuery("#uploding_image").text("Error: Image container not found!");
-                                    return;
-                                }
-
-                                // Clear existing images first
-                                $(".product_image").empty();
-                                console.log('🧹 Cleared existing images');
-
-                                // Add the new image
-                                var photos_html = '<span class="image-item" id="photo_1">' +
-                                    '<span class="remove-btn" data-id="1" data-img="' + downloadURL + '" data-status="new">' +
-                                    '<i class="mdi mdi-delete"></i></span>' +
-                                    '<img class="rounded" width="50px" height="auto" src="' + downloadURL + '" alt="Product Image" onload="console.log(\'✅ Image loaded successfully:\', this.src)" onerror="console.error(\'❌ Image failed to load:\', this.src)">' +
-                                    '</span>';
-
+                                productImagesCount++;
+                                photos_html = '<span class="image-item" id="photo_' + productImagesCount + '"><span class="remove-btn" data-id="' + productImagesCount + '" data-img="' + downloadURL + '"><i class="fa fa-remove"></i></span><img class="rounded" width="50px" id="" height="auto" src="' + downloadURL + '"></span>'
                                 $(".product_image").append(photos_html);
-                                console.log('📎 Added image HTML to container');
-
-                                // Force a reflow to ensure the image is displayed
-                                $(".product_image").hide().show(0);
-
-                                // Update photos array
-                                photos = [downloadURL];
-                                photo = downloadURL;
-
-                                // Clear the file input
-                                $("#product_image").val('');
-
-                                console.log('✅ Image uploaded and displayed successfully:', downloadURL);
-                                console.log('📊 Current photos array:', photos);
-                                console.log('🖼️ Current photo variable:', photo);
+                                photos.push(downloadURL);
                             }
                         });
                     });
@@ -1726,128 +1428,52 @@
             })(f);
             reader.readAsDataURL(f);
         }
-
-        // Fallback function to show local image preview
-        function showLocalImagePreview(file) {
-            var reader = new FileReader();
-            reader.onload = function(e) {
-                var previewHtml = '<span class="image-item" id="photo_local">' +
-                    '<span class="remove-btn" data-id="local" data-img="local" data-status="local">' +
-                    '<i class="mdi mdi-delete"></i></span>' +
-                    '<img class="rounded" width="50px" height="auto" src="' + e.target.result + '" alt="Local Preview">' +
-                    '</span>';
-
-                $(".product_image").empty().append(previewHtml);
-                jQuery("#uploding_image").text("Local preview shown (Firebase upload may be needed)");
-            };
-            reader.readAsDataURL(file);
-        }
-
-        // Function to validate and process option images for mobile compatibility
-        function validateOptionImage(imageUrl) {
-            if (!imageUrl) return null;
-
-            // Check if image is accessible
-            return new Promise((resolve) => {
-                const img = new Image();
-                img.onload = function() {
-                    console.log('✅ Option image validated successfully:', imageUrl);
-                    resolve(imageUrl);
-                };
-                img.onerror = function() {
-                    console.warn('⚠️ Option image failed to load, may be broken URL:', imageUrl);
-                    resolve(null);
-                };
-                img.src = imageUrl;
-            });
-        }
-
-        // Function to upload option images to Firebase if needed
-        async function uploadOptionImageToFirebase(base64Image, optionId) {
-            try {
-                if (!base64Image || !base64Image.startsWith('data:image')) {
-                    console.log('⚠️ Option image is not base64, skipping Firebase upload');
-                    return base64Image;
-                }
-
-                console.log('📤 Uploading option image to Firebase for option:', optionId);
-
-                // Remove data URL prefix
-                const base64Data = base64Image.replace(/^data:image\/[a-z]+;base64,/, "");
-
-                // Generate filename
-                const timestamp = Date.now();
-                const filename = `option_${optionId}_${timestamp}.jpg`;
-
-                // Upload to Firebase
-                const uploadTask = await storageRef.child(filename).putString(base64Data, 'base64', { contentType: 'image/jpeg' });
-                const downloadURL = await uploadTask.ref.getDownloadURL();
-
-                console.log('✅ Option image uploaded to Firebase:', downloadURL);
-                return downloadURL;
-
-            } catch (error) {
-                console.error('❌ Error uploading option image to Firebase:', error);
-                return base64Image; // Return original if upload fails
-            }
-        }
-
         async function storeImageData() {
-            console.log('🔄 Starting storeImageData function...');
-            console.log('📸 Current photos array:', photos);
-            console.log('🆕 New added photos:', new_added_photos);
-            console.log('🗑️ Photos to delete:', photosToDelete);
-
             var newPhoto = [];
-
-            // Add existing photos (these are already uploaded to Firebase)
             if (photos.length > 0) {
-                newPhoto = photos;
-                console.log('✅ Added existing photos:', photos);
+                newPhoto = photos; 
             }
-
-            // Process new photos that need to be uploaded
             if (new_added_photos.length > 0) {
-                console.log('📤 Processing new photos for upload...');
                 await Promise.all(new_added_photos.map(async (foodPhoto, index) => {
-                    try {
-                        foodPhoto = foodPhoto.replace(/^data:image\/[a-z]+;base64,/, "");
-                        var uploadTask = await storageRef.child(new_added_photos_filename[index]).putString(foodPhoto, 'base64', { contentType: 'image/jpg' });
-                        var downloadURL = await uploadTask.ref.getDownloadURL();
-                        newPhoto.push(downloadURL);
-                        console.log('✅ New photo uploaded:', downloadURL);
-                    } catch (error) {
-                        console.error('❌ Error uploading new photo:', error);
-                    }
+                    foodPhoto = foodPhoto.replace(/^data:image\/[a-z]+;base64,/, "");
+                    var uploadTask = await storageRef.child(new_added_photos_filename[index]).putString(foodPhoto, 'base64', { contentType: 'image/jpg' });
+                    var downloadURL = await uploadTask.ref.getDownloadURL();
+                    newPhoto.push(downloadURL);
                 }));
             }
-
-            // Delete old photos
             if (photosToDelete.length > 0) {
-                console.log('🗑️ Deleting old photos...');
                 await Promise.all(photosToDelete.map(async (delImage) => {
-                    try {
-                        imageBucket = delImage.bucket;
-                        var envBucket = "<?php echo env('FIREBASE_STORAGE_BUCKET'); ?>";
-                        if (imageBucket == envBucket) {
-                            await delImage.delete().then(() => {
-                                console.log("✅ Old file deleted!")
-                            }).catch((error) => {
-                                console.log("❌ ERR File delete ===", error);
-                            });
-                        } else {
-                            console.log('⚠️ Bucket not matched');
-                        }
-                    } catch (error) {
-                        console.error('❌ Error deleting photo:', error);
+                    imageBucket = delImage.bucket;
+                    var envBucket = "<?php echo env('FIREBASE_STORAGE_BUCKET'); ?>";
+                    if (imageBucket == envBucket) {
+                        await delImage.delete().then(() => {
+                            console.log("Old file deleted!")
+                        }).catch((error) => {
+                            console.log("ERR File delete ===", error);
+                        });
+                    } else {
+                        console.log('Bucket not matched');
                     }
                 }));
             }
-
-            console.log('🎯 Final newPhoto array:', newPhoto);
             return newPhoto;
         }
-        // Removed resizeImg plugin to avoid conflicts with direct file handling
+        $("#product_image").resizeImg({
+            callback: function (base64str) {
+                var val = $('#product_image').val().toLowerCase();
+                var ext = val.split('.')[1];
+                var docName = val.split('fakepath')[1];
+                var filename = $('#product_image').val().replace(/C:\\fakepath\\/i, '')
+                var timestamp = Number(new Date());
+                var filename = filename.split('.')[0] + "_" + timestamp + '.' + ext;
+                productImagesCount++;
+                photos_html = '<span class="image-item" id="photo_' + productImagesCount + '"><span class="remove-btn" data-id="' + productImagesCount + '" data-img="' + base64str + '" data-status="new"><i class="fa fa-remove"></i></span><img class="rounded" width="50px" id="" height="auto" src="' + base64str + '"></span>'
+                $(".product_image").append(photos_html);
+                new_added_photos.push(base64str);
+                new_added_photos_filename.push(filename);
+                $("#product_image").val('');
+            }
+        });
         $(document).on("click", ".remove-btn", function () {
             var id = $(this).attr('data-id');
             var photo_remove = $(this).attr('data-img');
@@ -1981,8 +1607,8 @@
             $('#attributes').val(JSON.stringify(attributes));
             var variants = getCombinations(attributeSet);
             $('#variants').val(JSON.stringify(variants));
-
-            if (attributeSet.length > 0) {
+              
+            if (attributeSet.length > 0) {  
                 html += '<table class="table table-bordered">';
                 html += '<thead class="thead-light">';
                 html += '<tr>';
@@ -2100,7 +1726,7 @@
                 $(this).val(-1);
             }
         });
-
+        
         // 1. Filter dropdown options based on search
         $('#food_category_search').on('keyup', function() {
             var search = $(this).val().toLowerCase();
@@ -2129,7 +1755,7 @@
             updateSelectedFoodCategoryTags();
         });
     });
-
+    
         // 4. Update tags display
         function updateSelectedFoodCategoryTags() {
         var selected = $('#food_category').val() || [];
@@ -2216,19 +1842,10 @@ function loadExistingOption(optionData, optionNumber) {
     const optionId = optionData.id || 'option_' + Date.now();
     const template = $('#option_template .option-item').clone();
     console.log('🔧 Template found:', template.length > 0);
-
+    
     template.attr('data-option-id', optionId);
     template.find('.option-number').text(optionNumber);
     
-    // Set unique IDs for form elements to avoid conflicts
-    template.find('.option-available').attr('id', `option_available_${optionId}`);
-    template.find('.option-featured').attr('id', `option_featured_${optionId}`);
-    template.find('.option-image-input').attr('id', `option_image_${optionId}`);
-    
-    // Update labels to match the new IDs
-    template.find('label[for="option_available_template"]').attr('for', `option_available_${optionId}`);
-    template.find('label[for="option_featured_template"]').attr('for', `option_featured_${optionId}`);
-
     // Populate fields with existing data
     template.find('.option-type').val(optionData.option_type || 'size');
     template.find('.option-title').val(optionData.option_title || '');
@@ -2243,30 +1860,27 @@ function loadExistingOption(optionData, optionNumber) {
     template.find('.option-discount').val(optionData.discount_amount || 0);
     template.find('.option-available').prop('checked', optionData.is_available !== false);
     template.find('.option-featured').prop('checked', optionData.is_featured === true);
-
+    
     // Load image if exists
     if (optionData.image) {
-        console.log('🖼️ Loading existing option image:', optionData.image);
-
-        // Create responsive image HTML with error handling
-        const imageHtml = `
-            <img src="${optionData.image}"
-                 style="max-width: 100px; max-height: 100px; border-radius: 4px; object-fit: cover;"
-                 alt="Option Image"
-                 onload="console.log('✅ Existing option image loaded successfully:', this.src)"
-                 onerror="console.error('❌ Existing option image failed to load:', this.src); this.style.display='none'; this.parentElement.innerHTML='<span class=\'text-muted\'>Image not available</span>';">
-        `;
-
-        template.find('.option-image-preview').html(imageHtml);
-    } else {
-        console.log('⚠️ No image found for option:', optionData.option_title || optionData.id);
-        template.find('.option-image-preview').html('<span class="text-muted">No image</span>');
+        // Check if image is base64 or Firebase URL
+        if (optionData.image.startsWith('data:image/')) {
+            // Base64 image - display directly
+            template.find('.option-image-preview').html(
+                `<img src="${optionData.image}" style="max-width: 100px; max-height: 100px; border-radius: 4px;">`
+            );
+        } else {
+            // Firebase URL - check if it's accessible
+            template.find('.option-image-preview').html(
+                `<img src="${optionData.image}" style="max-width: 100px; max-height: 100px; border-radius: 4px;" onerror="this.onerror=null;this.src='${placeholderImage}';this.style.display='none';this.nextElementSibling.style.display='block';"><div style="display:none;color:#999;font-size:12px;">Image not accessible</div>`
+            );
+        }
     }
-
+    
     $('.options-list').append(template);
     template.show();
     console.log('🔧 Option template appended and shown. Total options in DOM:', $('.option-item').length);
-
+    
     // Add to options list
     optionsList.push({
         id: optionId,
@@ -2285,7 +1899,7 @@ function loadExistingOption(optionData, optionNumber) {
         is_available: optionData.is_available !== false,
         is_featured: optionData.is_featured === true
     });
-
+    
     console.log('🔧 Option added to optionsList. Total options:', optionsList.length);
     attachOptionEventListeners(optionId);
 }
@@ -2293,22 +1907,13 @@ function loadExistingOption(optionData, optionNumber) {
 function addNewOption() {
     const optionId = 'option_' + Date.now();
     const template = $('#option_template .option-item').clone();
-
+    
     template.attr('data-option-id', optionId);
     template.find('.option-number').text(optionsList.length + 1);
     
-    // Set unique IDs for form elements to avoid conflicts
-    template.find('.option-available').attr('id', `option_available_${optionId}`);
-    template.find('.option-featured').attr('id', `option_featured_${optionId}`);
-    template.find('.option-image-input').attr('id', `option_image_${optionId}`);
-    
-    // Update labels to match the new IDs
-    template.find('label[for="option_available_template"]').attr('for', `option_available_${optionId}`);
-    template.find('label[for="option_featured_template"]').attr('for', `option_featured_${optionId}`);
-
     $('.options-list').append(template);
     template.show();
-
+    
     optionsList.push({
         id: optionId,
         type: 'size',
@@ -2327,7 +1932,7 @@ function addNewOption() {
         is_available: true,
         is_featured: false
     });
-
+    
     attachOptionEventListeners(optionId);
     updateOptionsSummary();
     updateDefaultOptionSelect();
@@ -2336,13 +1941,13 @@ function addNewOption() {
 function removeOption(button) {
     const optionItem = $(button).closest('.option-item');
     const optionId = optionItem.data('option-id');
-
+    
     // Remove from array
     optionsList = optionsList.filter(opt => opt.id !== optionId);
-
+    
     // Remove from DOM
     optionItem.remove();
-
+    
     updateOptionNumbers();
     updateOptionsSummary();
     updateDefaultOptionSelect();
@@ -2350,154 +1955,129 @@ function removeOption(button) {
 
 function attachOptionEventListeners(optionId) {
     const optionItem = $(`[data-option-id="${optionId}"]`);
-
+    
+    // Make checkbox IDs unique for this option
+    const availableCheckbox = optionItem.find('.option-available');
+    const featuredCheckbox = optionItem.find('.option-featured');
+    
+    // Update IDs to be unique
+    availableCheckbox.attr('id', `option_available_${optionId}`);
+    featuredCheckbox.attr('id', `option_featured_${optionId}`);
+    
+    // Update labels to match new IDs
+    optionItem.find('label[for="option_available_placeholder"]').attr('for', `option_available_${optionId}`);
+    optionItem.find('label[for="option_featured_placeholder"]').attr('for', `option_featured_${optionId}`);
+    
     // Initialize checkbox states
     const optionData = optionsList.find(opt => opt.id === optionId);
     if (optionData) {
-        const availableCheckbox = optionItem.find('.option-available');
-        const featuredCheckbox = optionItem.find('.option-featured');
-        
-        // Set initial states
         availableCheckbox.prop('checked', optionData.is_available !== false);
         featuredCheckbox.prop('checked', optionData.is_featured === true);
         
         // Apply initial visual states
         if (optionData.is_available !== false) {
             optionItem.addClass('option-enabled');
-            optionItem.removeClass('option-disabled');
         } else {
-            optionItem.removeClass('option-enabled');
             optionItem.addClass('option-disabled');
         }
         
         if (optionData.is_featured === true) {
             optionItem.addClass('option-featured-highlight');
         }
-        
-        console.log(`🔧 Initialized option ${optionId}: Available=${availableCheckbox.is(':checked')}, Featured=${featuredCheckbox.is(':checked')}`);
     }
-
+    
     // Update optionsList when form fields change
     optionItem.find('.option-type').on('change', function() {
         updateOptionInList(optionId, 'type', $(this).val());
     });
-
+    
     optionItem.find('.option-title').on('input', function() {
         updateOptionInList(optionId, 'title', $(this).val());
         updateOptionsSummary();
         updateDefaultOptionSelect();
     });
-
+    
     optionItem.find('.option-subtitle').on('input', function() {
         updateOptionInList(optionId, 'subtitle', $(this).val());
     });
-
+    
     optionItem.find('.option-price').on('input', function() {
         const price = parseFloat($(this).val()) || 0;
         updateOptionInList(optionId, 'price', price);
         calculateOptionCalculations(optionId);
         updateOptionsSummary();
     });
-
+    
     optionItem.find('.option-original-price').on('input', function() {
         const originalPrice = parseFloat($(this).val()) || 0;
         updateOptionInList(optionId, 'original_price', originalPrice);
         calculateOptionCalculations(optionId);
     });
-
+    
     optionItem.find('.option-quantity').on('input', function() {
-        const inputValue = $(this).val();
-        let quantity;
+        let quantity = parseInt($(this).val()) || 0;
         
-        // Handle special case for -1 (unlimited/out of stock)
-        if (inputValue === '-1' || inputValue === '-') {
-            quantity = -1;
-        } else {
-            quantity = parseFloat(inputValue) || 0;
-        }
-        
-        // Allow -1, 0, and positive numbers
+        // Allow -1 for unlimited quantity
         if (quantity < -1) {
-            quantity = -1; // Cap at -1
+            quantity = -1;
             $(this).val(-1);
         }
         
         updateOptionInList(optionId, 'quantity', quantity);
         calculateOptionCalculations(optionId);
-        
-        // Visual feedback for special quantity values
-        if (quantity === -1) {
-            $(this).addClass('unlimited-quantity').removeClass('zero-quantity');
-            console.log(`✅ Option ${optionId} set to unlimited stock (-1)`);
-        } else if (quantity === 0) {
-            $(this).addClass('zero-quantity').removeClass('unlimited-quantity');
-            console.log(`⚠️ Option ${optionId} set to out of stock (0)`);
-        } else {
-            $(this).removeClass('unlimited-quantity zero-quantity');
-            console.log(`📊 Option ${optionId} quantity updated to: ${quantity}`);
-        }
     });
-
+    
     optionItem.find('.option-quantity-unit').on('change', function() {
         const unit = $(this).val();
         updateOptionInList(optionId, 'quantity_unit', unit);
         updateOptionInList(optionId, 'unit_measure_type', unit);
         calculateOptionCalculations(optionId);
     });
-
+    
     optionItem.find('.option-unit-measure').on('input', function() {
         const unitMeasure = parseFloat($(this).val()) || 100;
         updateOptionInList(optionId, 'unit_measure', unitMeasure);
         calculateOptionCalculations(optionId);
     });
-
+    
     optionItem.find('.option-available').on('change', function() {
         const isChecked = $(this).is(':checked');
-        const currentOptionId = $(this).closest('.option-item').data('option-id');
-        console.log('🔍 Option Available changed for', currentOptionId, ':', isChecked);
+        console.log('🔍 Option Available changed for', optionId, ':', isChecked);
+        updateOptionInList(optionId, 'is_available', isChecked);
         
-        // Update the correct option in the list
-        updateOptionInList(currentOptionId, 'is_available', isChecked);
-
         // Visual feedback
         if (isChecked) {
             $(this).closest('.option-item').removeClass('option-disabled').addClass('option-enabled');
         } else {
             $(this).closest('.option-item').removeClass('option-enabled').addClass('option-disabled');
         }
-        
-        console.log(`✅ Updated option ${currentOptionId} available status to: ${isChecked}`);
     });
-
+    
     optionItem.find('.option-featured').on('change', function() {
         const isFeatured = $(this).is(':checked');
-        const currentOptionId = $(this).closest('.option-item').data('option-id');
-        console.log('🔍 Option Featured changed for', currentOptionId, ':', isFeatured);
+        console.log('🔍 Option Featured changed for', optionId, ':', isFeatured);
+        updateOptionInList(optionId, 'is_featured', isFeatured);
         
-        // Update the correct option in the list
-        updateOptionInList(currentOptionId, 'is_featured', isFeatured);
-
         if (isFeatured) {
             // Uncheck other featured options
             $('.option-featured').not(this).prop('checked', false);
             optionsList.forEach(opt => {
-                if (opt.id !== currentOptionId) {
+                if (opt.id !== optionId) {
                     opt.is_featured = false;
                 }
             });
-
+            
             // Visual feedback
             $('.option-item').removeClass('option-featured-highlight');
             $(this).closest('.option-item').addClass('option-featured-highlight');
         } else {
             $(this).closest('.option-item').removeClass('option-featured-highlight');
         }
-
+        
         updateOptionsSummary();
         updateDefaultOptionSelect();
-        console.log(`✅ Updated option ${currentOptionId} featured status to: ${isFeatured}`);
     });
-
+    
     // Image upload
     optionItem.find('.option-image-input').change(function() {
         handleOptionImageUpload(this, optionId);
@@ -2514,28 +2094,7 @@ function updateOptionInList(optionId, field, value) {
 // Smart Auto-generation Functions
 function autoGenerateTitle(optionData) {
     const { quantity, quantity_unit, option_type, unit_measure } = optionData;
-
-    // Handle special case for unlimited quantity
-    if (quantity === -1) {
-        switch(option_type) {
-            case 'pack':
-                return `Pack (Unlimited Stock)`;
-            case 'bundle':
-                return `Bundle (Unlimited Stock)`;
-            case 'size':
-            case 'volume':
-                return `${quantity_unit} Pack (Unlimited Stock)`;
-            case 'quantity':
-                return `${quantity_unit} (Unlimited Stock)`;
-            case 'addon':
-                return `Add-on (Unlimited Stock)`;
-            case 'variant':
-                return `Variant (Unlimited Stock)`;
-            default:
-                return `${quantity_unit} (Unlimited Stock)`;
-        }
-    }
-
+    
     switch(option_type) {
         case 'pack':
             return `Pack of ${quantity} (${unit_measure}${quantity_unit} each)`;
@@ -2557,28 +2116,7 @@ function autoGenerateTitle(optionData) {
 
 function autoGenerateSubtitle(optionData) {
     const { quantity, quantity_unit, option_type, unit_measure } = optionData;
-
-    // Handle special case for unlimited quantity
-    if (quantity === -1) {
-        switch(option_type) {
-            case 'pack':
-                return `Unlimited stock available`;
-            case 'bundle':
-                return `Unlimited bundle stock`;
-            case 'size':
-            case 'volume':
-                return `Unlimited ${quantity_unit} stock`;
-            case 'quantity':
-                return `Unlimited stock`;
-            case 'addon':
-                return `Unlimited add-on stock`;
-            case 'variant':
-                return `Unlimited variant stock`;
-            default:
-                return `Unlimited stock`;
-        }
-    }
-
+    
     switch(option_type) {
         case 'pack':
             const totalQuantity = quantity * unit_measure;
@@ -2604,39 +2142,40 @@ function validateAndEnhanceOption(optionData) {
     const errors = [];
     const warnings = [];
     const autoCorrections = {};
-
+    
     // Price validation
     if (optionData.price > optionData.original_price) {
         errors.push('Price cannot be greater than Original Price');
     }
-
-    // Quantity validation - Allow -1 for unlimited/out of stock
+    
+    // Quantity validation
     if (optionData.quantity < -1) {
-        errors.push('Quantity cannot be less than -1 (use -1 for unlimited/out of stock)');
+        errors.push('Quantity cannot be less than -1 (unlimited)');
         autoCorrections.quantity = -1;
     }
-
-    // Auto-disable when quantity is 0, but allow -1 for unlimited
+    
+    // Auto-disable when quantity is 0
     if (optionData.quantity === 0) {
         autoCorrections.is_available = false;
         warnings.push('Option automatically disabled due to zero quantity');
-    } else if (optionData.quantity === -1) {
-        warnings.push('Quantity set to -1: Unlimited/Out of stock');
     }
-
-    // Low stock warning
-    if (optionData.quantity === -1) {
-        // Skip low stock warning for unlimited items
-    } else if (optionData.quantity > 0 && optionData.quantity < 10) {
+    
+    // Low stock warning (only for positive quantities)
+    if (optionData.quantity > 0 && optionData.quantity < 10) {
         warnings.push('Low stock warning: Only ' + optionData.quantity + ' units remaining');
     }
-
+    
+    // Unlimited quantity info
+    if (optionData.quantity === -1) {
+        warnings.push('Unlimited quantity enabled (-1)');
+    }
+    
     // Unit compatibility check
     const compatibleUnits = getCompatibleUnits(optionData.option_type);
     if (!compatibleUnits.includes(optionData.quantity_unit)) {
         warnings.push(`Unit "${optionData.quantity_unit}" may not be ideal for "${optionData.option_type}" type`);
     }
-
+    
     return { errors, warnings, autoCorrections };
 }
 
@@ -2667,56 +2206,56 @@ function getSmartUnitMeasureBase(quantity_unit) {
         'dozen': { base: 12, description: 'per dozen' },
         'custom': { base: 100, description: 'per 100 units' }
     };
-
+    
     return smartDefaults[quantity_unit] || { base: 100, description: 'per 100 units' };
 }
 
 function getOptionTypeDefaults(optionType) {
     const defaults = {
-        'size': {
-            suggested_units: ['g', 'kg'],
+        'size': { 
+            suggested_units: ['g', 'kg'], 
             default_unit: 'g',
             unit_measure: 100,
             description: 'Weight-based options'
         },
-        'volume': {
-            suggested_units: ['L', 'ml'],
+        'volume': { 
+            suggested_units: ['L', 'ml'], 
             default_unit: 'ml',
             unit_measure: 100,
             description: 'Volume-based options'
         },
-        'quantity': {
-            suggested_units: ['pcs', 'units'],
+        'quantity': { 
+            suggested_units: ['pcs', 'units'], 
             default_unit: 'pcs',
             unit_measure: 1,
             description: 'Count-based options'
         },
-        'pack': {
-            suggested_units: ['pcs', 'dozen'],
+        'pack': { 
+            suggested_units: ['pcs', 'dozen'], 
             default_unit: 'pcs',
             unit_measure: 1,
             description: 'Packaged options'
         },
-        'bundle': {
-            suggested_units: ['pcs', 'custom'],
+        'bundle': { 
+            suggested_units: ['pcs', 'custom'], 
             default_unit: 'pcs',
             unit_measure: 1,
             description: 'Mixed item bundles'
         },
-        'addon': {
-            suggested_units: ['pcs', 'units'],
+        'addon': { 
+            suggested_units: ['pcs', 'units'], 
             default_unit: 'pcs',
             unit_measure: 1,
             description: 'Additional items'
         },
-        'variant': {
-            suggested_units: ['pcs', 'units'],
+        'variant': { 
+            suggested_units: ['pcs', 'units'], 
             default_unit: 'pcs',
             unit_measure: 1,
             description: 'Product variants'
         }
     };
-
+    
     return defaults[optionType] || defaults['quantity'];
 }
 
@@ -2729,19 +2268,14 @@ function calculateOptionCalculations(optionId) {
     const unitMeasure = parseFloat(optionItem.find('.option-unit-measure').val()) || 100;
     const quantityUnit = optionItem.find('.option-quantity-unit').val() || 'g';
     const optionType = optionItem.find('.option-type').val();
-
+    
     // Enhanced unit price calculation
     let unitPrice = 0;
     let unitPriceDisplay = '';
     let savingsPercentage = 0;
     let savingsAmount = 0;
-
-    if (quantity === -1) {
-        // Handle unlimited/out of stock quantity
-        unitPrice = 0;
-        unitPriceDisplay = 'Unlimited';
-        optionItem.find('.option-unit-price-display').val(unitPriceDisplay);
-    } else if (quantity > 0) {
+    
+    if (quantity > 0) {
         switch(optionType) {
             case 'size':
             case 'volume':
@@ -2761,29 +2295,29 @@ function calculateOptionCalculations(optionId) {
                 unitPrice = price / quantity;
                 unitPriceDisplay = `₹${unitPrice.toFixed(2)}/${quantityUnit}`;
         }
-
+        
         optionItem.find('.option-unit-price-display').val(unitPriceDisplay);
     }
-
+    
     // Enhanced discount calculation
     if (originalPrice > 0 && originalPrice > price) {
         savingsAmount = originalPrice - price;
         savingsPercentage = ((savingsAmount / originalPrice) * 100);
-
+        
         optionItem.find('.option-discount').val(savingsAmount.toFixed(2));
-
+        
         // Add savings percentage display
         const savingsDisplay = `Save ₹${savingsAmount.toFixed(2)} (${savingsPercentage.toFixed(1)}%)`;
         if (optionItem.find('.option-savings-display').length) {
             optionItem.find('.option-savings-display').val(savingsDisplay);
         }
     }
-
+    
     // Update in optionsList
     updateOptionInList(optionId, 'unit_price', unitPrice);
     updateOptionInList(optionId, 'discount_amount', savingsAmount);
     updateOptionInList(optionId, 'savings_percentage', savingsPercentage);
-
+    
     // Auto-generate title and subtitle
     const optionData = {
         quantity: quantity,
@@ -2791,21 +2325,21 @@ function calculateOptionCalculations(optionId) {
         option_type: optionType,
         unit_measure: unitMeasure
     };
-
+    
     const autoTitle = autoGenerateTitle(optionData);
     const autoSubtitle = autoGenerateSubtitle(optionData);
-
+    
     // Only auto-fill if fields are empty
     if (!optionItem.find('.option-title').val()) {
         optionItem.find('.option-title').val(autoTitle);
         updateOptionInList(optionId, 'title', autoTitle);
     }
-
+    
     if (!optionItem.find('.option-subtitle').val()) {
         optionItem.find('.option-subtitle').val(autoSubtitle);
         updateOptionInList(optionId, 'subtitle', autoSubtitle);
     }
-
+    
     // Show validation feedback
     showValidationFeedback(optionId, optionData);
 }
@@ -2814,13 +2348,13 @@ function calculateOptionCalculations(optionId) {
 function showValidationFeedback(optionId, optionData) {
     const optionItem = $(`[data-option-id="${optionId}"]`);
     const validation = validateAndEnhanceOption(optionData);
-
+    
     // Clear previous feedback
     optionItem.find('.validation-feedback').remove();
-
+    
     // Create feedback container
     let feedbackHtml = '<div class="validation-feedback mt-2">';
-
+    
     // Show errors
     if (validation.errors.length > 0) {
         feedbackHtml += '<div class="alert alert-danger alert-sm">';
@@ -2830,7 +2364,7 @@ function showValidationFeedback(optionId, optionData) {
         });
         feedbackHtml += '</ul></div>';
     }
-
+    
     // Show warnings
     if (validation.warnings.length > 0) {
         feedbackHtml += '<div class="alert alert-warning alert-sm">';
@@ -2840,7 +2374,7 @@ function showValidationFeedback(optionId, optionData) {
         });
         feedbackHtml += '</ul></div>';
     }
-
+    
     // Show smart suggestions
     const optionType = optionData.option_type;
     if (optionType) {
@@ -2851,12 +2385,12 @@ function showValidationFeedback(optionId, optionData) {
         feedbackHtml += `<div>Suggested units: ${defaults.suggested_units.join(', ')}</div>`;
         feedbackHtml += '</div>';
     }
-
+    
     feedbackHtml += '</div>';
-
+    
     // Append feedback after the option item
     optionItem.append(feedbackHtml);
-
+    
     // Apply auto-corrections
     Object.keys(validation.autoCorrections).forEach(field => {
         const value = validation.autoCorrections[field];
@@ -2870,58 +2404,55 @@ function showValidationFeedback(optionId, optionData) {
 
 function handleOptionImageUpload(input, optionId) {
     const file = input.files[0];
-    if (!file) return;
-
-    // Validate file type
-    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-    if (!validTypes.includes(file.type)) {
-        alert('Please select a valid image file (JPEG, PNG, GIF, or WebP)');
-        return;
-    }
-
-    // Validate file size (max 5MB)
-    const maxSize = 5 * 1024 * 1024; // 5MB
-    if (file.size > maxSize) {
-        alert('Image file size must be less than 5MB');
-        return;
-    }
-
-    console.log('📸 Processing option image:', file.name, 'Type:', file.type, 'Size:', file.size);
-
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const optionItem = $(`[data-option-id="${optionId}"]`);
-
-        // Create responsive image HTML
-        const imageHtml = `
-            <img src="${e.target.result}"
-                 style="max-width: 100px; max-height: 100px; border-radius: 4px; object-fit: cover;"
-                 alt="Option Image"
-                 onload="console.log('✅ Option image loaded successfully:', this.src)"
-                 onerror="console.error('❌ Option image failed to load:', this.src)">
-        `;
-
-        optionItem.find('.option-image-preview').html(imageHtml);
-
-        // Store image data
-        const optionIndex = optionsList.findIndex(opt => opt.id === optionId);
-        if (optionIndex !== -1) {
-            optionsList[optionIndex].image = e.target.result;
-            console.log('💾 Option image stored in optionsList for option:', optionId);
+    if (file) {
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            alert('Please select a valid image file');
+            return;
         }
-
-        // Clear the file input
-        $(input).val('');
-
-        console.log('✅ Option image uploaded and displayed successfully');
-    };
-
-    reader.onerror = function() {
-        console.error('❌ Error reading option image file');
-        alert('Error reading image file. Please try again.');
-    };
-
-    reader.readAsDataURL(file);
+        
+        // Validate file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            alert('Image size should be less than 5MB');
+            return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const optionItem = $(`[data-option-id="${optionId}"]`);
+            
+            // Create image element with error handling
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.style.cssText = 'max-width: 100px; max-height: 100px; border-radius: 4px;';
+            img.onerror = function() {
+                this.style.display = 'none';
+                const errorDiv = this.nextElementSibling;
+                if (errorDiv) errorDiv.style.display = 'block';
+            };
+            
+            // Create error message div
+            const errorDiv = document.createElement('div');
+            errorDiv.style.cssText = 'display:none; color:#999; font-size:12px; margin-top:5px;';
+            errorDiv.textContent = 'Image not accessible';
+            
+            // Clear previous content and add new
+            optionItem.find('.option-image-preview').empty().append(img).append(errorDiv);
+            
+            // Store image data as base64
+            const optionIndex = optionsList.findIndex(opt => opt.id === optionId);
+            if (optionIndex !== -1) {
+                optionsList[optionIndex].image = e.target.result;
+                console.log('✅ Option image stored as base64 for option:', optionId);
+            }
+        };
+        
+        reader.onerror = function() {
+            alert('Error reading image file. Please try again.');
+        };
+        
+        reader.readAsDataURL(file);
+    }
 }
 
 function updateOptionNumbers() {
@@ -2935,7 +2466,7 @@ function updateOptionsSummary() {
         const prices = optionsList.map(opt => opt.price).filter(p => p > 0);
         const minPrice = Math.min(...prices);
         const maxPrice = Math.max(...prices);
-
+        
         $('.options-summary').show();
         $('.summary-content').html(`
             <div class="row">
@@ -2959,7 +2490,7 @@ function updateDefaultOptionSelect() {
     const select = $('#default_option');
     select.empty();
     select.append('<option value="">Select default option</option>');
-
+    
     optionsList.forEach(option => {
         select.append(`<option value="${option.id}">${option.title}</option>`);
     });
@@ -2969,16 +2500,16 @@ function updateDefaultOptionSelect() {
 function filterSubcategoriesByCategories() {
     var selectedCategories = $('#food_category').val() || [];
     console.log('🔍 Filtering subcategories for selected categories:', selectedCategories);
-
+    
     if (selectedCategories.length === 0) {
         $('#food_subcategory option').show();
         return;
     }
-
+    
     $('#food_subcategory option').each(function() {
         var $option = $(this);
         var parentCategoryId = $option.attr('data-parent');
-
+        
         if ($option.val() === "") {
             $option.show();
         } else if (parentCategoryId && selectedCategories.includes(parentCategoryId)) {
@@ -2989,14 +2520,14 @@ function filterSubcategoriesByCategories() {
             console.log('❌ Hiding subcategory:', $option.text(), 'for parent:', parentCategoryId);
         }
     });
-
+    
     $('#food_subcategory option:selected').each(function() {
         if (!$(this).is(':visible') && $(this).val() !== "") {
             $(this).prop('selected', false);
             console.log('🗑️ Deselected hidden subcategory:', $(this).text());
         }
     });
-
+    
     updateSelectedSubcategoryTags();
 }
 
