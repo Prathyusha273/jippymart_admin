@@ -1432,6 +1432,11 @@ foreach ($countries as $keycountry => $valuecountry) {
         };
 
         var vendorCuisine = $("#restaurant_vendor_cuisines option:selected").val();
+        
+        // Debug logging
+        console.log('Selected vendor cuisine value:', vendorCuisine);
+        console.log('Selected vendor cuisine text:', $("#restaurant_vendor_cuisines option:selected").text());
+        console.log('All vendor cuisine options:', $('#restaurant_vendor_cuisines option').map(function() { return {value: $(this).val(), text: $(this).text()}; }).get());
 
         if(restaurantname=='') {
             $(".error_top").show();
@@ -1443,7 +1448,7 @@ foreach ($countries as $keycountry => $valuecountry) {
             $(".error_top").html("");
             $(".error_top").append("<p>{{trans('lang.restaurant_cuisine_error')}}</p>");
             window.scrollTo(0,0);
-        } else if(vendorCuisine=='') {
+        } else if(!vendorCuisine || vendorCuisine === '' || vendorCuisine === null || vendorCuisine === undefined) {
             $(".error_top").show();
             $(".error_top").html("");
             $(".error_top").append("<p>Please select the vendor cuisine.</p>");

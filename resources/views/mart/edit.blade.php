@@ -1,4 +1,22 @@
 @extends('layouts.app')
+{{-- 
+    MART EDIT FORM - FIXED VERSION
+    
+    Issues Fixed:
+    1. Removed undefined vendorCuisine validation
+    2. Fixed database reference (geoFirestore -> database)
+    3. Fixed redirect routes (restaurants -> marts)
+    4. Added proper loading states and timeout handling
+    5. Enhanced error handling with timeout clearing
+    6. Fixed activity logging references
+    7. Added proper button state management
+    
+    Key Features:
+    - Proper error handling for all async operations
+    - Loading states with timeout protection
+    - Correct database operations
+    - Proper redirect handling
+--}}
 @section('content')
 <?php
 $countries = file_get_contents(public_path('countriesdata.json'));
@@ -749,6 +767,21 @@ foreach ($countries as $keycountry => $valuecountry) {
 </div>
 </div>
 @endsection
+@endsection
+
+<style>
+/* Required field indicator */
+.required-field {
+    color: #dc3545;
+    font-weight: bold;
+}
+/* Loading state for edit button */
+.edit-form-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+</style>
+
 @section('scripts')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.26.0/moment.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/compressorjs/1.1.1/compressor.min.js" integrity="sha512-VaRptAfSxXFAv+vx33XixtIVT9A/9unb1Q8fp63y1ljF+Sbka+eMJWoDAArdm7jOYuLQHVx5v60TQ+t3EA8weA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -1469,11 +1502,6 @@ foreach ($countries as $keycountry => $valuecountry) {
                 $(".error_top").html("");
                 $(".error_top").append("<p>{{trans('lang.restaurant_name_error')}}</p>");
                 window.scrollTo(0, 0);
-            } else if (vendorCuisine == '') {
-                $(".error_top").show();
-                $(".error_top").html("");
-                $(".error_top").append("<p>Please select the vendor cuisine.</p>");
-                window.scrollTo(0, 0);
             } else if (categoryIDs.length === 0 || (categoryIDs.length === 1 && categoryIDs[0] === '')) {
                 $(".error_top").show();
                 $(".error_top").html("");
@@ -1525,7 +1553,20 @@ foreach ($countries as $keycountry => $valuecountry) {
                 $(".error_top").append("<p>{{trans('lang.restaurant_description_error')}}</p>");
                 window.scrollTo(0, 0);
             } else {
+                // Show loading state
                 jQuery("#data-table_processing").show();
+                $('.edit-form-btn').prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Updating Mart...');
+
+                // Add timeout to prevent infinite loading
+                var saveTimeout = setTimeout(function() {
+                    jQuery("#data-table_processing").hide();
+                    $('.edit-form-btn').prop('disabled', false).html('<i class="fa fa-save"></i> {{trans("lang.save")}}');
+                    $(".error_top").show();
+                    $(".error_top").html("");
+                    $(".error_top").append("<p>Request timed out. Please try again.</p>");
+                    window.scrollTo(0,0);
+                }, 60000); // 60 seconds timeout
+
                 var delivery_charges_per_km = parseInt($("#delivery_charges_per_km").val());
                 var minimum_delivery_charges = parseInt($("#minimum_delivery_charges").val());
                 var minimum_delivery_charges_within_km = parseInt($("#minimum_delivery_charges_within_km").val());
@@ -1538,8 +1579,8 @@ foreach ($countries as $keycountry => $valuecountry) {
                 await storeStoryData().then(async (resStoryVid) => {
                     await storeImageData().then(async (IMG) => {
                         await storeGalleryImageData().then(async (GalleryIMG) => {
-                            await storeMenuImageData().then(async (MenuIMG) => {
-                                    geoFirestore.collection('vendors').doc(id).update({
+                                                            await storeMenuImageData().then(async (MenuIMG) => {
+                                    database.collection('vendors').doc(id).update({
                                         'title': restaurantname,
                                         'description': description,
                                         'latitude': latitude,
@@ -1549,7 +1590,6 @@ foreach ($countries as $keycountry => $valuecountry) {
                                         'photos': GalleryIMG,
                                         'categoryID': categoryIDs,
                                         'categoryTitle': categoryTitles,
-                                        'vendorCuisineID': vendorCuisine,
                                         'countryCode': rescountryCode,
                                         'phonenumber': phonenumber,
                                         'coordinates': coordinates,
@@ -1568,11 +1608,11 @@ foreach ($countries as $keycountry => $valuecountry) {
                                         'zoneId': zoneId,
                                         'adminCommission':adminCommission
                                     }).then(async function(result) {
-                                        console.log('✅ Restaurant updated successfully, now logging activity...');
+                                        console.log('✅ Mart updated successfully, now logging activity...');
                                         try {
                                             if (typeof logActivity === 'function') {
-                                                console.log('🔍 Calling logActivity for restaurant update...');
-                                                await logActivity('restaurants', 'updated', 'Updated restaurant: ' + restaurantname);
+                                                console.log('🔍 Calling logActivity for mart update...');
+                                                await logActivity('marts', 'updated', 'Updated mart: ' + restaurantname);
                                                 console.log('✅ Activity logging completed successfully');
                                             } else {
                                                 console.error('❌ logActivity function is not available');
@@ -1581,15 +1621,17 @@ foreach ($countries as $keycountry => $valuecountry) {
                                             console.error('❌ Error calling logActivity:', error);
                                         }
                                         
+                                        clearTimeout(saveTimeout);
+                                        jQuery("#data-table_processing").hide();
+                                        $('.edit-form-btn').prop('disabled', false).html('<i class="fa fa-save"></i> {{trans("lang.save")}}');
+                                        
                                         if (resStoryVid.length > 0 || story_thumbnail != '') {
                                             if (resStoryVid.length > 0 && story_thumbnail == '') {
-                                                jQuery("#data-table_processing").hide();
                                                 $(".error_top").show();
                                                 $(".error_top").html("");
                                                 $(".error_top").append("<p>{{trans('lang.story_error')}}</p>");
                                                 window.scrollTo(0, 0);
                                             } else if (story_thumbnail && resStoryVid.length == 0) {
-                                                jQuery("#data-table_processing").hide();
                                                 $(".error_top").show();
                                                 $(".error_top").html("");
                                                 $(".error_top").append("<p>{{trans('lang.story_error')}}</p>");
@@ -1601,41 +1643,47 @@ foreach ($countries as $keycountry => $valuecountry) {
                                                     'videoThumbnail': IMG.storyThumbnailImage,
                                                     'videoUrl': resStoryVid,
                                                 }).then(function(result) {
-                                                    jQuery("#data-table_processing").hide();
-                                                    window.location.href = '{{ route("restaurants")}}';
+                                                    window.location.href = '{{ route("marts")}}';
                                                 });
                                             }
                                         } else {
-                                            jQuery("#data-table_processing").hide();
-                                            window.location.href = '{{ route("restaurants")}}';
+                                            window.location.href = '{{ route("marts")}}';
                                         }
                                     });
                             }).catch(err => {
+                                clearTimeout(saveTimeout);
                                 jQuery("#data-table_processing").hide();
+                                $('.edit-form-btn').prop('disabled', false).html('<i class="fa fa-save"></i> {{trans("lang.save")}}');
                                 $(".error_top").show();
                                 $(".error_top").html("");
-                                $(".error_top").append("<p>" + err + "</p>");
+                                $(".error_top").append("<p>Error updating mart: " + err + "</p>");
                                 window.scrollTo(0, 0);
                             });
                         }).catch(err => {
+                            clearTimeout(saveTimeout);
                             jQuery("#data-table_processing").hide();
+                            $('.edit-form-btn').prop('disabled', false).html('<i class="fa fa-save"></i> {{trans("lang.save")}}');
                             $(".error_top").show();
                             $(".error_top").html("");
-                            $(".error_top").append("<p>" + err + "</p>");
+                            $(".error_top").append("<p>Error updating mart: " + err + "</p>");
                             window.scrollTo(0, 0);
                         });
                     }).catch(err => {
+                        clearTimeout(saveTimeout);
                         jQuery("#data-table_processing").hide();
+                        $('.edit-form-btn').prop('disabled', false).html('<i class="fa fa-save"></i> {{trans("lang.save")}}');
                         $(".error_top").show();
                         $(".error_top").html("");
-                        $(".error_top").append("<p>" + err + "</p>");
+                        $(".error_top").append("<p>Error updating mart: " + err + "</p>");
                         window.scrollTo(0, 0);
                     });
                 }).catch(err => {
+                    clearTimeout(saveTimeout);
                     jQuery("#data-table_processing").hide();
+                    $('.edit-form-btn').prop('disabled', false).html('<i class="fa fa-save"></i> {{trans("lang.save")}}');
                     $(".error_top").show();
                     $(".error_top").html("");
-                    $(".error_top").append("<p>" + err + "</p>");
+                    $(".error_top").append("<p>Error updating mart: " + err + "</p>");
                     window.scrollTo(0, 0);
                 });
             }

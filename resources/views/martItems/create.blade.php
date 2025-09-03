@@ -175,6 +175,13 @@
                             </div>
                         </div>
                         <div class="form-group row width-50">
+                            <label class="col-3 control-label">Section</label>
+                            <div class="col-7">
+                                <input type="text" class="form-control" id="section_info" readonly>
+                                <div class="form-text text-muted">Auto-fetched from selected subcategory</div>
+                            </div>
+                        </div>
+                        <div class="form-group row width-50">
                             <label class="col-3 control-label">{{ trans('lang.item_quantity') }}</label>
                             <div class="col-7">
                                 <input type="number" class="form-control item_quantity" value="-1" min="-1" step="1">
@@ -601,6 +608,9 @@
             $('#food_subcategory').on('change', function() {
                 console.log('🔍 Selected subcategory value:', $(this).val());
                 console.log('🔍 Selected subcategory text:', $(this).find('option:selected').text());
+                
+                // Auto-fetch section from selected subcategory
+                updateSectionFromSubcategory();
             });
         }).catch(function(error) {
             console.error('❌ Create page - Error fetching subcategories:', error);
@@ -797,6 +807,7 @@
                     vendorID: restaurant,
                     categoryID: category,
                     subcategoryID: subcategory || '', // Add subcategory
+                    section: $('#section_info').val() || 'General', // Add section
                     photo: photo || '',
                     description: description,
                     publish: foodPublish,
@@ -874,6 +885,7 @@
                     vendorID: restaurant,
                     categoryID: category,
                     subcategoryID: subcategory || '', // Add subcategory
+                    section: $('#section_info').val() || 'General', // Add section
                     photo: photo || '',
                     description: description,
                     publish: foodPublish,
@@ -1525,6 +1537,60 @@ $(document).ready(function() {
     });
 });
 
+// Function to update section from selected subcategory
+function updateSectionFromSubcategory() {
+    var selectedSubcategory = $('#food_subcategory').val();
+    if (selectedSubcategory && selectedSubcategory.length > 0) {
+        // Get the first selected subcategory
+        var subcategoryId = Array.isArray(selectedSubcategory) ? selectedSubcategory[0] : selectedSubcategory;
+        
+        if (subcategoryId && subcategoryId !== '') {
+            console.log('🔍 Fetching section for subcategory ID:', subcategoryId);
+            
+            // Fetch the subcategory document to get its parent category info
+            database.collection('mart_subcategories').doc(subcategoryId).get().then(function(doc) {
+                if (doc.exists) {
+                    var subcategoryData = doc.data();
+                    console.log('📋 Subcategory data:', subcategoryData);
+                    
+                    if (subcategoryData.parent_category_id) {
+                        // Fetch the parent category to get the section
+                        database.collection('mart_categories').doc(subcategoryData.parent_category_id).get().then(function(categoryDoc) {
+                            if (categoryDoc.exists) {
+                                var categoryData = categoryDoc.data();
+                                console.log('📋 Parent category data:', categoryData);
+                                
+                                var section = categoryData.section || 'General';
+                                $('#section_info').val(section);
+                                console.log('✅ Section updated to:', section);
+                            } else {
+                                console.warn('⚠️ Parent category not found');
+                                $('#section_info').val('General');
+                            }
+                        }).catch(function(error) {
+                            console.error('❌ Error fetching parent category:', error);
+                            $('#section_info').val('General');
+                        });
+                    } else {
+                        console.warn('⚠️ Subcategory has no parent category');
+                        $('#section_info').val('General');
+                    }
+                } else {
+                    console.warn('⚠️ Subcategory not found');
+                    $('#section_info').val('General');
+                }
+            }).catch(function(error) {
+                console.error('❌ Error fetching subcategory:', error);
+                $('#section_info').val('General');
+            });
+        } else {
+            $('#section_info').val('');
+        }
+    } else {
+        $('#section_info').val('');
+    }
+}
+
 function updateSelectedSubcategoryTags() {
     var selected = $('#food_subcategory').val() || [];
     var html = '';
@@ -1536,6 +1602,9 @@ function updateSelectedSubcategoryTags() {
         }
     });
     $('#selected_subcategories').html(html);
+    
+    // Update section when subcategory tags change
+    updateSectionFromSubcategory();
 }
 
 // Options Management Functions

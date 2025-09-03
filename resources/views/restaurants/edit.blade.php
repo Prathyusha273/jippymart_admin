@@ -11,6 +11,7 @@ foreach ($countries as $keycountry => $valuecountry) {
     $newcountriesjs[$valuecountry->phoneCode] = $valuecountry->code;
 }
 ?>
+
 <div class="page-wrapper">
     <div class="row page-titles">
         <div class="col-md-5 align-self-center">
@@ -1308,8 +1309,14 @@ foreach ($countries as $keycountry => $valuecountry) {
                     categoryTitles.push($(this).text());
                 }
             });
-            var vendorCuisine = $("#restaurant_vendor_cuisines option:selected").val();
-            var address = $(".restaurant_address").val();
+                    var vendorCuisine = $("#restaurant_vendor_cuisines option:selected").val();
+        
+        // Debug logging
+        console.log('Selected vendor cuisine value:', vendorCuisine);
+        console.log('Selected vendor cuisine text:', $("#restaurant_vendor_cuisines option:selected").text());
+        console.log('All vendor cuisine options:', $('#restaurant_vendor_cuisines option').map(function() { return {value: $(this).val(), text: $(this).text()}; }).get());
+        
+        var address = $(".restaurant_address").val();
             var latitude = parseFloat($(".restaurant_latitude").val());
             var longitude = parseFloat($(".restaurant_longitude").val());
             var description = $(".restaurant_description").val();
@@ -1498,15 +1505,15 @@ foreach ($countries as $keycountry => $valuecountry) {
                 $(".error_top").html("");
                 $(".error_top").append("<p>{{trans('lang.restaurant_name_error')}}</p>");
                 window.scrollTo(0, 0);
-            } else if (vendorCuisine == '') {
-                $(".error_top").show();
-                $(".error_top").html("");
-                $(".error_top").append("<p>Please select the vendor cuisine.</p>");
-                window.scrollTo(0, 0);
             } else if (categoryIDs.length === 0 || (categoryIDs.length === 1 && categoryIDs[0] === '')) {
                 $(".error_top").show();
                 $(".error_top").html("");
                 $(".error_top").append("<p>{{trans('lang.restaurant_cuisine_error')}}</p>");
+                window.scrollTo(0, 0);
+            } else if (!vendorCuisine || vendorCuisine === '' || vendorCuisine === null || vendorCuisine === undefined) {
+                $(".error_top").show();
+                $(".error_top").html("");
+                $(".error_top").append("<p>Please select the vendor cuisine.</p>");
                 window.scrollTo(0, 0);
             } else if (phonenumber == '') {
                 $(".error_top").show();

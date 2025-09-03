@@ -1,59 +1,64 @@
+
 <IfModule mod_headers.c>
-    # Enable CORS for all domains (or change "*" to a specific domain)
-    Header always set Access-Control-Allow-Origin "*"
+    # Allow CORS from your domain (update accordingly)
+    Header always set Access-Control-Allow-Origin "https://yourdomain.com"
     Header always set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
     Header always set Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With"
 </IfModule>
 
 <IfModule mod_rewrite.c>
-
     <IfModule mod_negotiation.c>
         Options -MultiViews
     </IfModule>
 
     RewriteEngine On
 
-    # Allow preflight OPTIONS requests to return OK
+    # Handle CORS preflight requests properly
     RewriteCond %{REQUEST_METHOD} OPTIONS
-    RewriteRule ^(.*)$ $1 [R=200,L]
+    RewriteRule ^(.*)$ - [R=200,L]
 
-    RewriteCond %{REQUEST_FILENAME} -d [OR]
-    RewriteCond %{REQUEST_FILENAME} -f
-    RewriteRule ^ ^$1 [N]
-
-    RewriteCond %{REQUEST_URI} (\.\w+$) [NC]
-    RewriteRule ^(.*)$ public/$1
-
+    # Send all requests to Laravel index.php
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteRule ^ server.php
-
+    RewriteRule ^ index.php [L]
 </IfModule>
 
-# Set PHP version (you already had this)
-AddHandler application/x-httpd-php81 .php .php5 .php4 .php3
+# Force PHP 8.1
+AddHandler application/x-httpd-php81 .php
 
 
 
+#<IfModule mod_headers.c>
+#     # Enable CORS for all domains (or change "*" to a specific domain)
+#     Header always set Access-Control-Allow-Origin "*"
+#     Header always set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+#     Header always set Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With"
+# </IfModule>
 
-# <ifmodule mod_rewrite.c>
- 
-#     <ifmodule mod_negotiation.c>
+# <IfModule mod_rewrite.c>
+
+#     <IfModule mod_negotiation.c>
 #         Options -MultiViews
-#     </ifmodule>
-     
+#     </IfModule>
+
 #     RewriteEngine On
-     
+
+#     # Allow preflight OPTIONS requests to return OK
+#     RewriteCond %{REQUEST_METHOD} OPTIONS
+#     RewriteRule ^(.*)$ $1 [R=200,L]
+
 #     RewriteCond %{REQUEST_FILENAME} -d [OR]
 #     RewriteCond %{REQUEST_FILENAME} -f
 #     RewriteRule ^ ^$1 [N]
- 
+
 #     RewriteCond %{REQUEST_URI} (\.\w+$) [NC]
-#     RewriteRule ^(.*)$ public/$1 
- 
+#     RewriteRule ^(.*)$ public/$1
+
 #     RewriteCond %{REQUEST_FILENAME} !-d
 #     RewriteCond %{REQUEST_FILENAME} !-f
 #     RewriteRule ^ server.php
- 
-# </ifmodule>
+
+# </IfModule>
+
+# # Set PHP version (you already had this)
 # AddHandler application/x-httpd-php81 .php .php5 .php4 .php3

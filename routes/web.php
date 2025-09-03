@@ -107,12 +107,7 @@ Route::middleware(['permission:marts,marts.view'])->group(function () {
 Route::get('/marts/foods/{id}', [App\Http\Controllers\MartController::class, 'foods'])->name('marts.foods');
 Route::get('/marts/orders/{id}', [App\Http\Controllers\MartController::class, 'orders'])->name('marts.orders');
 
-// Restaurant Schedule Routes (Temporarily without middleware for testing)
-Route::get('/restaurants/schedule', [App\Http\Controllers\RestaurantScheduleController::class, 'getSchedule'])->name('restaurants.schedule.get');
-Route::post('/restaurants/schedule', [App\Http\Controllers\RestaurantScheduleController::class, 'updateSchedule'])->name('restaurants.schedule.update');
-Route::get('/restaurants/schedule/next-action', [App\Http\Controllers\RestaurantScheduleController::class, 'getNextAction'])->name('restaurants.schedule.next-action');
-Route::post('/restaurants/schedule/trigger', [App\Http\Controllers\RestaurantScheduleController::class, 'triggerAction'])->name('restaurants.schedule.trigger');
-Route::get('/restaurants/schedule/status', [App\Http\Controllers\RestaurantScheduleController::class, 'getStatus'])->name('restaurants.schedule.status');
+// Restaurant Schedule Routes have been removed - auto-schedule functionality disabled
 
 Route::middleware(['permission:coupons,coupons'])->group(function () {
     Route::get('/coupons', [App\Http\Controllers\CouponController::class, 'index'])->name('coupons');
@@ -725,3 +720,20 @@ Route::get('/vendors/download-template', [App\Http\Controllers\RestaurantControl
 // Restaurant bulk import routes
 Route::post('/restaurants/bulk-import', [App\Http\Controllers\RestaurantController::class, 'bulkUpdate'])->name('restaurants.bulk-import');
 Route::get('/restaurants/download-template', [App\Http\Controllers\RestaurantController::class, 'downloadBulkUpdateTemplate'])->name('restaurants.download-template');
+
+// Local Performance Optimization Routes
+Route::prefix('performance')->group(function () {
+    Route::get('/', [App\Http\Controllers\LocalPerformanceController::class, 'index'])->name('performance.index');
+    Route::get('/dashboard-stats', [App\Http\Controllers\LocalPerformanceController::class, 'getDashboardStats'])->name('performance.dashboard-stats');
+    Route::post('/clear-cache', [App\Http\Controllers\LocalPerformanceController::class, 'clearCacheByCategory'])->name('performance.clear-cache');
+    Route::post('/optimize', [App\Http\Controllers\LocalPerformanceController::class, 'optimizeApplication'])->name('performance.optimize');
+    Route::get('/cache-stats', [App\Http\Controllers\LocalPerformanceController::class, 'getCacheStats'])->name('performance.cache-stats');
+    Route::get('/test-cache', [App\Http\Controllers\LocalPerformanceController::class, 'testCachePerformance'])->name('performance.test-cache');
+});
+
+// Database Cache Testing Routes
+Route::prefix('cache-test')->group(function () {
+    Route::get('/database', [App\Http\Controllers\CacheTestController::class, 'testDatabaseCache'])->name('cache-test.database');
+    Route::get('/session', [App\Http\Controllers\CacheTestController::class, 'testSessionStorage'])->name('cache-test.session');
+    Route::get('/config', [App\Http\Controllers\CacheTestController::class, 'getCacheConfig'])->name('cache-test.config');
+});
