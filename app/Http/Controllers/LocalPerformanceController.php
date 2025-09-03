@@ -295,3 +295,4 @@ class LocalPerformanceController extends Controller
         }
     }
 }
+
