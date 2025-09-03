@@ -1,13 +1,15 @@
+// jQuery Validation Plugin - Custom Configuration
+// This file is for form validation, not Firebase configuration
 
-var firebaseConfig = {
-    apiKey: $.decrypt($.cookie('XSRF-TOKEN-AK')),
-    authDomain: $.decrypt($.cookie('XSRF-TOKEN-AD')),
-    databaseURL: $.decrypt($.cookie('XSRF-TOKEN-DU')),
-    projectId: $.decrypt($.cookie('XSRF-TOKEN-PI')),
-    storageBucket: $.decrypt($.cookie('XSRF-TOKEN-SB')),
-    messagingSenderId: $.decrypt($.cookie('XSRF-TOKEN-MS')),
-    appId: $.decrypt($.cookie('XSRF-TOKEN-AI')),
-    measurementId: $.decrypt($.cookie('XSRF-TOKEN-MI'))
+// Remove any existing Firebase config to prevent conflicts
+if (typeof firebase !== 'undefined' && firebase.apps.length > 0) {
+    console.log('✅ Firebase already initialized in main layout');
+} else {
+    console.log('⚠️ Firebase not yet initialized - will be handled by main layout');
 }
 
-firebase.initializeApp(firebaseConfig); 
+// Add any custom validation rules here if needed
+// Example:
+// $.validator.addMethod("customRule", function(value, element) {
+//     return this.optional(element) || /^[a-zA-Z0-9]+$/.test(value);
+// }, "Please enter a valid value"); 

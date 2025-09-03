@@ -19,6 +19,13 @@ Auth::routes();
 Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 Route::get('/dashboard', [App\Http\Controllers\HomeController::class, 'index'])->name('dashboard');
 
+// New Dashboard Routes with Caching
+Route::prefix('dashboard')->group(function () {
+    Route::get('/stats', [App\Http\Controllers\DashboardController::class, 'getStats'])->name('dashboard.stats');
+    Route::post('/cache/clear', [App\Http\Controllers\DashboardController::class, 'clearCache'])->name('dashboard.cache.clear');
+    Route::get('/cache/stats', [App\Http\Controllers\DashboardController::class, 'getCacheStats'])->name('dashboard.cache.stats');
+});
+
 Route::get('lang/change', [App\Http\Controllers\LangController::class, 'change'])->name('changeLang');
 
 Route::post('payments/razorpay/createorder', [App\Http\Controllers\RazorPayController::class, 'createOrderid']);

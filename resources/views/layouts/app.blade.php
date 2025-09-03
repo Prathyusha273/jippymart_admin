@@ -55,6 +55,44 @@
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
 
+    <!-- Firebase Configuration and Initialization -->
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "{{ env('FIREBASE_APIKEY', 'AIzaSyAf_lICoxPh8qKE1QnVkmQYTFJXKkYmRXU') }}",
+            authDomain: "{{ env('FIREBASE_AUTH_DOMAIN', 'jippymart-27c08.firebaseapp.com') }}",
+            databaseURL: "{{ env('FIREBASE_DATABASE_URL', 'https://jippymart-27c08-default-rtdb.firebaseio.com') }}",
+            projectId: "{{ env('FIREBASE_PROJECT_ID', 'jippymart-27c08') }}",
+            storageBucket: "{{ env('FIREBASE_STORAGE_BUCKET', 'jippymart-27c08.firebasestorage.app') }}",
+            messagingSenderId: "{{ env('FIREBASE_MESSAAGING_SENDER_ID', '592427852800') }}",
+            appId: "{{ env('FIREBASE_APP_ID', '1:592427852800:web:f74df8ceb2a4b597d1a4e5') }}",
+            measurementId: "{{ env('FIREBASE_MEASUREMENT_ID', 'G-ZYBQYPZWCF') }}"
+        };
+
+        // Initialize Firebase only if not already initialized
+        if (!firebase.apps.length) {
+            try {
+                firebase.initializeApp(firebaseConfig);
+                console.log('✅ Firebase initialized successfully');
+                
+                // Initialize Firestore database globally
+                window.database = firebase.firestore();
+                window.storage = firebase.storage();
+                // Temporarily disable auth to avoid errors
+                // window.auth = firebase.auth();
+                
+                console.log('✅ Firebase services initialized (Auth disabled temporarily)');
+            } catch (error) {
+                console.error('❌ Firebase initialization error:', error);
+            }
+        } else {
+            console.log('✅ Firebase already initialized');
+            window.database = firebase.firestore();
+            window.storage = firebase.storage();
+            // window.auth = firebase.auth();
+        }
+    </script>
+
     <!-- Enhanced Notification Bell Styles -->
     <style>
         .nav-item .fa-bell {
