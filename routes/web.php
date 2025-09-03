@@ -19,13 +19,6 @@ Auth::routes();
 Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 Route::get('/dashboard', [App\Http\Controllers\HomeController::class, 'index'])->name('dashboard');
 
-// New Dashboard Routes with Caching
-Route::prefix('dashboard')->group(function () {
-    Route::get('/stats', [App\Http\Controllers\DashboardController::class, 'getStats'])->name('dashboard.stats');
-    Route::post('/cache/clear', [App\Http\Controllers\DashboardController::class, 'clearCache'])->name('dashboard.cache.clear');
-    Route::get('/cache/stats', [App\Http\Controllers\DashboardController::class, 'getCacheStats'])->name('dashboard.cache.stats');
-});
-
 Route::get('lang/change', [App\Http\Controllers\LangController::class, 'change'])->name('changeLang');
 
 Route::post('payments/razorpay/createorder', [App\Http\Controllers\RazorPayController::class, 'createOrderid']);
@@ -707,3 +700,20 @@ Route::get('/vendors/download-template', [App\Http\Controllers\RestaurantControl
 // Restaurant bulk import routes
 Route::post('/restaurants/bulk-import', [App\Http\Controllers\RestaurantController::class, 'bulkUpdate'])->name('restaurants.bulk-import');
 Route::get('/restaurants/download-template', [App\Http\Controllers\RestaurantController::class, 'downloadBulkUpdateTemplate'])->name('restaurants.download-template');
+
+// Local Performance Optimization Routes
+Route::prefix('performance')->group(function () {
+    Route::get('/', [App\Http\Controllers\LocalPerformanceController::class, 'index'])->name('performance.index');
+    Route::get('/dashboard-stats', [App\Http\Controllers\LocalPerformanceController::class, 'getDashboardStats'])->name('performance.dashboard-stats');
+    Route::post('/clear-cache', [App\Http\Controllers\LocalPerformanceController::class, 'clearCacheByCategory'])->name('performance.clear-cache');
+    Route::post('/optimize', [App\Http\Controllers\LocalPerformanceController::class, 'optimizeApplication'])->name('performance.optimize');
+    Route::get('/cache-stats', [App\Http\Controllers\LocalPerformanceController::class, 'getCacheStats'])->name('performance.cache-stats');
+    Route::get('/test-cache', [App\Http\Controllers\LocalPerformanceController::class, 'testCachePerformance'])->name('performance.test-cache');
+});
+
+// Database Cache Testing Routes
+Route::prefix('cache-test')->group(function () {
+    Route::get('/database', [App\Http\Controllers\CacheTestController::class, 'testDatabaseCache'])->name('cache-test.database');
+    Route::get('/session', [App\Http\Controllers\CacheTestController::class, 'testSessionStorage'])->name('cache-test.session');
+    Route::get('/config', [App\Http\Controllers\CacheTestController::class, 'getCacheConfig'])->name('cache-test.config');
+});
