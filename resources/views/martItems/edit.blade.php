@@ -404,7 +404,7 @@
                     <?php if(isset($_GET['eid']) && $_GET['eid'] != ''){?>
                         <a href="{{route('marts.mart-items',$_GET['eid'])}}" class="btn btn-default"><i class="fa fa-undo"></i>{{trans('lang.cancel')}}</a>
                     <?php }else{ ?>
-                        <a href="{!! route('foods') !!}" class="btn btn-default"><i class="fa fa-undo"></i>{{trans('lang.cancel')}}</a>
+                        <a href="{!! route('mart-items') !!}" class="btn btn-default"><i class="fa fa-undo"></i>{{trans('lang.cancel')}}</a>
                     <?php } ?>
                 </div>
             </div>
@@ -871,7 +871,7 @@
                     .text(data.title));
             }
             updateSelectedSubcategoryTags();
-            
+
             // Load section from existing item data
             if (product.section) {
                 $('#section_info').val(product.section);
@@ -1022,11 +1022,6 @@
                     console.log('✅ Seasonal checkbox checked');
                 }
 
-                // Load existing options if any - moved here after product data is loaded
-                console.log('🔍 Checking for options in product:', product);
-                console.log('🔍 Product has_options:', product?.has_options);
-                console.log('🔍 Product options:', product?.options);
-                console.log('🔍 Options length:', product?.options?.length);
 
                 if (product && product.has_options && product.options && product.options.length > 0) {
                     console.log('✅ Loading existing options...');
@@ -1493,6 +1488,29 @@
                 $("#product_image").val('');
             }
         });
+
+        // Add direct file input handler as fallback
+        $("#product_image").on('change', function() {
+            if (this.files && this.files[0]) {
+                var file = this.files[0];
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    var base64str = e.target.result;
+                    var val = file.name.toLowerCase();
+                    var ext = val.split('.')[1];
+                    var timestamp = Number(new Date());
+                    var filename = file.name.split('.')[0] + "_" + timestamp + '.' + ext;
+
+                    productImagesCount++;
+                    photos_html = '<span class="image-item" id="photo_' + productImagesCount + '"><span class="remove-btn" data-id="' + productImagesCount + '" data-img="' + base64str + '" data-status="new"><i class="fa fa-remove"></i></span><img class="rounded" width="50px" id="" height="auto" src="' + base64str + '"></span>';
+                    $(".product_image").append(photos_html);
+                    new_added_photos.push(base64str);
+                    new_added_photos_filename.push(filename);
+                    $("#product_image").val('');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
         $(document).on("click", ".remove-btn", function () {
             var id = $(this).attr('data-id');
             var photo_remove = $(this).attr('data-img');
@@ -1811,7 +1829,7 @@ $(document).ready(function() {
     // 2. When selecting from dropdown, add tag (multi-select support)
     $('#food_subcategory').on('change', function() {
         updateSelectedSubcategoryTags();
-        
+
         // Auto-fetch section from selected subcategory
         updateSectionFromSubcategory();
     });
@@ -1830,23 +1848,23 @@ function updateSectionFromSubcategory() {
     if (selectedSubcategory && selectedSubcategory.length > 0) {
         // Get the first selected subcategory
         var subcategoryId = Array.isArray(selectedSubcategory) ? selectedSubcategory[0] : selectedSubcategory;
-        
+
         if (subcategoryId && subcategoryId !== '') {
             console.log('🔍 Fetching section for subcategory ID:', subcategoryId);
-            
+
             // Fetch the subcategory document to get its parent category info
             database.collection('mart_subcategories').doc(subcategoryId).get().then(function(doc) {
                 if (doc.exists) {
                     var subcategoryData = doc.data();
                     console.log('📋 Subcategory data:', subcategoryData);
-                    
+
                     if (subcategoryData.parent_category_id) {
                         // Fetch the parent category to get the section
                         database.collection('mart_categories').doc(subcategoryData.parent_category_id).get().then(function(categoryDoc) {
                             if (categoryDoc.exists) {
                                 var categoryData = categoryDoc.data();
                                 console.log('📋 Parent category data:', categoryData);
-                                
+
                                 var section = categoryData.section || 'General';
                                 $('#section_info').val(section);
                                 console.log('✅ Section updated to:', section);
@@ -1889,7 +1907,7 @@ function updateSelectedSubcategoryTags() {
         }
     });
     $('#selected_subcategories').html(html);
-    
+
     // Update section when subcategory tags change
     updateSectionFromSubcategory();
 }

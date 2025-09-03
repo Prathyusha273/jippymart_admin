@@ -24,18 +24,41 @@
             padding: 2px 4px;
             font-size: inherit;
         }
-        
+
         .options-info {
             text-align: center;
         }
-        
+
         .options-info .badge {
             font-size: 11px;
             padding: 4px 8px;
         }
-        
+
         .options-info small {
             font-size: 10px;
+        }
+
+        /* Mobile-friendly image display */
+        .table-responsive img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* Ensure images are properly sized on mobile */
+        @media (max-width: 768px) {
+            .table-responsive img {
+                width: 50px !important;
+                height: 50px !important;
+                object-fit: cover;
+            }
+        }
+
+        /* Image error handling */
+        .table-responsive img[src*="data:image"] {
+            max-width: 100%;
+            height: auto;
         }
     </style>
     <div class="page-wrapper">
@@ -141,7 +164,7 @@
                             </div>
                         </div>
                         <div class="card-body">
-                            <form action="{{ route('mart-items.import') }}" method="POST" enctype="multipart/form-data">
+                            <form id="importForm" action="{{ route('mart-items.import') }}" method="POST" enctype="multipart/form-data">
                                 @csrf
                                 <div class="row">
                                     <div class="col-md-8">
@@ -152,12 +175,13 @@
                                                 <i class="mdi mdi-information-outline mr-1"></i>
                                                 File should contain: name, price, description, vendorID/vendorName, categoryID/categoryName, disPrice, publish, nonveg, isAvailable, photo
                                             </div>
+                                            <div id="fileValidationError" class="text-danger mt-2" style="display: none;"></div>
                                         </div>
                                     </div>
                                     <div class="col-md-4 d-flex align-items-end">
-                                                                            <button type="submit" class="btn btn-primary rounded-full">
-                                        <i class="mdi mdi-upload mr-2"></i>Import Mart Items
-                                    </button>
+                                        <button type="submit" class="btn btn-primary rounded-full" id="importBtn">
+                                            <i class="mdi mdi-upload mr-2"></i>Import Mart Items
+                                        </button>
                                     </div>
                                 </div>
                             </form>
@@ -435,13 +459,18 @@
             });
             var fieldConfig = {
                 columns: [
-                    { key: 'foodName', header: "{{trans('lang.food_name')}}" },
-                    { key: 'restaurant', header: "{{trans('lang.restaurant')}}" },
-                    { key: 'category', header: "{{trans('lang.category')}}" },
-                    { key: 'price', header: "{{trans('lang.food_price')}}" },
+                    { key: 'name', header: "Item Name" },
+                    { key: 'restaurant', header: "Mart" },
+                    { key: 'category', header: "Category" },
+                    { key: 'price', header: "Price" },
                     { key: 'disPrice', header: "Discount Price" },
+                    { key: 'description', header: "Description" },
+                    { key: 'publish', header: "Published" },
+                    { key: 'isAvailable', header: "Available" },
+                    { key: 'quantity', header: "Quantity" },
+                    { key: 'created_at', header: "Created Date" }
                 ],
-                fileName: "{{trans('lang.food_table')}}",
+                fileName: "Mart Items",
             };
             const table=$('#foodTable').DataTable({
                 pageLength: 10, // Number of rows per page
@@ -508,6 +537,13 @@
                             childData.finalPrice=parseInt(finalPrice);
                             childData.restaurant=restaurantNames[childData.vendorID]||'';
                             childData.category=categoryNames[childData.categoryID]||'';
+
+                            // Prepare export data fields
+                            childData.description = childData.description || 'No description';
+                            childData.publish = childData.publish ? 'Yes' : 'No';
+                            childData.isAvailable = childData.isAvailable ? 'Yes' : 'No';
+                            childData.quantity = childData.quantity || childData.quantity === 0 ? childData.quantity : -1;
+                            childData.created_at = childData.created_at ? childData.created_at : new Date();
                                                     if(searchValue) {
                             if(
                                 (childData.name&&childData.name.toString().toLowerCase().includes(searchValue))||
@@ -548,6 +584,9 @@
                             records.push(getData);
                         }));
                         $('#data-table_processing').hide(); // Hide loader
+                        // Store data for image preloading
+                        window.currentTableData = filteredRecords;
+
                         callback({
                             draw: data.draw,
                             recordsTotal: totalRecords, // Total number of records in Firestore
@@ -555,6 +594,9 @@
                             filteredData: filteredRecords,
                             data: records // The actual data to display in the table
                         });
+
+                        // Preload images for mobile performance
+                        setTimeout(() => preloadImagesForMobile(), 100);
                     }).catch(function(error) {
                         console.error("Error fetching data from Firestore:",error);
                         $('#data-table_processing').hide(); // Hide loader
@@ -651,12 +693,12 @@
             <?php if ($id != '') { ?>
                 route1=route1+'?eid={{$id}}';
             <?php } ?>
-            if(val.photos!=''&&val.photos!=null) {
-                imageHtml='<img onerror="this.onerror=null;this.src=\''+placeholderImage+'\'" class="rounded" width="100%" style="width:70px;height:70px;" src="'+val.photo+'" alt="image">';
-            } else if(val.photo!=''&&val.photos!=null) {
-                imageHtml='<img onerror="this.onerror=null;this.src=\''+placeholderImage+'\'" class="rounded" width="100%" style="width:70px;height:70px;" src="'+val.photo+'" alt="image">';
+            if(val.photo!=''&&val.photo!=null) {
+                imageHtml='<img onerror="this.onerror=null;this.src=\''+placeholderImage+'\'" class="rounded" width="100%" style="width:70px;height:70px;" src="'+val.photo+'" alt="image" loading="lazy">';
+            } else if(val.photos!=''&&val.photos!=null&&val.photos.length>0) {
+                imageHtml='<img onerror="this.onerror=null;this.src=\''+placeholderImage+'\'" class="rounded" width="100%" style="width:70px;height:70px;" src="'+val.photos[0]+'" alt="image" loading="lazy">';
             } else {
-                imageHtml='<img width="100%" style="width:70px;height:70px;" src="'+placeholderImage+'" alt="image">';
+                imageHtml='<img width="100%" style="width:70px;height:70px;" src="'+placeholderImage+'" alt="image" loading="lazy">';
             }
             if(checkDeletePermission) {
                 html.push('<td class="delete-all"><input type="checkbox" id="is_open_'+id+'" name="record" class="is_open" dataId="'+id+'"><label class="col-3 control-label"\n'+
@@ -695,14 +737,14 @@
             var caregoryroute='{{route("categories.edit", ":id")}}';
             caregoryroute=caregoryroute.replace(':id',val.categoryID);
             html.push('<a href="'+caregoryroute+'">'+val.category+'</a>');
-            
+
             // Enhanced Options column
             if(val.has_options && val.options && val.options.length > 0) {
                 const optionsCount = val.options.length;
                 const priceRange = val.price_range || `₹${val.min_price || 0} - ₹${val.max_price || 0}`;
                 const bestValue = val.best_value_option ? 'Best Value' : '';
                 const savings = val.savings_percentage ? `${val.savings_percentage.toFixed(1)}% off` : '';
-                
+
                 html.push(`<div class="options-info">
                     <span class="badge badge-info">${optionsCount} Options</span>
                     <br><small class="text-muted">${priceRange}</small>
@@ -746,6 +788,34 @@
                 };
             }
         }
+
+        // Enhanced image loading for mobile compatibility
+        function preloadImage(url) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = () => resolve(url);
+                img.onerror = () => reject(new Error(`Failed to load image: ${url}`));
+                img.src = url;
+            });
+        }
+
+        // Preload images for better mobile performance
+        async function preloadImagesForMobile() {
+            const imageUrls = [];
+            // Collect all image URLs from the current table data
+            if (window.currentTableData && window.currentTableData.length > 0) {
+                window.currentTableData.forEach(item => {
+                    if (item.photo) imageUrls.push(item.photo);
+                    if (item.photos && item.photos.length > 0) {
+                        imageUrls.push(...item.photos);
+                    }
+                });
+            }
+
+            // Preload images in background
+            const preloadPromises = imageUrls.map(url => preloadImage(url).catch(err => console.warn('Image preload failed:', err)));
+            await Promise.allSettled(preloadPromises);
+        }
         $(document).on("click","input[name='isActive']",async function(e) {
             var ischeck=$(this).is(':checked');
             var id=this.id;
@@ -756,12 +826,12 @@
                 if (itemDoc.exists) {
                     itemName = itemDoc.data().name || 'Unknown Item';
                 }
-                
+
                 if(ischeck) {
                     await database.collection('mart_items').doc(id).update({
                         'publish': true
                     });
-                    
+
                     // Log activity
                     if (typeof logActivity === 'function') {
                         await logActivity('mart_items', 'published', 'Published mart item: ' + itemName);
@@ -770,7 +840,7 @@
                     await database.collection('mart_items').doc(id).update({
                         'publish': false
                     });
-                    
+
                     // Log activity
                     if (typeof logActivity === 'function') {
                         await logActivity('mart_items', 'unpublished', 'Unpublished mart item: ' + itemName);
@@ -793,12 +863,12 @@
                 if (itemDoc.exists) {
                     itemName = itemDoc.data().name || 'Unknown Item';
                 }
-                
+
                 if(ischeck) {
                     await database.collection('mart_items').doc(id).update({
                         'isAvailable': true
                     });
-                    
+
                     // Log activity
                     if (typeof logActivity === 'function') {
                         await logActivity('mart_items', 'made_available', 'Made mart item available: ' + itemName);
@@ -807,7 +877,7 @@
                     await database.collection('mart_items').doc(id).update({
                         'isAvailable': false
                     });
-                    
+
                     // Log activity
                     if (typeof logActivity === 'function') {
                         await logActivity('mart_items', 'made_unavailable', 'Made mart item unavailable: ' + itemName);
@@ -845,14 +915,14 @@
                 if (itemDoc.exists) {
                     itemName = itemDoc.data().name || 'Unknown Item';
                 }
-                
+
                 await deleteDocumentWithImage('mart_items',id,'photo','photos');
-                
+
                 // Log activity
                 if (typeof logActivity === 'function') {
                     await logActivity('mart_items', 'deleted', 'Deleted mart item: ' + itemName);
                 }
-                
+
                 window.location.reload();
             } catch (error) {
                 console.error('Error deleting item:', error);
@@ -883,7 +953,7 @@
             if(confirm("{{trans('lang.selected_delete_alert')}}")) {
                 jQuery("#data-table_processing").show();
                 var deletedItems = [];
-                
+
                 // Loop through all selected records and delete them
                 for (const element of $('input[type="checkbox"][name="record"]:checked')) {
                     var id = $(element).attr('dataId');
@@ -893,18 +963,18 @@
                         if (itemDoc.exists) {
                             deletedItems.push(itemDoc.data().name || 'Unknown Item');
                         }
-                        
+
                         await deleteDocumentWithImage('mart_items', id, 'photo', 'photos');
                     } catch (error) {
                         console.error('Error deleting item:', error);
                     }
                 }
-                
+
                 // Log bulk delete activity
                 if (typeof logActivity === 'function' && deletedItems.length > 0) {
                     await logActivity('mart_items', 'bulk_deleted', 'Bulk deleted mart items: ' + deletedItems.join(', '));
                 }
-                
+
                 window.location.reload();
             }
         });
@@ -1031,6 +1101,83 @@
                     input.remove();
                     $this.show();
                 }
+            });
+        });
+
+        // File import validation and debugging
+        $(document).ready(function() {
+            $('#importFile').on('change', function() {
+                const file = this.files[0];
+                const errorDiv = $('#fileValidationError');
+
+                // Clear previous errors
+                errorDiv.hide().text('');
+
+                if (file) {
+                    console.log('File selected:', file.name, 'Size:', file.size, 'Type:', file.type);
+
+                    // Check file extension (more reliable than MIME type)
+                    const fileExtension = file.name.toLowerCase().split('.').pop();
+                    const isValidExtension = fileExtension === 'xlsx' || fileExtension === 'xls';
+
+                    // Also check MIME type for additional validation
+                    const allowedTypes = [
+                        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+                        'application/vnd.ms-excel', // .xls
+                        'application/octet-stream', // Some systems use this for Excel files
+                        'application/zip', // .xlsx files are actually ZIP files
+                        'application/vnd.ms-excel.sheet.macroEnabled.12', // .xlsm files
+                        'application/vnd.ms-excel.template.macroEnabled.12' // .xltm files
+                    ];
+
+                    const isValidType = allowedTypes.includes(file.type) || isValidExtension;
+
+                    console.log('File validation details:', {
+                        fileName: file.name,
+                        fileExtension: fileExtension,
+                        mimeType: file.type,
+                        isValidExtension: isValidExtension,
+                        isValidType: isValidType,
+                        allowedTypes: allowedTypes
+                    });
+
+                    if (!isValidExtension) {
+                        errorDiv.text('Invalid file extension. Please select an Excel file (.xlsx or .xls)').show();
+                        this.value = ''; // Clear the file input
+                        return false;
+                    }
+
+                    // Check file size (max 10MB)
+                    const maxSize = 10 * 1024 * 1024; // 10MB
+                    if (file.size > maxSize) {
+                        errorDiv.text('File size too large. Maximum size is 10MB').show();
+                        this.value = '';
+                        return false;
+                    }
+
+                    console.log('File validation passed');
+                }
+            });
+
+            // Form submission handling
+            $('#importForm').on('submit', function(e) {
+                const fileInput = $('#importFile')[0];
+                const errorDiv = $('#fileValidationError');
+
+                if (!fileInput.files.length) {
+                    e.preventDefault();
+                    errorDiv.text('Please select a file to import').show();
+                    return false;
+                }
+
+                const file = fileInput.files[0];
+                console.log('Submitting file:', file.name, 'Size:', file.size, 'Type:', file.type);
+
+                // Show loading state
+                $('#importBtn').prop('disabled', true).html('<i class="mdi mdi-spin mdi-loading mr-2"></i>Importing...');
+
+                // Let the form submit normally
+                return true;
             });
         });
     </script>
