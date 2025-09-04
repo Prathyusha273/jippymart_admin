@@ -485,6 +485,26 @@ Route::middleware(['permission:banners,setting.banners.create'])->group(function
 Route::middleware(['permission:banners,setting.banners.edit'])->group(function () {
     Route::get('/banners/edit/{id}', [App\Http\Controllers\SettingsController::class, 'menuItemsEdit'])->name('setting.banners.edit');
 });
+
+// Mart Banner Items Routes
+Route::middleware(['permission:mart_banners,mart_banners'])->group(function () {
+    Route::get('/mart-banners', [App\Http\Controllers\MartBannerController::class, 'index'])->name('mart.banners');
+});
+
+Route::middleware(['permission:mart_banners,mart_banners.create'])->group(function () {
+    Route::get('/mart-banners/create', [App\Http\Controllers\MartBannerController::class, 'create'])->name('mart.banners.create');
+    Route::post('/mart-banners', [App\Http\Controllers\MartBannerController::class, 'store'])->name('mart.banners.store');
+});
+
+Route::middleware(['permission:mart_banners,mart_banners.edit'])->group(function () {
+    Route::get('/mart-banners/edit/{id}', [App\Http\Controllers\MartBannerController::class, 'edit'])->name('mart.banners.edit');
+    Route::put('/mart-banners/{id}', [App\Http\Controllers\MartBannerController::class, 'update'])->name('mart.banners.update');
+    Route::post('/mart-banners/{id}/toggle-publish', [App\Http\Controllers\MartBannerController::class, 'togglePublish'])->name('mart.banners.togglePublish');
+});
+
+Route::middleware(['permission:mart_banners,mart_banners.delete'])->group(function () {
+    Route::delete('/mart-banners/{id}', [App\Http\Controllers\MartBannerController::class, 'destroy'])->name('mart.banners.destroy');
+});
 Route::middleware(['permission:item-attribute,attributes'])->group(function () {
     Route::get('/attributes', [App\Http\Controllers\AttributeController::class, 'index'])->name('attributes');
 });

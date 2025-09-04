@@ -8,9 +8,9 @@ use Google\Cloud\Firestore\FirestoreClient;
 
 /**
  * MartItemController
- * 
+ *
  * Handles CRUD operations for mart items.
- * 
+ *
  * Default Fields for New Items:
  * - reviewCount: "0" (string) - Number of reviews
  * - reviewSum: "0" (string) - Sum of review ratings
@@ -23,7 +23,7 @@ class MartItemController extends Controller
     {
         $this->middleware('auth');
     }
-    
+
     public function index($id='')
     {
         return view("martItems.index")->with('id',$id);
@@ -38,7 +38,7 @@ class MartItemController extends Controller
     {
         return view('martItems.create')->with('id',$id);
     }
-    
+
     public function createItem()
     {
         return view('martItems.create');
@@ -278,11 +278,78 @@ class MartItemController extends Controller
 
     public function import(Request $request)
     {
-        $request->validate([
-            'file' => 'required|mimes:xlsx,xls',
+        // Debug: Log the request details
+        \Log::info('Import request received', [
+            'has_file' => $request->hasFile('file'),
+            'file_name' => $request->file('file') ? $request->file('file')->getClientOriginalName() : 'No file',
+            'file_size' => $request->file('file') ? $request->file('file')->getSize() : 'No file',
+            'file_mime' => $request->file('file') ? $request->file('file')->getMimeType() : 'No file',
+            'file_extension' => $request->file('file') ? $request->file('file')->getClientOriginalExtension() : 'No file',
+            'all_files' => $request->allFiles(),
+            'request_all' => $request->all(),
+            'request_headers' => $request->headers->all(),
         ]);
 
-        $spreadsheet = IOFactory::load($request->file('file'));
+        // More flexible file validation
+        $file = $request->file('file');
+        if (!$file) {
+            \Log::error('No file received in request');
+            return back()->withErrors(['file' => 'Please select a file to import.']);
+        }
+
+        // Check if file is actually uploaded
+        if (!$file->isValid()) {
+            \Log::error('File upload failed', [
+                'error' => $file->getError(),
+                'error_message' => $file->getErrorMessage()
+            ]);
+            return back()->withErrors(['file' => 'File upload failed: ' . $file->getErrorMessage()]);
+        }
+
+        // Check file extension manually (more reliable than MIME type)
+        $extension = strtolower($file->getClientOriginalExtension());
+        $allowedExtensions = ['xlsx', 'xls'];
+
+        \Log::info('File validation details', [
+            'extension' => $extension,
+            'allowed_extensions' => $allowedExtensions,
+            'is_allowed' => in_array($extension, $allowedExtensions)
+        ]);
+
+        if (!in_array($extension, $allowedExtensions)) {
+            \Log::error('Invalid file extension', ['extension' => $extension]);
+            return back()->withErrors(['file' => 'The file must be an Excel file (.xlsx or .xls).']);
+        }
+
+        // Check file size
+        $fileSize = $file->getSize();
+        $maxSize = 10 * 1024 * 1024; // 10MB
+
+        \Log::info('File size validation', [
+            'file_size' => $fileSize,
+            'max_size' => $maxSize,
+            'is_valid_size' => $fileSize <= $maxSize
+        ]);
+
+        if ($fileSize > $maxSize) {
+            \Log::error('File too large', ['file_size' => $fileSize, 'max_size' => $maxSize]);
+            return back()->withErrors(['file' => 'The file size must not exceed 10MB.']);
+        }
+
+        \Log::info('File validation passed successfully');
+
+        try {
+            // Try to load the file with PhpSpreadsheet
+            $spreadsheet = IOFactory::load($request->file('file'));
+            \Log::info('File loaded successfully with PhpSpreadsheet');
+        } catch (\Exception $e) {
+            \Log::error('Failed to load file with PhpSpreadsheet', [
+                'error' => $e->getMessage(),
+                'file_path' => $request->file('file')->getPathname(),
+                'file_size' => $request->file('file')->getSize()
+            ]);
+            return back()->withErrors(['file' => 'Failed to read Excel file. Please ensure it\'s a valid Excel file and not corrupted.']);
+        }
         $rows = $spreadsheet->getActiveSheet()->toArray();
 
         if (empty($rows) || count($rows) < 2) {

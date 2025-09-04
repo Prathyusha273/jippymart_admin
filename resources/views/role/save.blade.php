@@ -939,6 +939,31 @@
                                                 </tr>
                                                 <tr>
                                                     <td>
+                                                        <strong>Mart Banner Items</strong>
+                                                    </td>
+                                                    <td>
+                                                        <input type="checkbox" id="mart-banners" value="mart_banners"
+                                                            name="mart_banners[]" class="permission">
+                                                        <label class="contol-label2"
+                                                            for="mart-banners">{{ trans('lang.list') }}</label>
+                                                        <input type="checkbox" id="mart-banners-create"
+                                                            value="mart_banners.create" name="mart_banners[]"
+                                                            class="permission">
+                                                        <label class="contol-label2"
+                                                            for="mart-banners-create">{{ trans('lang.create') }}</label>
+                                                        <input type="checkbox" id="mart-banners-edit"
+                                                            value="mart_banners.edit" name="mart_banners[]"
+                                                            class="permission">
+                                                        <label class="contol-label2"
+                                                            for="mart-banners-edit">{{ trans('lang.edit') }}</label>
+                                                        <input type="checkbox" id="mart-banners-delete"
+                                                            value="mart_banners.delete" name="mart_banners[]" class="permission">
+                                                        <label class=" control-label2"
+                                                            for="mart-banners-delete">{{ trans('lang.delete') }}</label>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
                                                         <strong>{{ trans('lang.cms_plural') }}</strong>
                                                     </td>
                                                     <td>

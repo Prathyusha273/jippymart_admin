@@ -190,13 +190,13 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="form-group row width-100" id="attributes_div">
-                            <label class="col-3 control-label">{{ trans('lang.item_attribute_id') }}</label>
-                            <div class="col-7">
-                                <select id='item_attribute' class="form-control chosen-select" required
-                                    multiple="multiple" onchange="selectAttribute();"></select>
-                            </div>
-                        </div>
+{{--                        <div class="form-group row width-100" id="attributes_div">--}}
+{{--                            <label class="col-3 control-label">{{ trans('lang.item_attribute_id') }}</label>--}}
+{{--                            <div class="col-7">--}}
+{{--                                <select id='item_attribute' class="form-control chosen-select"--}}
+{{--                                    multiple="multiple" onchange="selectAttribute();"></select>--}}
+{{--                            </div>--}}
+{{--                        </div>--}}
                         <div class="form-group row width-100">
                             <div class="item_attributes" id="item_attributes"></div>
                             <div class="item_variants" id="item_variants"></div>
@@ -407,7 +407,7 @@
                     <a href="{{ route('marts.mart-items', $id) }}" class="btn btn-default"><i
                             class="fa fa-undo"></i>{{ trans('lang.cancel') }}</a>
                 <?php } else { ?>
-                    <a href="{!! route('foods') !!}" class="btn btn-default"><i
+                    <a href="{!! route('mart-items') !!}" class="btn btn-default"><i
                             class="fa fa-undo"></i>{{ trans('lang.cancel') }}</a>
                 <?php } ?>
             </div>
@@ -608,7 +608,7 @@
             $('#food_subcategory').on('change', function() {
                 console.log('🔍 Selected subcategory value:', $(this).val());
                 console.log('🔍 Selected subcategory text:', $(this).find('option:selected').text());
-                
+
                 // Auto-fetch section from selected subcategory
                 updateSectionFromSubcategory();
             });
@@ -840,7 +840,7 @@
                     nonveg: nonveg,
                     veg: veg,
                     takeawayOption: foodTakeaway,
-                    
+
 
                     // Enhanced Filter Fields
                     isSpotlight: isSpotlight,
@@ -1397,6 +1397,32 @@
             $("#product_image").val('');
         }
     });
+
+    // Add direct file input handler as fallback
+    $("#product_image").on('change', function() {
+        if (this.files && this.files[0]) {
+            var file = this.files[0];
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                var base64str = e.target.result;
+                var val = file.name.toLowerCase();
+                var ext = val.split('.')[1];
+                var timestamp = Number(new Date());
+                var filename = file.name.split('.')[0] + "_" + timestamp + '.' + ext;
+
+                product_image_filename.push(filename);
+                productImagesCount++;
+                photos_html = '<span class="image-item" id="photo_' + productImagesCount +
+                    '"><span class="remove-btn" data-id="' + productImagesCount + '" data-img="' + base64str +
+                    '"><i class="fa fa-remove"></i></span><img class="rounded" width="50px" id="" height="auto" src="' +
+                    base64str + '"></span>';
+                $(".product_image").append(photos_html);
+                photos.push(base64str);
+                $("#product_image").val('');
+            };
+            reader.readAsDataURL(file);
+        }
+    });
     function handleVariantSelect(vid) {
         $("#file_"+vid).resizeImg({
             callback: function(base64str) {
@@ -1571,23 +1597,23 @@ function updateSectionFromSubcategory() {
     if (selectedSubcategory && selectedSubcategory.length > 0) {
         // Get the first selected subcategory
         var subcategoryId = Array.isArray(selectedSubcategory) ? selectedSubcategory[0] : selectedSubcategory;
-        
+
         if (subcategoryId && subcategoryId !== '') {
             console.log('🔍 Fetching section for subcategory ID:', subcategoryId);
-            
+
             // Fetch the subcategory document to get its parent category info
             database.collection('mart_subcategories').doc(subcategoryId).get().then(function(doc) {
                 if (doc.exists) {
                     var subcategoryData = doc.data();
                     console.log('📋 Subcategory data:', subcategoryData);
-                    
+
                     if (subcategoryData.parent_category_id) {
                         // Fetch the parent category to get the section
                         database.collection('mart_categories').doc(subcategoryData.parent_category_id).get().then(function(categoryDoc) {
                             if (categoryDoc.exists) {
                                 var categoryData = categoryDoc.data();
                                 console.log('📋 Parent category data:', categoryData);
-                                
+
                                 var section = categoryData.section || 'General';
                                 $('#section_info').val(section);
                                 console.log('✅ Section updated to:', section);
@@ -1630,7 +1656,7 @@ function updateSelectedSubcategoryTags() {
         }
     });
     $('#selected_subcategories').html(html);
-    
+
     // Update section when subcategory tags change
     updateSectionFromSubcategory();
 }
