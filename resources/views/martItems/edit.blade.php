@@ -1056,6 +1056,39 @@
                 var quantity = parseInt($(".item_quantity").val()) || -1;
                 var restaurant = $("#food_restaurant option:selected").val();
                 var category = $("#food_category option:selected").val();
+                var subcategory = $("#food_subcategory").val();
+                
+                // Get category and subcategory titles
+                var categoryTitle = '';
+                var subcategoryTitle = '';
+                var vendorTitle = '';
+                
+                if (category) {
+                    categoryTitle = $("#food_category option:selected").text() || '';
+                }
+                
+                if (subcategory) {
+                    // Handle multiple subcategory selection - take the first selected subcategory
+                    if (Array.isArray(subcategory) && subcategory.length > 0) {
+                        subcategory = subcategory[0]; // Take the first selected subcategory
+                    } else if (subcategory === '') {
+                        subcategory = '';
+                    }
+                    
+                    if (subcategory) {
+                        subcategoryTitle = $("#food_subcategory option:selected").text() || '';
+                    }
+                }
+                
+                // Get vendor title from restaurant_list
+                if (restaurant) {
+                    restaurant_list.forEach((vendor) => {
+                        if (vendor.id == restaurant) {
+                            vendorTitle = vendor.title || '';
+                        }
+                    });
+                }
+                
                 var foodCalories = parseInt($(".food_calories").val()) || 0;
                 var foodGrams = parseInt($(".food_grams").val()) || 0;
                 var foodProteins = parseInt($(".food_proteins").val()) || 0;
@@ -1227,8 +1260,11 @@
                         'quantity': quantity,
                         'disPrice': parseFloat(discount) || parseFloat(price) || 0,
                         'vendorID': restaurant || '',
+                        'vendorTitle': vendorTitle || '', // Add vendor title
                         'categoryID': category || '',
-                        'subcategoryID': $("#food_subcategory").val() || '', // Add subcategory
+                        'categoryTitle': categoryTitle || '', // Add category title
+                        'subcategoryID': subcategory || '', // Add subcategory
+                        'subcategoryTitle': subcategoryTitle || '', // Add subcategory title
                         'section': $("#section_info").val() || 'General', // Add section
                         'photo': photo || '',
                         'calories': foodCalories || 0,

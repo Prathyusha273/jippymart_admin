@@ -71,26 +71,23 @@
                                         <div class="form-group row width-100">
                                             <label class="col-3 control-label">Section</label>
                                             <div class="col-7">
-                                                <input type="text" class="form-control" id="category_section" placeholder="e.g., Grocery & Kitchen, Electronics" list="section-suggestions">
+                                                <input type="text" class="form-control" id="category_section" placeholder="e.g., Essentials & Daily Needs, Health & Wellness" list="section-suggestions">
                                                 <datalist id="section-suggestions">
-                                                    <option value="Grocery & Kitchen">
-                                                    <option value="Fruits & Vegetables">
-                                                    <option value="Dairy, Bread & Eggs">
-                                                    <option value="Packaged Foods & Snacks">
-                                                    <option value="Beverages & Juices">
-                                                    <option value="Zepto Café (Ready-to-Eat)">
-                                                    <option value="Beauty & Personal Care">
-                                                    <option value="Apparel & Fashion">
-                                                    <option value="Electronics & Appliances">
-                                                    <option value="Toys & Baby">
+                                                    <option value="Essentials & Daily Needs">
+                                                    <option value="Care for All Ages">
+                                                    <option value="Health & Wellness">
+                                                    <option value="Personal & Hygiene Care">
+                                                    <option value="Home Care">
+                                                    <option value="Grocery & Staples">
+                                                    <option value="Snacks & Quick Bites">
+                                                    <option value="Breakfast & Dairy">
+                                                    <option value="Tea, Coffee & Beverages">
                                                     <option value="Pet Care">
-                                                    <option value="Pharmacy & Health">
-                                                    <option value="Home & Household Essentials">
-                                                    <option value="Cleaning & Laundry">
-                                                    <option value="Kitchenware & Storage">
-                                                    <option value="Stationery & Books">
-                                                    <option value="Sports & Fitness">
-                                                    <option value="Automotive & Tools">
+                                                    <option value="Home & Utility">
+                                                    <option value="Storage & Packaging">
+                                                    <option value="First Aid & OTC">
+                                                    <option value="Stationery & Office">
+                                                    <option value="Beauty & Grooming">
                                                 </datalist>
                                                 <div class="form-text text-muted w-50">Group categories by sections for better organization</div>
                                             </div>
@@ -149,8 +146,19 @@
         $(".save-setting-btn").click(async function () {
             var title = $(".cat-name").val();
             var description = $(".category_description").val();
+            var section = $("#category_section").val().trim();
+            var category_order = parseInt($("#category_order").val()) || 1;
             var item_publish = $("#item_publish").is(":checked");
             var show_in_homepage = $("#show_in_homepage").is(":checked");
+            
+            console.log('📝 Form values:', {
+                title: title,
+                description: description,
+                section: section,
+                category_order: category_order,
+                item_publish: item_publish,
+                show_in_homepage: show_in_homepage
+            });
             var review_attributes = [];
             $('#review_attributes input').each(function () {
                 if ($(this).is(':checked')) {
@@ -180,6 +188,9 @@
                     'title': title,
                     'description': description,
                     'photo': IMG,
+                    'section': section || 'General',
+                    'category_order': category_order,
+                    'section_order': category_order,
                     'review_attributes': review_attributes,
                     'publish': item_publish,
                     'show_in_homepage': show_in_homepage,

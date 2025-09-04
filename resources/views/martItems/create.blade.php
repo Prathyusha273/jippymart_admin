@@ -1,4 +1,4 @@
-@extends('layouts.app')
+  @extends('layouts.app')
 @section('content')
 <div class="page-wrapper">
     <div class="row page-titles">
@@ -669,6 +669,28 @@
                 subcategory = '';
             }
 
+            // Get category and subcategory titles
+            var categoryTitle = '';
+            var subcategoryTitle = '';
+            var vendorTitle = '';
+            
+            if (category) {
+                categoryTitle = $("#food_category option:selected").text() || '';
+            }
+            
+            if (subcategory) {
+                subcategoryTitle = $("#food_subcategory option:selected").text() || '';
+            }
+            
+            // Get vendor title from restaurant_list
+            if (restaurant) {
+                restaurant_list.forEach((vendor) => {
+                    if (vendor.id == restaurant) {
+                        vendorTitle = vendor.title || '';
+                    }
+                });
+            }
+
             // Get checkbox values
             var foodPublish = $(".food_publish").is(":checked");
             var foodIsAvailable = $(".food_is_available").is(":checked");
@@ -691,7 +713,7 @@
             });
 
             console.log('📝 Form values:', {
-                name, price, discount, description, quantity, restaurant, category, subcategory,
+                name, price, discount, description, quantity, restaurant, vendorTitle, category, categoryTitle, subcategory, subcategoryTitle,
                 foodPublish, foodIsAvailable, nonveg, veg, foodTakeaway,
                 isSpotlight, isStealOfMoment, isFeature, isTrending, isNew, isBestSeller, isSeasonal
             });
@@ -805,8 +827,11 @@
                     price: parseFloat(price) || 0,
                     disPrice: parseFloat(discount) || parseFloat(price) || 0,
                     vendorID: restaurant,
+                    vendorTitle: vendorTitle, // Add vendor title
                     categoryID: category,
+                    categoryTitle: categoryTitle, // Add category title
                     subcategoryID: subcategory || '', // Add subcategory
+                    subcategoryTitle: subcategoryTitle || '', // Add subcategory title
                     section: $('#section_info').val() || 'General', // Add section
                     photo: photo || '',
                     description: description,
@@ -883,8 +908,11 @@
                     price: parseFloat(price) || 0,
                     disPrice: parseFloat(discount) || parseFloat(price) || 0,
                     vendorID: restaurant,
+                    vendorTitle: vendorTitle, // Add vendor title
                     categoryID: category,
+                    categoryTitle: categoryTitle, // Add category title
                     subcategoryID: subcategory || '', // Add subcategory
+                    subcategoryTitle: subcategoryTitle || '', // Add subcategory title
                     section: $('#section_info').val() || 'General', // Add section
                     photo: photo || '',
                     description: description,

@@ -64,26 +64,23 @@
                                         <div class="form-group row width-100">
                                             <label class="col-3 control-label">Section</label>
                                             <div class="col-7">
-                                                <input type="text" class="form-control" id="category_section" placeholder="e.g., Grocery & Kitchen, Electronics" list="section-suggestions">
+                                                <input type="text" class="form-control" id="category_section" placeholder="e.g., Essentials & Daily Needs, Health & Wellness" list="section-suggestions">
                                                 <datalist id="section-suggestions">
-                                                    <option value="Grocery & Kitchen">
-                                                    <option value="Fruits & Vegetables">
-                                                    <option value="Dairy, Bread & Eggs">
-                                                    <option value="Packaged Foods & Snacks">
-                                                    <option value="Beverages & Juices">
-                                                    <option value="Café (Ready-to-Eat)">
-                                                    <option value="Beauty & Personal Care">
-                                                    <option value="Apparel & Fashion">
-                                                    <option value="Electronics & Appliances">
-                                                    <option value="Toys & Baby">
+                                                    <option value="Essentials & Daily Needs">
+                                                    <option value="Care for All Ages">
+                                                    <option value="Health & Wellness">
+                                                    <option value="Personal & Hygiene Care">
+                                                    <option value="Home Care">
+                                                    <option value="Grocery & Staples">
+                                                    <option value="Snacks & Quick Bites">
+                                                    <option value="Breakfast & Dairy">
+                                                    <option value="Tea, Coffee & Beverages">
                                                     <option value="Pet Care">
-                                                    <option value="Pharmacy & Health">
-                                                    <option value="Home & Household Essentials">
-                                                    <option value="Cleaning & Laundry">
-                                                    <option value="Kitchenware & Storage">
-                                                    <option value="Stationery & Books">
-                                                    <option value="Sports & Fitness">
-                                                    <option value="Automotive & Tools">
+                                                    <option value="Home & Utility">
+                                                    <option value="Storage & Packaging">
+                                                    <option value="First Aid & OTC">
+                                                    <option value="Stationery & Office">
+                                                    <option value="Beauty & Grooming">
                                                 </datalist>
                                                 <div class="form-text text-muted w-50">Group categories by sections for better organization</div>
                                             </div>
@@ -265,12 +262,18 @@ $(document).ready(function () {
                 console.log('🔄 Using existing image as fallback:', IMG);
             }
             
+            // Get section value - save user input even if not from suggestions
+            var section = $('#category_section').val().trim();
+            
+            console.log('📝 Section value:', section);
+            console.log('📝 Category order:', parseInt($('#category_order').val()) || 1);
+            
             // Prepare update data
             const updateData = {
                 'title': title,
                 'description': description,
                 'photo': IMG,
-                'section': $('#category_section').val() || 'General',
+                'section': section || 'General',
                 'section_order': parseInt($('#category_order').val()) || 1,
                 'category_order': parseInt($('#category_order').val()) || 1,
                 'review_attributes': review_attributes,

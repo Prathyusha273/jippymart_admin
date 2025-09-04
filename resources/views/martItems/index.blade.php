@@ -150,7 +150,7 @@
                                             <input type="file" name="file" id="importFile" accept=".xls,.xlsx" class="form-control" required>
                                             <div class="form-text text-muted">
                                                 <i class="mdi mdi-information-outline mr-1"></i>
-                                                File should contain: name, price, description, vendorID/vendorName, categoryID/categoryName, disPrice, publish, nonveg, isAvailable, photo
+                                                File should contain: name, price, description, vendorID/vendorName, categoryID/categoryName, subcategoryID/subcategoryName, section, disPrice, publish, nonveg, isAvailable, photo, and optional item features
                                             </div>
                                         </div>
                                     </div>

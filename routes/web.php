@@ -153,8 +153,10 @@ Route::middleware(['permission:mart-items,mart-items'])->group(function () {
 });
 
 // Mart items import routes - must be before /mart-items/{id} route to avoid conflicts
-Route::post('/mart-items/import', [App\Http\Controllers\MartItemController::class, 'import'])->name('mart-items.import');
-Route::get('/mart-items/download-template', [App\Http\Controllers\MartItemController::class, 'downloadTemplate'])->name('mart-items.download-template');
+Route::middleware(['permission:mart-items,mart-items'])->group(function () {
+    Route::post('/mart-items/import', [App\Http\Controllers\MartItemController::class, 'import'])->name('mart-items.import');
+    Route::get('/mart-items/download-template', [App\Http\Controllers\MartItemController::class, 'downloadTemplate'])->name('mart-items.download-template');
+});
 
 Route::middleware(['permission:mart-items,mart-items'])->group(function () {
     Route::get('/mart-items/{id}', [App\Http\Controllers\MartItemController::class, 'index'])->name('marts.mart-items');

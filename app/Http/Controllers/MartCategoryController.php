@@ -91,15 +91,74 @@ class MartCategoryController extends Controller
     public function downloadTemplate()
     {
         $filePath = storage_path('app/templates/mart_categories_import_template.xlsx');
-        
+
+        // Create template directory if it doesn't exist
+        $templateDir = dirname($filePath);
+        if (!is_dir($templateDir)) {
+            mkdir($templateDir, 0755, true);
+        }
+
+        // Generate template if it doesn't exist
         if (!file_exists($filePath)) {
-            abort(404, 'Template file not found');
+            $this->generateTemplate($filePath);
         }
         
         return response()->download($filePath, 'mart_categories_import_template.xlsx', [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Content-Disposition' => 'attachment; filename="mart_categories_import_template.xlsx"'
         ]);
+    }
+
+    /**
+     * Generate Excel template for mart categories import
+     */
+    private function generateTemplate($filePath)
+    {
+        try {
+            $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+            $sheet = $spreadsheet->getActiveSheet();
+
+            // Set headers
+            $headers = [
+                'A1' => 'title',
+                'B1' => 'description',
+                'C1' => 'section',
+                'D1' => 'category_order',
+                'E1' => 'publish',
+                'F1' => 'show_in_homepage'
+            ];
+
+            // Set header values
+            foreach ($headers as $cell => $value) {
+                $sheet->setCellValue($cell, $value);
+            }
+
+            // Add sample data row
+            $sampleData = [
+                'A2' => 'Sample Category',
+                'B2' => 'This is a sample category description',
+                'C2' => 'Essentials & Daily Needs',
+                'D2' => '1',
+                'E2' => 'true',
+                'F2' => 'true'
+            ];
+
+            foreach ($sampleData as $cell => $value) {
+                $sheet->setCellValue($cell, $value);
+            }
+
+            // Auto-size columns
+            foreach (range('A', 'F') as $column) {
+                $sheet->getColumnDimension($column)->setAutoSize(true);
+            }
+
+            // Save the file
+            $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+            $writer->save($filePath);
+
+        } catch (\Exception $e) {
+            throw new \Exception('Failed to generate template: ' . $e->getMessage());
+        }
     }
 }
 
