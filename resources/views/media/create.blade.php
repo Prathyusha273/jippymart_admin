@@ -33,10 +33,10 @@
                                     <legend>Create Media</legend>
                                     <form id="mediaForm">
                                         <div class="form-group row width-100">
-                                            <label class="col-3 control-label">Name</label>
+                                            <label class="col-3 control-label">Name <span class="text-danger">*</span></label>
                                             <div class="col-7">
                                                 <input type="text" class="form-control" id="media_name" required>
-                                                <div class="form-text text-muted">Insert Name</div>
+                                                <div class="form-text text-muted">Enter the media name</div>
                                             </div>
                                         </div>
                                         <div class="form-group row width-100">
@@ -47,10 +47,10 @@
                                             </div>
                                         </div>
                                         <div class="form-group row width-100">
-                                            <label class="col-3 control-label">Image</label>
+                                            <label class="col-3 control-label">Image <span class="text-danger">*</span></label>
                                             <div class="col-7">
                                                 <input type="file" id="media_image" accept="image/*" required>
-                                                <div class="form-text text-muted">Select an image file</div>
+                                                <div class="form-text text-muted">Select an image file (Max size: 5MB, Supported formats: JPG, PNG, GIF)</div>
                                                 <div class="media_image_preview mt-2"></div>
                                             </div>
                                         </div>
@@ -86,62 +86,134 @@ function slugify(text) {
         .replace(/^-+/, '')
         .replace(/-+$/, '');
 }
+
 var database = firebase.firestore();
 var storageRef = firebase.storage().ref('media');
 var photo = "";
 var imageName = "";
 var imagePath = "";
+var isUploading = false;
 
-$('#media_name').on('input', function () {
-    var name = $(this).val();
-    var slug = 'media-' + slugify(name);
-    imageName = 'media_' + slug + '_' + Date.now();
-    $('#media_slug').val(slug);
-});
+$(document).ready(function() {
+    // Generate slug when name changes
+    $('#media_name').on('input', function () {
+        var name = $(this).val().trim();
+        if (name) {
+            var slug = 'media-' + slugify(name);
+            imageName = 'media_' + slug + '_' + Date.now();
+            $('#media_slug').val(slug);
+        } else {
+            $('#media_slug').val('');
+            imageName = '';
+        }
+    });
 
-$('#media_image').change(function (evt) {
-    var f = evt.target.files[0];
-    if (!f) return;
-    var reader = new FileReader();
-    reader.onload = function (e) {
-        photo = e.target.result;
-        $('.media_image_preview').html('<img class="rounded" style="width:70px" src="' + photo + '" alt="image">');
-    };
-    reader.readAsDataURL(f);
-});
-
-$('.save-media-btn').click(async function () {
-    var name = $('#media_name').val();
-    var slug = $('#media_slug').val();
-    if (!name || !photo) {
-        $('.error_top').show().html('<p>Please enter a name and select an image.</p>');
-        window.scrollTo(0, 0);
-        return;
-    }
-    $('.error_top').hide();
-    jQuery('#data-table_processing').show();
-    var uploadTask = storageRef.child(imageName).putString(photo.replace(/^data:image\/[a-z]+;base64,/, ''), 'base64', {contentType: 'image/jpg'});
-    uploadTask.then(async function (snapshot) {
-        imagePath = await snapshot.ref.getDownloadURL();
-        $('#media_image_path').val(imagePath);
-        var docRef = database.collection('media').doc();
-        await docRef.set({
-            id: docRef.id,
-            name: name,
-            slug: slug,
-            image_name: imageName,
-            image_path: imagePath
-        });
+    // Handle image file selection
+    $('#media_image').change(function (evt) {
+        var f = evt.target.files[0];
+        if (!f) {
+            photo = "";
+            $('.media_image_preview').html('');
+            return;
+        }
         
-        // Log activity for media creation
-        await logActivity('media', 'created', 'Created new media: ' + name);
+        // Validate file type
+        if (!f.type.startsWith('image/')) {
+            $('.error_top').show().html('<p>Please select a valid image file.</p>');
+            window.scrollTo(0, 0);
+            $(this).val('');
+            return;
+        }
         
-        jQuery('#data-table_processing').hide();
-        window.location.href = '{{ route('media.index') }}';
-    }).catch(function (error) {
-        jQuery('#data-table_processing').hide();
-        $('.error_top').show().html('<p>' + error + '</p>');
-        window.scrollTo(0, 0);
+        // Validate file size (max 5MB)
+        if (f.size > 5 * 1024 * 1024) {
+            $('.error_top').show().html('<p>Image size should not exceed 5MB.</p>');
+            window.scrollTo(0, 0);
+            $(this).val('');
+            return;
+        }
+        
+        var reader = new FileReader();
+        reader.onload = function (e) {
+            photo = e.target.result;
+            $('.media_image_preview').html('<img class="rounded" style="width:70px; height:70px; object-fit: cover;" src="' + photo + '" alt="image preview">');
+        };
+        reader.readAsDataURL(f);
+    });
+
+    // Save media
+    $('.save-media-btn').click(async function () {
+        if (isUploading) return;
+        
+        var name = $('#media_name').val().trim();
+        var slug = $('#media_slug').val();
+        
+        // Validation
+        if (!name) {
+            $('.error_top').show().html('<p>Please enter a media name.</p>');
+            window.scrollTo(0, 0);
+            return;
+        }
+        
+        if (!photo) {
+            $('.error_top').show().html('<p>Please select an image.</p>');
+            window.scrollTo(0, 0);
+            return;
+        }
+        
+        if (!imageName) {
+            $('.error_top').show().html('<p>Please enter a valid name to generate slug.</p>');
+            window.scrollTo(0, 0);
+            return;
+        }
+        
+        $('.error_top').hide();
+        isUploading = true;
+        $('.save-media-btn').prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Saving...');
+        
+        try {
+            // Upload image to Firebase Storage
+            var uploadTask = storageRef.child(imageName).putString(
+                photo.replace(/^data:image\/[a-z]+;base64,/, ''), 
+                'base64', 
+                {contentType: 'image/jpeg'}
+            );
+            
+            var snapshot = await uploadTask;
+            imagePath = await snapshot.ref.getDownloadURL();
+            $('#media_image_path').val(imagePath);
+            
+            // Save to Firestore
+            var docRef = database.collection('media').doc();
+            await docRef.set({
+                id: docRef.id,
+                name: name,
+                slug: slug,
+                image_name: imageName,
+                image_path: imagePath,
+                created_at: new Date(),
+                updated_at: new Date()
+            });
+            
+            // Log activity
+            await logActivity('media', 'created', 'Created new media: ' + name);
+            
+            // Success message
+            $('.error_top').removeClass('alert-danger').addClass('alert-success').show().html('<p>Media created successfully!</p>');
+            
+            // Redirect after short delay
+            setTimeout(function() {
+                window.location.href = '{{ route('media.index') }}';
+            }, 1500);
+            
+        } catch (error) {
+            console.error('Error creating media:', error);
+            $('.error_top').show().html('<p>Error creating media: ' + error.message + '</p>');
+            window.scrollTo(0, 0);
+        } finally {
+            isUploading = false;
+            $('.save-media-btn').prop('disabled', false).html('<i class="fa fa-save"></i> Save');
+        }
     });
 });
 </script>

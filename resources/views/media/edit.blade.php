@@ -33,7 +33,7 @@
                                     <legend>Edit Media</legend>
                                     <form id="mediaEditForm">
                                         <div class="form-group row width-100">
-                                            <label class="col-3 control-label">Name</label>
+                                            <label class="col-3 control-label">Name <span class="text-danger">*</span></label>
                                             <div class="col-7">
                                                 <input type="text" class="form-control" id="media_name" required>
                                                 <div class="form-text text-muted">Enter the media name</div>
@@ -50,7 +50,7 @@
                                             <label class="col-3 control-label">Image</label>
                                             <div class="col-7">
                                                 <input type="file" id="media_image" accept="image/*">
-                                                <div class="form-text text-muted">Select a new image (optional)</div>
+                                                <div class="form-text text-muted">Select a new image (optional, Max size: 5MB, Supported formats: JPG, PNG, GIF)</div>
                                                 <div class="media_image_preview mt-2"></div>
                                             </div>
                                         </div>
@@ -86,6 +86,7 @@ function slugify(text) {
         .replace(/^-+/, '')
         .replace(/-+$/, '');
 }
+
 var id = "{{ $id ?? '' }}";
 var database = firebase.firestore();
 var ref = database.collection('media').doc(id);
@@ -94,8 +95,11 @@ var photo = "";
 var imageName = "";
 var imagePath = "";
 var oldImagePath = "";
+var oldImageName = "";
+var isUploading = false;
 
 $(document).ready(function () {
+    // Load existing media data
     ref.get().then(function (doc) {
         if (!doc.exists) {
             $('.error_top').show().html('<p>Error: Media not found for the given ID.</p>');
@@ -106,57 +110,134 @@ $(document).ready(function () {
         $('#media_slug').val(media.slug);
         $('#media_image_path').val(media.image_path);
         oldImagePath = media.image_path;
-        $('.media_image_preview').html(media.image_path ? '<img class="rounded" style="width:70px" src="' + media.image_path + '" alt="image">' : '');
+        oldImageName = media.image_name || '';
+        $('.media_image_preview').html(media.image_path ? '<img class="rounded" style="width:70px; height:70px; object-fit: cover;" src="' + media.image_path + '" alt="current image">' : '');
     });
 
+    // Generate slug when name changes
     $('#media_name').on('input', function () {
-        var name = $(this).val();
-        var slug = 'media-' + slugify(name);
-        imageName = 'media_' + slug + '_' + Date.now();
-        $('#media_slug').val(slug);
+        var name = $(this).val().trim();
+        if (name) {
+            var slug = 'media-' + slugify(name);
+            imageName = 'media_' + slug + '_' + Date.now();
+            $('#media_slug').val(slug);
+        } else {
+            $('#media_slug').val('');
+            imageName = '';
+        }
     });
 
+    // Handle new image file selection
     $('#media_image').change(function (evt) {
         var f = evt.target.files[0];
-        if (!f) return;
+        if (!f) {
+            photo = "";
+            return;
+        }
+        
+        // Validate file type
+        if (!f.type.startsWith('image/')) {
+            $('.error_top').show().html('<p>Please select a valid image file.</p>');
+            window.scrollTo(0, 0);
+            $(this).val('');
+            return;
+        }
+        
+        // Validate file size (max 5MB)
+        if (f.size > 5 * 1024 * 1024) {
+            $('.error_top').show().html('<p>Image size should not exceed 5MB.</p>');
+            window.scrollTo(0, 0);
+            $(this).val('');
+            return;
+        }
+        
         var reader = new FileReader();
         reader.onload = function (e) {
             photo = e.target.result;
-            $('.media_image_preview').html('<img class="rounded" style="width:70px" src="' + photo + '" alt="image">');
+            $('.media_image_preview').html('<img class="rounded" style="width:70px; height:70px; object-fit: cover;" src="' + photo + '" alt="new image preview">');
         };
         reader.readAsDataURL(f);
     });
 
+    // Update media
     $('.save-media-btn').click(async function () {
-        var name = $('#media_name').val();
+        if (isUploading) return;
+        
+        var name = $('#media_name').val().trim();
         var slug = $('#media_slug').val();
+        
+        // Validation
         if (!name) {
-            $('.error_top').show().html('<p>Please enter a name.</p>');
+            $('.error_top').show().html('<p>Please enter a media name.</p>');
             window.scrollTo(0, 0);
             return;
         }
+        
         $('.error_top').hide();
-        jQuery('#data-table_processing').show();
-        let newImagePath = oldImagePath;
-        if (photo) {
-            var uploadTask = storageRef.child(imageName).putString(photo.replace(/^data:image\/[a-z]+;base64,/, ''), 'base64', {contentType: 'image/jpg'});
-            await uploadTask.then(async function (snapshot) {
+        isUploading = true;
+        $('.save-media-btn').prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Updating...');
+        
+        try {
+            let newImagePath = oldImagePath;
+            let newImageName = oldImageName;
+            
+            // Upload new image if selected
+            if (photo && imageName) {
+                var uploadTask = storageRef.child(imageName).putString(
+                    photo.replace(/^data:image\/[a-z]+;base64,/, ''), 
+                    'base64', 
+                    {contentType: 'image/jpeg'}
+                );
+                
+                var snapshot = await uploadTask;
                 newImagePath = await snapshot.ref.getDownloadURL();
+                newImageName = imageName;
                 $('#media_image_path').val(newImagePath);
-            });
+                
+                // Delete old image if it exists and is different
+                if (oldImageName && oldImageName !== newImageName) {
+                    try {
+                        var oldImageRef = storageRef.child(oldImageName);
+                        await oldImageRef.delete();
+                    } catch (deleteError) {
+                        console.warn('Could not delete old image:', deleteError);
+                    }
+                }
+            }
+            
+            // Update Firestore document
+            var updateData = {
+                name: name,
+                slug: slug,
+                updated_at: new Date()
+            };
+            
+            if (photo && imageName) {
+                updateData.image_name = newImageName;
+                updateData.image_path = newImagePath;
+            }
+            
+            await ref.update(updateData);
+            
+            // Log activity
+            await logActivity('media', 'updated', 'Updated media: ' + name);
+            
+            // Success message
+            $('.error_top').removeClass('alert-danger').addClass('alert-success').show().html('<p>Media updated successfully!</p>');
+            
+            // Redirect after short delay
+            setTimeout(function() {
+                window.location.href = '{{ route('media.index') }}';
+            }, 1500);
+            
+        } catch (error) {
+            console.error('Error updating media:', error);
+            $('.error_top').show().html('<p>Error updating media: ' + error.message + '</p>');
+            window.scrollTo(0, 0);
+        } finally {
+            isUploading = false;
+            $('.save-media-btn').prop('disabled', false).html('<i class="fa fa-save"></i> Update');
         }
-        await ref.update({
-            name: name,
-            slug: slug,
-            image_name: imageName,
-            image_path: newImagePath
-        });
-        
-        // Log activity for media update
-        await logActivity('media', 'updated', 'Updated media: ' + name);
-        
-        jQuery('#data-table_processing').hide();
-        window.location.href = '{{ route('media.index') }}';
     });
 });
 </script>

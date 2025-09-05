@@ -12,6 +12,29 @@
             </ol>
         </div>
     </div>
+
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ session('success') }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    @endif
+
+    @if($errors->any())
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <ul class="mb-0">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    @endif
+
     <div class="container-fluid">
         <div class="admin-top-section">
             <div class="row">
@@ -24,24 +47,13 @@
                         </div>
                         <div class="d-flex top-title-right align-self-center">
                             <div class="select-box pl-3">
+                                <!-- Future filters can be added here -->
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        @if(session('success'))
-            <div class="alert alert-success">{{ session('success') }}</div>
-        @endif
-        @if($errors->any())
-            <div class="alert alert-danger">
-                <ul class="mb-0">
-                    @foreach($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
 
         <div class="table-list">
             <div class="row">
@@ -65,13 +77,12 @@
                                 <table id="mediaTable" class="display nowrap table table-hover table-striped table-bordered table table-striped" cellspacing="0" width="100%">
                                     <thead>
                                         <tr>
-                                            <th class="delete-all"><input type="checkbox" id="is_active"><label class="col-3 control-label" for="is_active"><a id="deleteAll" class="do_not_delete" href="javascript:void(0)"><i class="mdi mdi-delete"></i> All</a></label></th>
-                                            <th class="text-center">Media Info</th>
-                                            <th class="text-center">Slug</th>
-                                            <th class="text-center">Actions</th>
+                                            <th class="delete-all"><input type="checkbox" id="select-all"><label class="col-3 control-label" for="select-all"><a id="deleteAll" class="do_not_delete" href="javascript:void(0)"><i class="mdi mdi-delete"></i> {{trans('lang.all')}}</a></label></th>
+                                            <th>{{trans('Media Info')}}</th>
+                                            <th>{{trans('Slug')}}</th>
+                                            <th>{{trans('lang.actions')}}</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="append_media"></tbody>
                                 </table>
                             </div>
                         </div>
@@ -130,7 +141,13 @@ var selectedMedia = new Set();
 function formatExpandRow(data) {
     return `
         <div class="p-2">
-            <strong>Image Path:</strong> <span class="text-monospace">${data.image_path || ''}</span>
+            <strong>Media Details:</strong>
+            <ul class="list-unstyled mt-2">
+                <li><strong>Name:</strong> ${data.name || 'N/A'}</li>
+                <li><strong>Slug:</strong> ${data.slug || 'N/A'}</li>
+                <li><strong>Created:</strong> ${data.created_at ? new Date(data.created_at.seconds * 1000).toLocaleDateString() : 'N/A'}</li>
+                <li><strong>Updated:</strong> ${data.updated_at ? new Date(data.updated_at.seconds * 1000).toLocaleDateString() : 'N/A'}</li>
+            </ul>
         </div>
     `;
 }
@@ -142,7 +159,7 @@ async function buildHTML(val) {
     route1 = route1.replace(':id', id);
     
     // Checkbox column with expand button - same structure as restaurants
-    html.push('<td class="delete-all"><input type="checkbox" id="is_open_' + id + '" class="is_open" dataId="' + id + '"><label class="col-3 control-label" for="is_open_' + id + '" ></label><button class="expand-row" data-id="' + id + '" tabindex="-1" style="width: 18px; height: 18px; border-radius: 50%; background-color: #28a745; border: 2px solid #ffffff; display: inline-flex; align-items: center; justify-content: center; padding: 0; margin-left: 5px; position: relative; z-index: 1;"><i class="fa fa-plus" style="color: white; font-size: 8px;"></i></button></td>');
+    html.push('<td class="delete-all"><input type="checkbox" id="is_open_' + id + '" name="record" class="is_open" dataId="' + id + '"><label class="col-3 control-label" for="is_open_' + id + '" ></label><button class="expand-row" data-id="' + id + '" tabindex="-1" style="width: 18px; height: 18px; border-radius: 50%; background-color: #28a745; border: 2px solid #ffffff; display: inline-flex; align-items: center; justify-content: center; padding: 0; margin-left: 5px; position: relative; z-index: 1;"><i class="fa fa-plus" style="color: white; font-size: 8px;"></i></button></td>');
     
     // Media Info column - same structure as restaurants
     var mediaInfo = '';
@@ -163,7 +180,10 @@ async function buildHTML(val) {
     
     // Actions column - same structure as restaurants
     var actionHtml = '<span class="action-btn">';
-    actionHtml += '<a href="' + route1 + '"><i class="mdi mdi-lead-pencil" title="Edit"></i></a>';
+    actionHtml += '<a href="' + route1 + '" class="link-td"><i class="mdi mdi-lead-pencil" title="Edit"></i></a>';
+    if (val.image_path && val.image_path != '') {
+        actionHtml += '<a href="javascript:void(0)" class="copy-image-path" data-image-path="' + val.image_path + '" title="Copy Image Path"><i class="mdi mdi-content-copy"></i></a>';
+    }
     actionHtml += '<a id="' + id + '" name="media-delete" href="javascript:void(0)" class="delete-btn"><i class="mdi mdi-delete" title="Delete"></i></a>';
     actionHtml += '</span>';
     html.push(actionHtml);
@@ -176,6 +196,14 @@ $(document).ready(function () {
     database.collection('settings').doc('placeHolderImage').get().then(function (snap) {
         if (snap.exists) placeholderImage = snap.data().image;
     });
+
+    var fieldConfig = {
+        columns: [
+            { key: 'name', header: "{{trans('Media Info')}}" },
+            { key: 'slug', header: "{{trans('Slug')}}" },
+        ],
+        fileName: "{{trans('Media List')}}",
+    };
 
     var table = $('#mediaTable').DataTable({
         pageLength: 10,
@@ -262,15 +290,54 @@ $(document).ready(function () {
             {orderable: false, targets: [0, 3]}
         ],
         "language": {
-            "zeroRecords": "No record found",
-            "emptyTable": "No record found",
+            "zeroRecords": "{{trans('lang.no_record_found')}}",
+            "emptyTable": "{{trans('lang.no_record_found')}}",
             "processing": ""
+        },
+        dom: 'lfrtipB',
+        buttons: [
+            {
+                extend: 'collection',
+                text: '<i class="mdi mdi-cloud-download"></i> Export as',
+                className: 'btn btn-info',
+                buttons: [
+                    {
+                        extend: 'excelHtml5',
+                        text: 'Export Excel',
+                        action: function (e, dt, button, config) {
+                            exportData(dt, 'excel', fieldConfig);
+                        }
+                    },
+                    {
+                        extend: 'pdfHtml5',
+                        text: 'Export PDF',
+                        action: function (e, dt, button, config) {
+                            exportData(dt, 'pdf', fieldConfig);
+                        }
+                    },
+                    {
+                        extend: 'csvHtml5',
+                        text: 'Export CSV',
+                        action: function (e, dt, button, config) {
+                            exportData(dt, 'csv', fieldConfig);
+                        }
+                    }
+                ]
+            }
+        ],
+        initComplete: function() {
+            $(".dataTables_filter").append($(".dt-buttons").detach());
+            $('.dataTables_filter input').attr('placeholder', 'Search here...').attr('autocomplete','new-password').val('');
+            $('.dataTables_filter label').contents().filter(function() {
+                return this.nodeType === 3;
+            }).remove();
         }
     });
 
     // Select all logic
-    $("#is_active").click(function () {
-        $("#mediaTable .is_open").prop('checked', $(this).prop('checked'));
+    $("#select-all").change(function () {
+        var isChecked = $(this).prop('checked');
+        $('input[type="checkbox"][name="record"]').prop('checked', isChecked);
     });
 
     // Row checkbox logic
@@ -281,7 +348,7 @@ $(document).ready(function () {
         } else {
             selectedMedia.delete(id);
         }
-        $('#is_active').prop('checked', $('.is_open:checked').length === $('.is_open').length);
+        $('#select-all').prop('checked', $('.is_open:checked').length === $('.is_open').length);
     });
 
     // Expand/collapse row
@@ -312,67 +379,179 @@ $(document).ready(function () {
     // Single delete
     $('#mediaTable tbody').on('click', '.delete-btn', async function () {
         var id = $(this).attr('id');
-        if (confirm('Are you sure you want to delete this media?')) {
+        var mediaName = $(this).closest('tr').find('a').text().trim() || 'Unknown';
+        
+        if (confirm('Are you sure you want to delete "' + mediaName + '"?')) {
             jQuery('#data-table_processing').show();
             
-            // Get media name for logging
-            var mediaName = '';
             try {
+                // Get media data for logging and image cleanup
                 var doc = await database.collection('media').doc(id).get();
-                if (doc.exists) {
-                    mediaName = doc.data().name;
+                var mediaData = doc.exists ? doc.data() : null;
+                
+                if (mediaData && mediaData.image_name) {
+                    // Delete image from storage
+                    try {
+                        var imageRef = firebase.storage().ref('media').child(mediaData.image_name);
+                        await imageRef.delete();
+                    } catch (deleteError) {
+                        console.warn('Could not delete image from storage:', deleteError);
+                    }
                 }
-            } catch (error) {
-                console.error('Error getting media name:', error);
-            }
-            
-            database.collection('media').doc(id).delete().then(async function () {
-                await logActivity('media', 'deleted', 'Deleted media: ' + mediaName);
+                
+                // Delete from Firestore
+                await database.collection('media').doc(id).delete();
+                
+                // Log activity
+                await logActivity('media', 'deleted', 'Deleted media: ' + (mediaData ? mediaData.name : mediaName));
+                
+                // Remove from selected set
                 selectedMedia.delete(id);
+                
+                // Reload table
                 table.ajax.reload();
+                
+            } catch (error) {
+                console.error('Error deleting media:', error);
+                alert('Error deleting media: ' + error.message);
+            } finally {
                 jQuery('#data-table_processing').hide();
-            });
+            }
         }
     });
 
     // Bulk delete
     $("#deleteAll").click(async function () {
-        if ($('#mediaTable .is_open:checked').length) {
-            if (confirm("Delete selected media?")) {
-                jQuery('#data-table_processing').show();
-                
-                // Get all selected media names for logging
+        var selectedCount = $('#mediaTable .is_open:checked').length;
+        
+        if (selectedCount === 0) {
+            alert("{{trans('lang.selected_delete_alert')}}");
+            return;
+        }
+        
+        if (confirm("{{trans('lang.selected_delete_alert')}}")) {
+            jQuery('#data-table_processing').show();
+            
+            try {
+                var selectedIds = [];
                 var selectedNames = [];
-                for (var i = 0; i < $('#mediaTable .is_open:checked').length; i++) {
-                    var id = $('#mediaTable .is_open:checked').eq(i).attr('dataId');
-                    try {
-                        var doc = await database.collection('media').doc(id).get();
-                        if (doc.exists) {
-                            selectedNames.push(doc.data().name);
-                        }
-                    } catch (error) {
-                        console.error('Error getting media name:', error);
-                    }
-                }
+                var deletePromises = [];
                 
+                // Collect all selected items
                 $('#mediaTable .is_open:checked').each(function () {
-                    var id = $(this).attr('dataId');
-                    database.collection('media').doc(id).delete();
-                    selectedMedia.delete(id);
+                    selectedIds.push($(this).attr('dataId'));
                 });
                 
-                // Log bulk delete activity
-                await logActivity('media', 'deleted', 'Bulk deleted media: ' + selectedNames.join(', '));
+                // Process each selected item
+                for (var i = 0; i < selectedIds.length; i++) {
+                    var id = selectedIds[i];
+                    var deletePromise = (async function(id) {
+                        try {
+                            // Get media data
+                            var doc = await database.collection('media').doc(id).get();
+                            if (doc.exists) {
+                                var mediaData = doc.data();
+                                selectedNames.push(mediaData.name);
+                                
+                                // Delete image from storage if exists
+                                if (mediaData.image_name) {
+                                    try {
+                                        var imageRef = firebase.storage().ref('media').child(mediaData.image_name);
+                                        await imageRef.delete();
+                                    } catch (deleteError) {
+                                        console.warn('Could not delete image from storage:', deleteError);
+                                    }
+                                }
+                                
+                                // Delete from Firestore
+                                await database.collection('media').doc(id).delete();
+                                selectedMedia.delete(id);
+                            }
+                        } catch (error) {
+                            console.error('Error deleting media ' + id + ':', error);
+                        }
+                    })(id);
+                    
+                    deletePromises.push(deletePromise);
+                }
                 
-                setTimeout(function () {
-                    table.ajax.reload();
-                    jQuery('#data-table_processing').hide();
-                }, 500);
+                // Wait for all deletions to complete
+                await Promise.all(deletePromises);
+                
+                // Log bulk delete activity
+                if (selectedNames.length > 0) {
+                    await logActivity('media', 'deleted', 'Bulk deleted media: ' + selectedNames.join(', '));
+                }
+                
+                // Reload table
+                table.ajax.reload();
+                
+            } catch (error) {
+                console.error('Error in bulk delete:', error);
+                alert('Error deleting selected media: ' + error.message);
+            } finally {
+                jQuery('#data-table_processing').hide();
             }
-        } else {
-            alert("Select at least one media to delete.");
+        }
+    });
+
+    // Search functionality with debounce
+    $('#search-input').on('input', debounce(function() {
+        const searchValue = $(this).val();
+        if (searchValue.length >= 3) {
+            $('#data-table_processing').show();
+            table.search(searchValue).draw();
+        } else if (searchValue.length === 0) {
+            $('#data-table_processing').show();
+            table.search('').draw();
+        }
+    }, 300));
+
+    // Copy image path to clipboard
+    $('#mediaTable tbody').on('click', '.copy-image-path', function() {
+        var imagePath = $(this).data('image-path');
+        if (imagePath) {
+            // Create a temporary textarea element
+            var tempTextArea = document.createElement('textarea');
+            tempTextArea.value = imagePath;
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            tempTextArea.setSelectionRange(0, 99999); // For mobile devices
+            
+            try {
+                // Copy the text to clipboard
+                document.execCommand('copy');
+                
+                // Show success feedback
+                var $btn = $(this);
+                var originalIcon = $btn.find('i').attr('class');
+                $btn.find('i').removeClass().addClass('mdi mdi-check text-success');
+                $btn.attr('title', 'Copied!');
+                
+                // Reset after 2 seconds
+                setTimeout(function() {
+                    $btn.find('i').removeClass().addClass(originalIcon);
+                    $btn.attr('title', 'Copy Image Path');
+                }, 2000);
+                
+            } catch (err) {
+                console.error('Failed to copy: ', err);
+                alert('Failed to copy image path to clipboard');
+            }
+            
+            // Remove the temporary element
+            document.body.removeChild(tempTextArea);
         }
     });
 });
+
+function debounce(func, wait) {
+    let timeout;
+    const context = this;
+    return function(...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(context, args), wait);
+    };
+}
 </script>
 @endsection
