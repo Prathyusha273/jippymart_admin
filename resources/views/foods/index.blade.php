@@ -575,11 +575,14 @@
             <?php if ($id != '') { ?>
                 route1=route1+'?eid={{$id}}';
             <?php } ?>
-            if(val.photos!=''&&val.photos!=null) {
-                imageHtml='<img onerror="this.onerror=null;this.src=\''+placeholderImage+'\'" class="rounded" width="100%" style="width:70px;height:70px;" src="'+val.photo+'" alt="image">';
-            } else if(val.photo!=''&&val.photos!=null) {
+            if(val.photos && val.photos.length > 0) {
+                // Use first photo from photos array
+                imageHtml='<img onerror="this.onerror=null;this.src=\''+placeholderImage+'\'" class="rounded" width="100%" style="width:70px;height:70px;" src="'+val.photos[0]+'" alt="image">';
+            } else if(val.photo && val.photo != '') {
+                // Use single photo field
                 imageHtml='<img onerror="this.onerror=null;this.src=\''+placeholderImage+'\'" class="rounded" width="100%" style="width:70px;height:70px;" src="'+val.photo+'" alt="image">';
             } else {
+                // Use placeholder image
                 imageHtml='<img width="100%" style="width:70px;height:70px;" src="'+placeholderImage+'" alt="image">';
             }
             if(checkDeletePermission) {

@@ -110,6 +110,87 @@ class FoodController extends Controller
         return $this->findCategoryByName($categoryInput, $firestore);
     }
 
+    /**
+     * Resolve media image from media collection
+     */
+    private function resolveMediaImage($imageInput, $firestore)
+    {
+        if (empty($imageInput)) {
+            return null;
+        }
+
+        try {
+            // If input is already a full image_path URL, return it directly
+            if (filter_var($imageInput, FILTER_VALIDATE_URL) && strpos($imageInput, 'firebasestorage.googleapis.com') !== false) {
+                return [
+                    'image_path' => $imageInput,
+                    'image_name' => basename(parse_url($imageInput, PHP_URL_PATH)),
+                    'name' => 'Direct URL',
+                    'slug' => 'direct-url'
+                ];
+            }
+
+            // Try lookup by image_name, then name, then slug, then image_path
+            $mediaData = $this->queryMediaByField($firestore, 'image_name', $imageInput);
+            if ($mediaData) {
+                return $mediaData;
+            }
+
+            $mediaData = $this->queryMediaByField($firestore, 'name', $imageInput);
+            if ($mediaData) {
+                return $mediaData;
+            }
+
+            $mediaData = $this->queryMediaByField($firestore, 'slug', $imageInput);
+            if ($mediaData) {
+                return $mediaData;
+            }
+
+            // Try image_path if it looks like a URL
+            if (strpos($imageInput, 'http') === 0) {
+                $mediaData = $this->queryMediaByField($firestore, 'image_path', $imageInput);
+                if ($mediaData) {
+                    return $mediaData;
+                }
+            }
+
+        } catch (\Exception $e) {
+            \Log::warning('Media lookup failed for: ' . $imageInput . ' - ' . $e->getMessage());
+        }
+
+        return null;
+    }
+
+    /**
+     * Query media collection by specific field
+     */
+    private function queryMediaByField($firestore, $field, $value)
+    {
+        try {
+            $query = $firestore->collection('media')
+                ->where($field, '==', $value)
+                ->limit(1);
+            
+            $documents = $query->documents();
+            
+            foreach ($documents as $document) {
+                if ($document->exists()) {
+                    $data = $document->data();
+                    return [
+                        'image_path' => $data['image_path'] ?? '',
+                        'image_name' => $data['image_name'] ?? '',
+                        'name' => $data['name'] ?? '',
+                        'slug' => $data['slug'] ?? ''
+                    ];
+                }
+            }
+        } catch (\Exception $e) {
+            \Log::warning("Media query failed for field '$field' with value '$value': " . $e->getMessage());
+        }
+
+        return null;
+    }
+
     public function import(Request $request)
     {
         $request->validate([
@@ -165,40 +246,73 @@ class FoodController extends Controller
                     continue;
                 }
 
-                // Prepare food data
+                // Resolve photo from media collection
+                $resolvedPhoto = '';
+                $resolvedPhotos = [];
+                if (!empty($data['photo'])) {
+                    $mediaData = $this->resolveMediaImage($data['photo'], $firestore);
+                    if ($mediaData && !empty($mediaData['image_path'])) {
+                        $resolvedPhoto = $mediaData['image_path'];
+                        $resolvedPhotos = [$mediaData['image_path']];
+                        \Log::info("Food import: Resolved photo for '{$data['name']}' from '{$data['photo']}' to '{$resolvedPhoto}'");
+                    } else {
+                        \Log::warning("Food import: Could not resolve photo '{$data['photo']}' for food '{$data['name']}'");
+                    }
+                }
+
+                // Get vendor title for consistency
+                $vendorTitle = '';
+                try {
+                    $vendorDoc = $firestore->collection('vendors')->document($resolvedVendorID)->snapshot();
+                    if ($vendorDoc->exists()) {
+                        $vendorData = $vendorDoc->data();
+                        $vendorTitle = $vendorData['title'] ?? '';
+                    }
+                } catch (\Exception $e) {
+                    \Log::warning("Could not fetch vendor title for ID: $resolvedVendorID");
+                }
+
+                // Get category title for consistency
+                $categoryTitle = '';
+                try {
+                    $categoryDoc = $firestore->collection('vendor_categories')->document($resolvedCategoryID)->snapshot();
+                    if ($categoryDoc->exists()) {
+                        $categoryData = $categoryDoc->data();
+                        $categoryTitle = $categoryData['title'] ?? '';
+                    }
+                } catch (\Exception $e) {
+                    \Log::warning("Could not fetch category title for ID: $resolvedCategoryID");
+                }
+
+                // Prepare food data - handling all variations in your document structure
                 $foodData = [
                     'name' => trim($data['name']),
-                    'price' => (float) $data['price'],
+                    'price' => $data['price'], // Keep original format (string or number)
                     'description' => trim($data['description'] ?? ''),
                     'vendorID' => $resolvedVendorID,
+                    'vendorTitle' => $vendorTitle, // Add vendor title for consistency
                     'categoryID' => $resolvedCategoryID,
-                    'disPrice' => !empty($data['disPrice']) ? (float) $data['disPrice'] : '',
+                    'categoryTitle' => $categoryTitle, // Add category title for consistency
+                    'disPrice' => !empty($data['disPrice']) ? $data['disPrice'] : '', // Keep original format
                     'publish' => strtolower($data['publish'] ?? 'true') === 'true',
                     'nonveg' => strtolower($data['nonveg'] ?? 'false') === 'true',
                     'veg' => strtolower($data['nonveg'] ?? 'false') === 'true' ? false : true, // Opposite of nonveg
                     'isAvailable' => strtolower($data['isAvailable'] ?? 'true') === 'true',
-                    'quantity' => -1, // Auto-generated default
-                    'calories' => 0, // Auto-generated default
-                    'grams' => 0, // Auto-generated default
-                    'proteins' => 0, // Auto-generated default
-                    'fats' => 0, // Auto-generated default
-                    'photo' => '',
-                    'photos' => [],
-                    'addOnsTitle' => [], // Fixed spelling to match Firestore
-                    'addOnsPrice' => [], // Fixed spelling to match Firestore
-                    'sizeTitle' => [],
-                    'sizePrice' => [],
-                    'attributes' => [],
-                    'variants' => [],
-                    'product_specification' => null,
-                    'item_attribute' => null,
-                    'reviewAttributes' => null,
-                    'reviewsCount' => 0,
-                    'reviewsSum' => 0,
-                    'takeawayOption' => false, // Auto-generated default
-                    'migratedBy' => 'excel_import',
-                    'createdAt' => new \Google\Cloud\Core\Timestamp(new \DateTime()), // Fixed to match Firestore
-                    'updated_at' => new \Google\Cloud\Core\Timestamp(new \DateTime()),
+                    'quantity' => -1, // Number format
+                    'calories' => 0, // Number format
+                    'grams' => 0, // Number format
+                    'proteins' => 0, // Number format
+                    'fats' => 0, // Number format
+                    'photo' => $resolvedPhoto, // Use resolved photo
+                    'photos' => $resolvedPhotos, // Use resolved photos array
+                    'addOnsTitle' => [], // Array format
+                    'addOnsPrice' => [], // Array format
+                    'takeawayOption' => false, // Boolean format
+                    'product_specification' => null, // NULL format to match your structure
+                    'item_attribute' => null, // Null format
+                    'migratedBy' => 'excel_import', // String format for new imports
+                    'vType' => 'restaurant', // String format for new imports
+                    'createdAt' => new \Google\Cloud\Core\Timestamp(new \DateTime()), // Timestamp format
                 ];
 
                 // Create document with auto-generated ID
@@ -228,15 +342,81 @@ class FoodController extends Controller
     public function downloadTemplate()
     {
         $filePath = storage_path('app/templates/foods_import_template.xlsx');
-
+        $templateDir = dirname($filePath);
+        
+        // Create template directory if it doesn't exist
+        if (!is_dir($templateDir)) {
+            mkdir($templateDir, 0755, true);
+        }
+        
+        // Generate template if it doesn't exist
         if (!file_exists($filePath)) {
-            abort(404, 'Template file not found');
+            $this->generateTemplate($filePath);
         }
 
         return response()->download($filePath, 'foods_import_template.xlsx', [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Content-Disposition' => 'attachment; filename="foods_import_template.xlsx"'
         ]);
+    }
+
+    /**
+     * Generate Excel template for food import
+     */
+    private function generateTemplate($filePath)
+    {
+        try {
+            $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+            $sheet = $spreadsheet->getActiveSheet();
+            
+            // Set headers
+            $headers = [
+                'A1' => 'name',
+                'B1' => 'price', 
+                'C1' => 'description',
+                'D1' => 'vendorID',
+                'E1' => 'categoryID',
+                'F1' => 'disPrice',
+                'G1' => 'publish',
+                'H1' => 'nonveg',
+                'I1' => 'isAvailable',
+                'J1' => 'photo'
+            ];
+            
+            foreach ($headers as $cell => $value) {
+                $sheet->setCellValue($cell, $value);
+            }
+            
+            // Add sample data
+            $sampleData = [
+                'A2' => 'Sample Food Item',
+                'B2' => '150.00',
+                'C2' => 'This is a sample food item description',
+                'D2' => 'Sample Restaurant',
+                'E2' => 'Main Course',
+                'F2' => '120.00',
+                'G2' => 'true',
+                'H2' => 'false',
+                'I2' => 'true',
+                'J2' => 'Sample Food Image'
+            ];
+            
+            foreach ($sampleData as $cell => $value) {
+                $sheet->setCellValue($cell, $value);
+            }
+            
+            // Auto-size columns
+            foreach (range('A', 'J') as $column) {
+                $sheet->getColumnDimension($column)->setAutoSize(true);
+            }
+            
+            // Save the file
+            $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+            $writer->save($filePath);
+            
+        } catch (\Exception $e) {
+            throw new \Exception('Failed to generate template: ' . $e->getMessage());
+        }
     }
 
     /**

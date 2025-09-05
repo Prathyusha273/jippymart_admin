@@ -536,6 +536,26 @@
                 var veg = !nonveg;
                 var foodTakeaway = $(".food_take_away_option").is(":checked");
                 var discount = $(".food_discount").val();
+
+                // Get vendor title and category title for consistency
+                var vendorTitle = '';
+                var categoryTitle = '';
+                
+                if (restaurant) {
+                    restaurant_list.forEach((vendor) => {
+                        if (vendor.id == restaurant) {
+                            vendorTitle = vendor.title || '';
+                        }
+                    });
+                }
+                
+                if (category) {
+                    categories_list.forEach((cat) => {
+                        if (cat.id == category) {
+                            categoryTitle = cat.title || '';
+                        }
+                    });
+                }
                 if (discount == '') {
                     discount = "0";
                 }
@@ -680,11 +700,13 @@
                     var foodIsAvailable = $(".food_is_available").is(":checked");
                     database.collection('vendor_products').doc(id).update({
                         'name': name,
-                        'price': price.toString(),
+                        'price': price, // Keep as string (matches your structure)
                         'quantity': parseInt(quantity),
-                        'disPrice': discount,
+                        'disPrice': discount, // Keep as string (matches your structure)
                         'vendorID': restaurant,
+                        'vendorTitle': vendorTitle, // Add vendor title for consistency
                         'categoryID': category,
+                        'categoryTitle': categoryTitle, // Add category title for consistency
                         'photo': photo,
                         'calories': foodCalories,
                         "grams": foodGrams,
@@ -697,10 +719,12 @@
                         'addOnsTitle': addOnesTitle,
                         'addOnsPrice': addOnesPrice,
                         'takeawayOption': foodTakeaway,
-                        'product_specification': product_specification,
+                        'product_specification': product_specification, // Can be object or null
                         'item_attribute': item_attribute,
                         'photos': IMG,
-                        'isAvailable': foodIsAvailable
+                        'isAvailable': foodIsAvailable,
+                        'migratedBy': 'manual_edit', // Add migration tracking
+                        'vType': 'restaurant' // Add vendor type for foods
                     }).then(async function (result) {
                         console.log('✅ Food updated successfully, now logging activity...');
                         try {
