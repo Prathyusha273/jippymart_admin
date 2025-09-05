@@ -730,7 +730,8 @@
             <a href="${vendor_url}"><i class="mdi mdi-view-list" title="Orders"></i></a>
             <a href="javascript:void(0)" vendor_id="${val.id}" author="${val.author}" name="vendor-clone" title="Copy"><i class="mdi mdi-content-copy"></i></a>
             <a href="${route_view}"><i class="mdi mdi-eye" title="View"></i></a>
-            <a href="${route1}"><i class="mdi mdi-lead-pencil" title="Edit"></i></a>`;
+            <a href="${route1}"><i class="mdi mdi-lead-pencil" title="Edit"></i></a>
+            <a href="javascript:void(0)" class="impersonate-restaurant-btn" data-restaurant-id="${val.id}" data-restaurant-name="${val.title || 'Unknown Restaurant'}" title="Login as Restaurant"><i class="mdi mdi-account-switch text-primary"></i></a>`;
         if (checkDeletePermission) {
             actionHtml += `<a id="${val.id}" author="${val.author}" name="vendor-delete" class="delete-btn" href="javascript:void(0)" title="Delete"><i class="mdi mdi-delete"></i></a>`;
         }
@@ -1248,5 +1249,75 @@
              `)
              .appendTo('head');
      });
+
+     // Handle restaurant impersonation
+     $(document).on('click', '.impersonate-restaurant-btn', function(e) {
+         e.preventDefault();
+
+         const restaurantId = $(this).data('restaurant-id');
+         const restaurantName = $(this).data('restaurant-name');
+         const $btn = $(this);
+
+         // Show confirmation dialog
+         if (!confirm(`Are you sure you want to login as "${restaurantName}"?\n\nThis will redirect you to the restaurant panel and log you in automatically.`)) {
+             return;
+         }
+
+         // Show loading state
+         const originalHtml = $btn.html();
+         $btn.html('<i class="mdi mdi-loading mdi-spin text-primary"></i>').prop('disabled', true);
+
+         // Generate impersonation token
+         $.ajax({
+             url: '{{ route("admin.impersonate.generate") }}',
+             method: 'POST',
+             data: {
+                 restaurant_id: restaurantId,
+                 expiration_minutes: 5, // 5 minutes for security
+                 _token: '{{ csrf_token() }}'
+             },
+             success: function(response) {
+                 if (response.success) {
+                     // Show success message
+                     showNotification('success', `Redirecting to ${response.restaurant_name}...`);
+
+                     // Redirect to restaurant panel with impersonation token
+                     setTimeout(() => {
+                         window.open(response.impersonation_url, '_blank');
+                     }, 1000);
+                 } else {
+                     showNotification('error', response.error || 'Failed to generate impersonation token');
+                 }
+             },
+             error: function(xhr) {
+                 const errorMsg = xhr.responseJSON?.error || 'An error occurred while generating impersonation token';
+                 showNotification('error', errorMsg);
+             },
+             complete: function() {
+                 // Restore button state
+                 $btn.html(originalHtml).prop('disabled', false);
+             }
+         });
+     });
+
+     // Notification helper function
+     function showNotification(type, message) {
+         const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+         const notification = $(`
+             <div class="alert ${alertClass} alert-dismissible fade show" role="alert" style="position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 300px;">
+                 ${message}
+                 <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                     <span aria-hidden="true">&times;</span>
+                 </button>
+             </div>
+         `);
+
+         $('body').append(notification);
+
+         // Auto-dismiss after 5 seconds
+         setTimeout(() => {
+             notification.alert('close');
+         }, 5000);
+     }
 </script>
 @endsection
