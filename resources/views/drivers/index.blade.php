@@ -392,7 +392,7 @@
                     ]
                 }
             ],
-                        initComplete: function() {
+            initComplete: function() {
                 $(".dataTables_filter").append($(".dt-buttons").detach());
 
                 // Add clear all order request data button beside search

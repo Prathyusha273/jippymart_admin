@@ -91,6 +91,17 @@ Route::middleware(['permission:restaurants,restaurants.view'])->group(function (
 });
 Route::get('/restaurants/promos/{id}', [App\Http\Controllers\RestaurantController::class, 'promos'])->name('restaurants.promos');
 
+// Admin Impersonation Routes
+Route::middleware(['permission:restaurants,restaurants.impersonate', 'impersonation.security'])->group(function () {
+    Route::post('/admin/impersonate/generate-token', [App\Http\Controllers\ImpersonationController::class, 'generateToken'])->name('admin.impersonate.generate');
+    Route::get('/admin/impersonate/restaurant-info', [App\Http\Controllers\ImpersonationController::class, 'getRestaurantInfo'])->name('admin.impersonate.info');
+});
+
+// Restaurant Panel Impersonation Handler (No auth required - handles custom tokens)
+Route::get('/auth/impersonate', function () {
+    return view('restaurant_auth_handler');
+})->name('restaurant.impersonate');
+
 // Mart Routes
 Route::middleware(['permission:marts,marts'])->group(function () {
     Route::get('/marts', [App\Http\Controllers\MartController::class, 'index'])->name('marts');
@@ -305,7 +316,7 @@ Route::middleware(['permission:drivers,drivers.view'])->group(function () {
 Route::middleware(['permission:drivers,drivers.edit'])->group(function () {
     Route::post('/drivers/clear-order-request-data/{id}', [App\Http\Controllers\DriverController::class, 'clearOrderRequestData'])->name('drivers.clearOrderRequestData');
     Route::post('/drivers/clear-all-order-request-data', [App\Http\Controllers\DriverController::class, 'clearAllOrderRequestData'])->name('drivers.clearAllOrderRequestData');
-}); 
+});
 Route::get('/users/profile', [App\Http\Controllers\UserController::class, 'profile'])->name('users.profile');
 Route::post('/users/profile/update/{id}', [App\Http\Controllers\UserController::class, 'update'])->name('users.profile.update');
 
@@ -739,3 +750,564 @@ Route::prefix('cache-test')->group(function () {
     Route::get('/session', [App\Http\Controllers\CacheTestController::class, 'testSessionStorage'])->name('cache-test.session');
     Route::get('/config', [App\Http\Controllers\CacheTestController::class, 'getCacheConfig'])->name('cache-test.config');
 });
+
+
+Route::middleware(['permission:admin-commission,settings.app.adminCommission'])->group(function () {
+
+        Route::get('app/adminCommission', [App\Http\Controllers\SettingsController::class, 'adminCommission'])->name('settings.app.adminCommission');
+
+    });
+
+    Route::middleware(['permission:radius,settings.app.radiusConfiguration'])->group(function () {
+
+        Route::get('app/radiusConfiguration', [App\Http\Controllers\SettingsController::class, 'radiosConfiguration'])->name('settings.app.radiusConfiguration');
+
+    });
+
+    Route::middleware(['permission:dinein,settings.app.bookTable'])->group(function () {
+
+        Route::get('app/bookTable', [App\Http\Controllers\SettingsController::class, 'bookTable'])->name('settings.app.bookTable');
+
+    });
+
+    Route::middleware(['permission:delivery-charge,settings.app.deliveryCharge'])->group(function () {
+
+        Route::get('app/deliveryCharge', [App\Http\Controllers\SettingsController::class, 'deliveryCharge'])->name('settings.app.deliveryCharge');
+
+    });
+
+    // Route::middleware(['permission:price-setting,settings.app.priceSetting'])->group(function () {
+
+        Route::get('app/priceSetting', [App\Http\Controllers\SettingsController::class, 'priceSetting'])->name('settings.app.priceSettings');
+
+    // });
+
+    Route::middleware(['permission:document-verification,settings.app.documentVerification'])->group(function () {
+
+        Route::get('app/documentVerification', [App\Http\Controllers\SettingsController::class, 'documentVerification'])->name('settings.app.documentVerification');
+
+    });
+
+
+
+    Route::middleware(['permission:payment-method,payment-method'])->group(function () {
+
+        Route::get('payment/stripe', [App\Http\Controllers\SettingsController::class, 'stripe'])->name('payment.stripe');
+
+        Route::get('payment/applepay', [App\Http\Controllers\SettingsController::class, 'applepay'])->name('payment.applepay');
+
+        Route::get('payment/razorpay', [App\Http\Controllers\SettingsController::class, 'razorpay'])->name('payment.razorpay');
+
+        Route::get('payment/cod', [App\Http\Controllers\SettingsController::class, 'cod'])->name('payment.cod');
+
+        Route::get('payment/paypal', [App\Http\Controllers\SettingsController::class, 'paypal'])->name('payment.paypal');
+
+        Route::get('payment/paytm', [App\Http\Controllers\SettingsController::class, 'paytm'])->name('payment.paytm');
+
+        Route::get('payment/wallet', [App\Http\Controllers\SettingsController::class, 'wallet'])->name('payment.wallet');
+
+        Route::get('payment/payfast', [App\Http\Controllers\SettingsController::class, 'payfast'])->name('payment.payfast');
+
+        Route::get('payment/paystack', [App\Http\Controllers\SettingsController::class, 'paystack'])->name('payment.paystack');
+
+        Route::get('payment/flutterwave', [App\Http\Controllers\SettingsController::class, 'flutterwave'])->name('payment.flutterwave');
+
+        Route::get('payment/mercadopago', [App\Http\Controllers\SettingsController::class, 'mercadopago'])->name('payment.mercadopago');
+
+        Route::get('payment/xendit', [App\Http\Controllers\SettingsController::class, 'xendit'])->name('payment.xendit');
+
+        Route::get('payment/orangepay', [App\Http\Controllers\SettingsController::class, 'orangepay'])->name('payment.orangepay');
+
+        Route::get('payment/midtrans', [App\Http\Controllers\SettingsController::class, 'midtrans'])->name('payment.midtrans');
+
+    });
+
+
+
+    Route::middleware(['permission:language,settings.app.languages'])->group(function () {
+
+        Route::get('app/languages', [App\Http\Controllers\SettingsController::class, 'languages'])->name('settings.app.languages');
+
+
+
+    });
+
+    Route::middleware(['permission:language,settings.app.languages.create'])->group(function () {
+
+        Route::get('app/languages/create', [App\Http\Controllers\SettingsController::class, 'languagescreate'])->name('settings.app.languages.create');
+
+
+
+    });
+
+    Route::middleware(['permission:language,settings.app.languages.edit'])->group(function () {
+
+        Route::get('app/languages/edit/{id}', [App\Http\Controllers\SettingsController::class, 'languagesedit'])->name('settings.app.languages.edit');
+
+
+
+    });
+
+    Route::middleware(['permission:special-offer,setting.specialOffer'])->group(function () {
+
+        Route::get('app/specialOffer', [App\Http\Controllers\SettingsController::class, 'specialOffer'])->name('setting.specialOffer');
+
+    });
+
+
+
+    Route::get('app/story', [App\Http\Controllers\SettingsController::class, 'story'])->name('setting.story');
+
+    Route::get('app/notifications', [App\Http\Controllers\SettingsController::class, 'notifications'])->name('settings.app.notifications');
+
+    Route::get('mobile/globals', [App\Http\Controllers\SettingsController::class, 'mobileGlobals'])->name('settings.mobile.globals');
+
+
+
+Route::middleware(['permission:dinein-orders,restaurants.booktable'])->group(function () {
+
+    Route::get('/booktable/{id}', [App\Http\Controllers\BookTableController::class, 'index'])->name('restaurants.booktable');
+
+
+
+});
+
+Route::middleware(['permission:dinein-orders,booktable.edit'])->group(function () {
+
+    Route::get('/booktable/edit/{id}', [App\Http\Controllers\BookTableController::class, 'edit'])->name('booktable.edit');
+
+});
+
+Route::post('/sendnotification', [App\Http\Controllers\BookTableController::class, 'sendnotification'])->name('sendnotification');
+
+
+
+Route::middleware(['permission:general-notifications,notification'])->group(function () {
+
+    Route::get('/notification', [App\Http\Controllers\NotificationController::class, 'index'])->name('notification');
+
+});
+
+Route::middleware(['permission:general-notifications,notification.send'])->group(function () {
+
+    Route::get('/notification/send', [App\Http\Controllers\NotificationController::class, 'send'])->name('notification.send');
+
+
+
+});
+
+Route::post('broadcastnotification', [App\Http\Controllers\NotificationController::class, 'broadcastnotification'])->name('broadcastnotification');
+
+
+
+Route::middleware(['permission:payout-request,payoutRequests.drivers'])->group(function () {
+
+    Route::get('/payoutRequests/drivers', [App\Http\Controllers\PayoutRequestController::class, 'index'])->name('payoutRequests.drivers');
+
+    Route::get('/payoutRequests/drivers/{id}', [App\Http\Controllers\PayoutRequestController::class, 'index'])->name('payoutRequests.drivers.view');
+
+});
+
+Route::middleware(['permission:payout-request,payoutRequests.restaurants'])->group(function () {
+
+    Route::get('/payoutRequests/restaurants', [App\Http\Controllers\PayoutRequestController::class, 'restaurant'])->name('payoutRequests.restaurants');
+
+    Route::get('/payoutRequests/restaurants/{id}', [App\Http\Controllers\PayoutRequestController::class, 'restaurant'])->name('payoutRequests.restaurants.view');
+
+
+
+});
+
+Route::get('order_transactions', [App\Http\Controllers\PaymentController::class, 'index'])->name('order_transactions');
+
+Route::get('/order_transactions/{id}', [App\Http\Controllers\PaymentController::class, 'index'])->name('order_transactions.index');
+
+
+
+
+
+// Activity Log Routes
+
+Route::middleware(['permission:activity-logs,activity-logs'])->group(function () {
+
+    Route::get('/activity-logs', [App\Http\Controllers\ActivityLogController::class, 'index'])->name('activity-logs');
+
+    Route::get('/test-activity-log', function() {
+
+        return view('test_activity_log_page');
+
+    })->name('test-activity-log');
+
+});
+
+Route::post('/api/activity-logs/log', [App\Http\Controllers\ActivityLogController::class, 'logActivity'])->name('api.activity-logs.log');
+
+Route::get('/api/activity-logs/module/{module}', [App\Http\Controllers\ActivityLogController::class, 'getModuleLogs'])->name('api.activity-logs.module');
+
+Route::get('/api/activity-logs/all', [App\Http\Controllers\ActivityLogController::class, 'getAllLogs'])->name('api.activity-logs.all');
+
+Route::get('/api/activity-logs/cuisines', [App\Http\Controllers\ActivityLogController::class, 'getCuisinesLogs'])->name('api.activity-logs.cuisines');
+
+
+
+Route::get('payment/success', [App\Http\Controllers\PaymentController::class, 'paymentsuccess'])->name('payment.success');
+
+Route::get('payment/failed', [App\Http\Controllers\PaymentController::class, 'paymentfailed'])->name('payment.failed');
+
+Route::get('payment/pending', [App\Http\Controllers\PaymentController::class, 'paymentpending'])->name('payment.pending');
+
+
+
+Route::middleware(['permission:banners,setting.banners'])->group(function () {
+
+    Route::get('/banners', [App\Http\Controllers\SettingsController::class, 'menuItems'])->name('setting.banners');
+
+});
+
+Route::middleware(['permission:banners,setting.banners.create'])->group(function () {
+
+    Route::get('/banners/create', [App\Http\Controllers\SettingsController::class, 'menuItemsCreate'])->name('setting.banners.create');
+
+
+
+});
+
+Route::middleware(['permission:banners,setting.banners.edit'])->group(function () {
+
+    Route::get('/banners/edit/{id}', [App\Http\Controllers\SettingsController::class, 'menuItemsEdit'])->name('setting.banners.edit');
+});
+
+// Mart Banner Items Routes
+Route::middleware(['permission:mart_banners,mart_banners'])->group(function () {
+    Route::get('/mart-banners', [App\Http\Controllers\MartBannerController::class, 'index'])->name('mart.banners');
+});
+
+Route::middleware(['permission:mart_banners,mart_banners.create'])->group(function () {
+    Route::get('/mart-banners/create', [App\Http\Controllers\MartBannerController::class, 'create'])->name('mart.banners.create');
+    Route::post('/mart-banners', [App\Http\Controllers\MartBannerController::class, 'store'])->name('mart.banners.store');
+});
+
+Route::middleware(['permission:mart_banners,mart_banners.edit'])->group(function () {
+    Route::get('/mart-banners/edit/{id}', [App\Http\Controllers\MartBannerController::class, 'edit'])->name('mart.banners.edit');
+    Route::put('/mart-banners/{id}', [App\Http\Controllers\MartBannerController::class, 'update'])->name('mart.banners.update');
+    Route::post('/mart-banners/{id}/toggle-publish', [App\Http\Controllers\MartBannerController::class, 'togglePublish'])->name('mart.banners.togglePublish');
+});
+
+Route::middleware(['permission:mart_banners,mart_banners.delete'])->group(function () {
+    Route::delete('/mart-banners/{id}', [App\Http\Controllers\MartBannerController::class, 'destroy'])->name('mart.banners.destroy');
+});
+Route::middleware(['permission:item-attribute,attributes'])->group(function () {
+    Route::get('/attributes', [App\Http\Controllers\AttributeController::class, 'index'])->name('attributes');
+});
+Route::middleware(['permission:item-attribute,attributes.edit'])->group(function () {
+    Route::get('/attributes/edit/{id}', [App\Http\Controllers\AttributeController::class, 'edit'])->name('attributes.edit');
+});
+Route::middleware(['permission:item-attribute,attributes.create'])->group(function () {
+    Route::get('/attributes/create', [App\Http\Controllers\AttributeController::class, 'create'])->name('attributes.create');
+});
+
+Route::middleware(['permission:review-attribute,reviewattributes'])->group(function () {
+    Route::get('/reviewattributes', [App\Http\Controllers\ReviewAttributeController::class, 'index'])->name('reviewattributes');
+});
+Route::middleware(['permission:review-attribute,reviewattributes.edit'])->group(function () {
+    Route::get('/reviewattributes/edit/{id}', [App\Http\Controllers\ReviewAttributeController::class, 'edit'])->name('reviewattributes.edit');
+});
+Route::middleware(['permission:review-attribute,reviewattributes.create'])->group(function () {
+    Route::get('/reviewattributes/create', [App\Http\Controllers\ReviewAttributeController::class, 'create'])->name('reviewattributes.create');
+});
+
+Route::middleware(['permission:footer,footerTemplate'])->group(function () {
+    Route::get('footerTemplate', [App\Http\Controllers\SettingsController::class, 'footerTemplate'])->name('footerTemplate');
+});
+Route::middleware(['permission:home-page,homepageTemplate'])->group(function () {
+    Route::get('/homepageTemplate', [App\Http\Controllers\SettingsController::class, 'homepageTemplate'])->name('homepageTemplate');
+});
+Route::middleware(['permission:cms,cms'])->group(function () {
+    Route::get('cms', [App\Http\Controllers\CmsController::class, 'index'])->name('cms');
+});
+Route::middleware(['permission:cms,cms.edit'])->group(function () {
+    Route::get('/cms/edit/{id}', [App\Http\Controllers\CmsController::class, 'edit'])->name('cms.edit');
+});
+Route::middleware(['permission:cms,cms.create'])->group(function () {
+    Route::get('/cms/create', [App\Http\Controllers\CmsController::class, 'create'])->name('cms.create');
+});
+Route::middleware(['permission:reports,report.index'])->group(function () {
+    Route::get('report/{type}', [App\Http\Controllers\ReportController::class, 'index'])->name('report.index');
+});
+
+Route::middleware(['permission:tax,tax'])->group(function () {
+    Route::get('/tax', [App\Http\Controllers\TaxController::class, 'index'])->name('tax');
+});
+Route::middleware(['permission:tax,tax.edit'])->group(function () {
+    Route::get('/tax/edit/{id}', [App\Http\Controllers\TaxController::class, 'edit'])->name('tax.edit');
+});
+Route::middleware(['permission:tax,tax.create'])->group(function () {
+    Route::get('/tax/create', [App\Http\Controllers\TaxController::class, 'create'])->name('tax.create');
+});
+
+Route::middleware(['permission:email-template,email-templates.index'])->group(function () {
+    Route::get('email-templates', [App\Http\Controllers\SettingsController::class, 'emailTemplatesIndex'])->name('email-templates.index');
+});
+Route::middleware(['permission:email-template,email-templates.edit'])->group(function () {
+    Route::get('email-templates/save/{id?}', [App\Http\Controllers\SettingsController::class, 'emailTemplatesSave'])->name('email-templates.save');
+
+});
+Route::middleware(['permission:email-template,email-templates.delete'])->group(function () {
+    Route::get('email-templates/delete/{id}', [App\Http\Controllers\SettingsController::class, 'emailTemplatesDelete'])->name('email-templates.delete');
+
+});
+Route::post('send-email', [App\Http\Controllers\SendEmailController::class, 'sendMail'])->name('sendMail');
+
+Route::middleware(['permission:gift-cards,gift-card.index'])->group(function () {
+    Route::get('gift-card', [App\Http\Controllers\GiftCardController::class, 'index'])->name('gift-card.index');
+});
+Route::middleware(['permission:gift-cards,gift-card.save'])->group(function () {
+    Route::get('gift-card/save/{id?}', [App\Http\Controllers\GiftCardController::class, 'save'])->name('gift-card.save');
+
+});
+Route::middleware(['permission:gift-cards,gift-card.edit'])->group(function () {
+    Route::get('gift-card/edit/{id}', [App\Http\Controllers\GiftCardController::class, 'save'])->name('gift-card.edit');
+});
+
+Route::middleware(['permission:roles,role.index'])->group(function () {
+    Route::get('role', [App\Http\Controllers\RoleController::class, 'index'])->name('role.index');
+});
+Route::middleware(['permission:roles,role.save'])->group(function () {
+    Route::get('role/save', [App\Http\Controllers\RoleController::class, 'save'])->name('role.save');
+});
+Route::middleware(['permission:roles,role.store'])->group(function () {
+    Route::post('role/store', [App\Http\Controllers\RoleController::class, 'store'])->name('role.store');
+});
+Route::middleware(['permission:roles,role.delete'])->group(function () {
+    Route::get('role/delete/{id}', [App\Http\Controllers\RoleController::class, 'delete'])->name('role.delete');
+});
+Route::middleware(['permission:roles,role.edit'])->group(function () {
+    Route::get('role/edit/{id}', [App\Http\Controllers\RoleController::class, 'edit'])->name('role.edit');
+});
+
+Route::middleware(['permission:roles,role.update'])->group(function () {
+    Route::post('role/update/{id}', [App\Http\Controllers\RoleController::class, 'update'])->name('role.update');
+
+});
+Route::middleware(['permission:admins,admin.users'])->group(function () {
+
+    Route::get('admin-users', [App\Http\Controllers\UserController::class, 'adminUsers'])->name('admin.users');
+});
+Route::middleware(['permission:admins,admin.users.create'])->group(function () {
+    Route::get('admin-users/create', [App\Http\Controllers\UserController::class, 'createAdminUsers'])->name('admin.users.create');
+});
+Route::middleware(['permission:admins,admin.users.store'])->group(function () {
+    Route::post('admin-users/store', [App\Http\Controllers\UserController::class, 'storeAdminUsers'])->name('admin.users.store');
+
+});
+Route::middleware(['permission:admins,admin.users.delete'])->group(function () {
+    Route::get('admin-users/delete/{id}', [App\Http\Controllers\UserController::class, 'deleteAdminUsers'])->name('admin.users.delete');
+
+});
+Route::middleware(['permission:admins,admin.users.edit'])->group(function () {
+    Route::get('admin-users/edit/{id}', [App\Http\Controllers\UserController::class, 'editAdminUsers'])->name('admin.users.edit');
+
+});
+Route::middleware(['permission:admins,admin.users.update'])->group(function () {
+    Route::post('admin-users/update/{id}', [App\Http\Controllers\UserController::class, 'updateAdminUsers'])->name('admin.users.update');
+
+});
+Route::middleware(['permission:admins,admin.users.delete'])->group(function () {
+    Route::get('admin-users/delete/{id}', [App\Http\Controllers\UserController::class, 'deleteAdminUsers'])->name('admin.users.delete');
+
+});
+Route::middleware(['permission:zone,zone.list'])->group(function () {
+    Route::get('zone', [App\Http\Controllers\ZoneController::class, 'index'])->name('zone');
+});
+Route::middleware(['permission:zone,zone.create'])->group(function () {
+    Route::get('/zone/create', [App\Http\Controllers\ZoneController::class, 'create'])->name('zone.create');
+});
+Route::middleware(['permission:zone,zone.edit'])->group(function () {
+    Route::get('/zone/edit/{id}', [App\Http\Controllers\ZoneController::class, 'edit'])->name('zone.edit');
+});
+Route::middleware(['permission:documents,documents.edit'])->group(function () {
+    Route::get('/documents/edit/{id}', [App\Http\Controllers\DocumentController::class, 'edit'])->name('documents.edit');
+});
+Route::middleware(['permission:documents,documents.create'])->group(function () {
+    Route::get('/documents/create', [App\Http\Controllers\DocumentController::class, 'create'])->name('documents.create');
+});
+Route::middleware(['permission:documents,documents.list'])->group(function () {
+    Route::get('documents', [App\Http\Controllers\DocumentController::class, 'index'])->name('documents');
+});
+Route::middleware(['permission:vendors-document,vendor.document.list'])->group(function () {
+    Route::get('vendors/document-list/{id}', [App\Http\Controllers\RestaurantController::class, 'DocumentList'])->name('vendors.document');
+});
+Route::middleware(['permission:vendors-document,vendor.document.edit'])->group(function () {
+    Route::get('/vendors/document/upload/{driverId}/{id}', [App\Http\Controllers\RestaurantController::class, 'DocumentUpload'])->name('vendors.document.upload');
+});
+Route::middleware(['permission:drivers-document,driver.document.list'])->group(function () {
+    Route::get('drivers/document-list/{id}', [App\Http\Controllers\DriverController::class, 'DocumentList'])->name('drivers.document');
+});
+Route::middleware(['permission:drivers-document,driver.document.edit'])->group(function () {
+    Route::get('/drivers/document/upload/{driverId}/{id}', [App\Http\Controllers\DriverController::class, 'DocumentUpload'])->name('drivers.document.upload');
+});
+Route::post('send-notification', [App\Http\Controllers\NotificationController::class, 'sendNotification'])->name('send-notification');
+
+Route::post('store-firebase-service', [App\Http\Controllers\HomeController::class,'storeFirebaseService'])->name('store-firebase-service');
+
+Route::post('pay-to-user', [App\Http\Controllers\UserController::class,'payToUser'])->name('pay.user');
+
+Route::post('check-payout-status', [App\Http\Controllers\UserController::class,'checkPayoutStatus'])->name('check.payout.status');
+
+
+
+Route::middleware(['permission:on-board,onboard.list'])->group(function () {
+
+    Route::get('/on-board', [App\Http\Controllers\OnBoardController::class, 'index'])->name('on-board');
+
+});
+
+Route::middleware(['permission:on-board,onboard.edit'])->group(function () {
+
+    Route::get('/on-board/save/{id}', [App\Http\Controllers\OnBoardController::class, 'show'])->name('on-board.save');
+
+});
+
+Route::middleware(['permission:subscription-plans,subscription-plans'])->group(function () {
+
+    Route::get('/subscription-plans', [App\Http\Controllers\SubscriptionPlanController::class, 'index'])->name('subscription-plans.index');
+
+    Route::get('/current-subscriber/{id}', [App\Http\Controllers\RestaurantController::class, 'currentSubscriberList'])->name('current-subscriber.list');
+
+
+
+});
+
+Route::middleware(['permission:subscription-plans,subscription-plans.' . ((str_contains(Request::url(), 'save')) ? (explode("save", Request::url())[1] ? "edit" : "create") : Request::url())])->group(function () {
+
+    Route::get('/subscription-plans/save/{id?}', [App\Http\Controllers\SubscriptionPlanController::class, 'save'])->name('subscription-plans.save');
+
+});
+
+Route::middleware(['permission:vendors,vendors.edit'])->group(function () {
+
+    Route::get('/vendor/edit/{id}', [App\Http\Controllers\RestaurantController::class, 'vendorEdit'])->name('vendor.edit');
+
+});
+
+Route::middleware(['permission:subscription-history,subscription.history'])->group(function () {
+
+    Route::get('/vendor/subscription-plan/history/{id?}', [App\Http\Controllers\RestaurantController::class, 'vendorSubscriptionPlanHistory'])->name('vendor.subscriptionPlanHistory');
+
+});
+
+Route::get('/restaurantFilters', [App\Http\Controllers\RestaurantFiltersController::class, 'index'])->name('restaurantFilters');
+
+Route::get('/restaurantFilters/create', [App\Http\Controllers\RestaurantFiltersController::class, 'create'])->name('restaurantFilters.create');
+
+Route::get('/restaurantFilters/edit/{id}', [App\Http\Controllers\RestaurantFiltersController::class, 'edit'])->name('restaurantFilters.edit');
+
+
+
+
+
+Route::middleware(['permission:media,media'])->group(function () {
+
+    Route::get('/media', [App\Http\Controllers\MediaController::class, 'index'])->name('media.index');
+
+});
+
+Route::middleware(['permission:media,media.edit'])->group(function () {
+
+    Route::get('/media/edit/{id}', [App\Http\Controllers\MediaController::class, 'edit'])->name('media.edit');
+
+});
+
+Route::middleware(['permission:media,media.create'])->group(function () {
+
+    Route::get('/media/create', [App\Http\Controllers\MediaController::class, 'create'])->name('media.create');
+
+});
+
+Route::middleware(['permission:media,media.delete'])->group(function () {
+
+    Route::get('/media/delete/{id}', [App\Http\Controllers\MediaController::class, 'delete'])->name('media.delete');
+
+});
+
+
+
+
+
+
+
+Route::get('/create-package', function () {
+
+    return view('new_ui.create-package');
+
+});
+
+Route::get('/add-subscription', function () {
+
+    return view('new_ui.add-subscription');
+
+});
+
+Route::get('/change-subscription', function () {
+
+    return view('new_ui.change-subscription');
+
+});
+
+Route::get('/edit-subscription', function () {
+
+    return view('new_ui.edit-subscription');
+
+});
+
+Route::post('/users/import', [App\Http\Controllers\UserController::class, 'import'])->name('users.import');
+
+Route::get('/users/download-template', [App\Http\Controllers\UserController::class, 'downloadTemplate'])->name('users.download-template');
+
+Route::post('/vendors/import', [App\Http\Controllers\RestaurantController::class, 'importVendors'])->name('vendors.import');
+
+Route::get('/vendors/download-template', [App\Http\Controllers\RestaurantController::class, 'downloadVendorsTemplate'])->name('vendors.download-template');
+
+
+
+// Restaurant bulk import routes
+
+Route::post('/restaurants/bulk-import', [App\Http\Controllers\RestaurantController::class, 'bulkUpdate'])->name('restaurants.bulk-import');
+
+Route::get('/restaurants/download-template', [App\Http\Controllers\RestaurantController::class, 'downloadBulkUpdateTemplate'])->name('restaurants.download-template');
+
+
+
+// Local Performance Optimization Routes
+
+Route::prefix('performance')->group(function () {
+
+    Route::get('/', [App\Http\Controllers\LocalPerformanceController::class, 'index'])->name('performance.index');
+
+    Route::get('/dashboard-stats', [App\Http\Controllers\LocalPerformanceController::class, 'getDashboardStats'])->name('performance.dashboard-stats');
+
+    Route::post('/clear-cache', [App\Http\Controllers\LocalPerformanceController::class, 'clearCacheByCategory'])->name('performance.clear-cache');
+
+    Route::post('/optimize', [App\Http\Controllers\LocalPerformanceController::class, 'optimizeApplication'])->name('performance.optimize');
+
+    Route::get('/cache-stats', [App\Http\Controllers\LocalPerformanceController::class, 'getCacheStats'])->name('performance.cache-stats');
+
+    Route::get('/test-cache', [App\Http\Controllers\LocalPerformanceController::class, 'testCachePerformance'])->name('performance.test-cache');
+
+});
+
+
+
+// Database Cache Testing Routes
+
+Route::prefix('cache-test')->group(function () {
+
+    Route::get('/database', [App\Http\Controllers\CacheTestController::class, 'testDatabaseCache'])->name('cache-test.database');
+
+    Route::get('/session', [App\Http\Controllers\CacheTestController::class, 'testSessionStorage'])->name('cache-test.session');
+
+    Route::get('/config', [App\Http\Controllers\CacheTestController::class, 'getCacheConfig'])->name('cache-test.config');
+
+});
+
+
