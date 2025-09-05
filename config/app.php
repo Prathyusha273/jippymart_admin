@@ -54,6 +54,18 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Restaurant Panel URL
+    |--------------------------------------------------------------------------
+    |
+    | This URL is used for impersonation redirects to the restaurant panel.
+    | Set this in your ".env" file.
+    |
+    */
+
+    'restaurant_panel_url' => env('RESTAURANT_PANEL_URL', 'https://restaurant.jippymart.in'),
+
     'asset_url' => env('ASSET_URL', null),
 
     /*

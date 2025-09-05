@@ -1267,37 +1267,77 @@
          const originalHtml = $btn.html();
          $btn.html('<i class="mdi mdi-loading mdi-spin text-primary"></i>').prop('disabled', true);
 
-         // Generate impersonation token
-         $.ajax({
-             url: '{{ route("admin.impersonate.generate") }}',
-             method: 'POST',
-             data: {
-                 restaurant_id: restaurantId,
-                 expiration_minutes: 5, // 5 minutes for security
-                 _token: '{{ csrf_token() }}'
-             },
-             success: function(response) {
-                 if (response.success) {
-                     // Show success message
-                     showNotification('success', `Redirecting to ${response.restaurant_name}...`);
+         // Generate impersonation token with retry logic
+         let retryCount = 0;
+         const maxRetries = 3;
+         
+         function attemptImpersonation() {
+             $.ajax({
+                 url: '{{ route("admin.impersonate.generate") }}',
+                 method: 'POST',
+                 timeout: 10000, // 10 second timeout
+                 data: {
+                     restaurant_id: restaurantId,
+                     expiration_minutes: 5, // 5 minutes for security
+                     _token: '{{ csrf_token() }}'
+                 },
+                                 success: function(response) {
+                    console.log('🔍 Admin Panel Response:', response);
+                    
+                    if (response.success) {
+                        // Show success message
+                        showNotification('success', `Redirecting to ${response.restaurant_name}...`);
+                        
+                        console.log('🔍 Impersonation URL:', response.impersonation_url);
 
-                     // Redirect to restaurant panel with impersonation token
-                     setTimeout(() => {
-                         window.open(response.impersonation_url, '_blank');
-                     }, 1000);
-                 } else {
-                     showNotification('error', response.error || 'Failed to generate impersonation token');
+                        // Redirect to restaurant panel with impersonation token
+                        setTimeout(() => {
+                            // Try to focus existing tab first, then open new one
+                            const newWindow = window.open(response.impersonation_url, '_blank');
+                            if (newWindow) {
+                                newWindow.focus();
+                            }
+                        }, 1000);
+                     } else {
+                         // Handle specific error cases
+                         if (response.retry_after) {
+                             showNotification('warning', `${response.error} Retrying in ${response.retry_after} seconds...`);
+                             setTimeout(() => {
+                                 if (retryCount < maxRetries) {
+                                     retryCount++;
+                                     attemptImpersonation();
+                                 } else {
+                                     showNotification('error', 'Maximum retry attempts reached. Please try again later.');
+                                 }
+                             }, response.retry_after * 1000);
+                         } else {
+                             showNotification('error', response.error || 'Failed to generate impersonation token');
+                         }
+                     }
+                 },
+                 error: function(xhr) {
+                     let errorMsg = 'An error occurred while generating impersonation token';
+                     
+                     if (xhr.status === 429) {
+                         errorMsg = 'Too many attempts. Please wait before trying again.';
+                     } else if (xhr.status === 403) {
+                         errorMsg = 'Access denied. You do not have permission to impersonate.';
+                     } else if (xhr.status === 500) {
+                         errorMsg = 'Server error. Please try again later.';
+                     } else if (xhr.responseJSON?.error) {
+                         errorMsg = xhr.responseJSON.error;
+                     }
+                     
+                     showNotification('error', errorMsg);
+                 },
+                 complete: function() {
+                     // Restore button state
+                     $btn.html(originalHtml).prop('disabled', false);
                  }
-             },
-             error: function(xhr) {
-                 const errorMsg = xhr.responseJSON?.error || 'An error occurred while generating impersonation token';
-                 showNotification('error', errorMsg);
-             },
-             complete: function() {
-                 // Restore button state
-                 $btn.html(originalHtml).prop('disabled', false);
-             }
-         });
+             });
+         }
+         
+         attemptImpersonation();
      });
 
      // Notification helper function

@@ -44,23 +44,37 @@ class ImpersonationSecurityMiddleware
     private function applyRateLimit(Request $request)
     {
         $adminId = auth()->id();
-        $key = "impersonation_rate_limit_{$adminId}";
+        $ip = $request->ip();
         
-        $attempts = Cache::get($key, 0);
-        $maxAttempts = 50; // Max 10 impersonations per hour
-        $decayMinutes = 60; // 1 hour
+        // Multiple rate limit keys for comprehensive protection
+        $rateLimits = [
+            "impersonation_admin_{$adminId}" => ['max' => 10, 'window' => 3600], // 10/hour per admin
+            "impersonation_ip_{$ip}" => ['max' => 20, 'window' => 3600],        // 20/hour per IP
+            "impersonation_global" => ['max' => 100, 'window' => 3600]          // 100/hour global
+        ];
+        
+        foreach ($rateLimits as $key => $limit) {
+            $attempts = Cache::get($key, 0);
+            
+            if ($attempts >= $limit['max']) {
+                // Exponential backoff for repeated violations
+                $backoffTime = min(3600, pow(2, $attempts - $limit['max']) * 60);
+                Cache::put($key, $attempts + 1, now()->addSeconds($backoffTime));
+                
+                Log::warning('Impersonation rate limit exceeded', [
+                    'admin_id' => $adminId,
+                    'ip' => $ip,
+                    'user_agent' => $request->userAgent(),
+                    'limit_key' => $key,
+                    'attempts' => $attempts,
+                    'backoff_time' => $backoffTime
+                ]);
 
-        if ($attempts >= $maxAttempts) {
-            Log::warning('Impersonation rate limit exceeded', [
-                'admin_id' => $adminId,
-                'ip' => $request->ip(),
-                'user_agent' => $request->userAgent()
-            ]);
-
-            abort(429, 'Too many impersonation attempts. Please try again later.');
+                abort(429, 'Too many impersonation attempts. Please try again later.');
+            }
+            
+            Cache::put($key, $attempts + 1, now()->addSeconds($limit['window']));
         }
-
-        Cache::put($key, $attempts + 1, now()->addMinutes($decayMinutes));
     }
 
     /**

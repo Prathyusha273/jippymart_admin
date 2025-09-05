@@ -23,6 +23,13 @@ class RedirectIfAuthenticated
 
         foreach ($guards as $guard) {
             if (Auth::guard($guard)->check()) {
+                // Check if this is an impersonation request
+                if ($request->has('impersonation_token') && $request->has('restaurant_uid') && $request->has('auto_login')) {
+                    // Preserve impersonation parameters when redirecting
+                    $queryParams = $request->query();
+                    return redirect(RouteServiceProvider::HOME . '?' . http_build_query($queryParams));
+                }
+                
                 return redirect(RouteServiceProvider::HOME);
             }
         }

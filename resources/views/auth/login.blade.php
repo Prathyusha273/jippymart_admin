@@ -133,17 +133,49 @@
     </div>
 </section>
 <script src="{{asset('assets/plugins/jquery/jquery.min.js')}}"></script>
-<script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-firestore.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-storage.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-database.js"></script>
+<!-- Firebase 9.0.0 Compat SDKs - Same as main layout -->
+<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-storage-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
 <script src="https://unpkg.com/geofirestore/dist/geofirestore.js"></script>
 <script src="https://cdn.firebase.com/libs/geofire/5.0.1/geofire.min.js"></script>
 <script src="{{ asset('js/crypto-js.js') }}"></script>
 <script src="{{ asset('js/jquery.cookie.js') }}"></script>
 <script src="{{ asset('js/jquery.validate.js') }}"></script>
 <script type="text/javascript">
+    // Firebase configuration - Same as main layout
+    const firebaseConfig = {
+        apiKey: "{{ env('FIREBASE_APIKEY', 'AIzaSyAf_lICoxPh8qKE1QnVkmQYTFJXKkYmRXU') }}",
+        authDomain: "{{ env('FIREBASE_AUTH_DOMAIN', 'jippymart-27c08.firebaseapp.com') }}",
+        databaseURL: "{{ env('FIREBASE_DATABASE_URL', 'https://jippymart-27c08-default-rtdb.firebaseio.com') }}",
+        projectId: "{{ env('FIREBASE_PROJECT_ID', 'jippymart-27c08') }}",
+        storageBucket: "{{ env('FIREBASE_STORAGE_BUCKET', 'jippymart-27c08.firebasestorage.app') }}",
+        messagingSenderId: "{{ env('FIREBASE_MESSAAGING_SENDER_ID', '592427852800') }}",
+        appId: "{{ env('FIREBASE_APP_ID', '1:592427852800:web:f74df8ceb2a4b597d1a4e5') }}",
+        measurementId: "{{ env('FIREBASE_MEASUREMENT_ID', 'G-ZYBQYPZWCF') }}"
+    };
+
+    // Initialize Firebase only if not already initialized
+    if (!firebase.apps.length) {
+        try {
+            firebase.initializeApp(firebaseConfig);
+            console.log('✅ Firebase initialized successfully');
+            
+            // Initialize Firestore database globally
+            window.database = firebase.firestore();
+            window.storage = firebase.storage();
+            window.auth = firebase.auth();
+            
+            console.log('✅ Firebase services initialized');
+        } catch (error) {
+            console.error('❌ Firebase initialization error:', error);
+        }
+    } else {
+        console.log('✅ Firebase already initialized in main layout');
+    }
+
     function copyToClipboard(text) {
         const elem = document.createElement('textarea');
         elem.value = text;
@@ -152,6 +184,7 @@
         document.execCommand('copy');
         document.body.removeChild(elem);
     }
+    
     var database = firebase.firestore();
     var ref = database.collection('settings').doc("globalSettings");
     $(document).ready(function () {
@@ -173,6 +206,126 @@
         let expires = "expires=" + d.toUTCString();
         document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
     }
+</script>
+
+<!-- Auto-login script for Admin Impersonation -->
+<script>
+// Auto-login script for Admin Impersonation
+(function() {
+    console.log('🔍 Auto-login script started');
+    
+    // Check URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const impersonationToken = urlParams.get('impersonation_token');
+    const restaurantUid = urlParams.get('restaurant_uid');
+    const autoLogin = urlParams.get('auto_login');
+    
+    console.log('🔍 Parameters:', {
+        token: !!impersonationToken,
+        uid: !!restaurantUid,
+        autoLogin: autoLogin
+    });
+    
+    // Only proceed if we have all required parameters
+    if (impersonationToken && restaurantUid && autoLogin === 'true') {
+        console.log('🔐 Starting auto-login process...');
+        
+        // Show loading immediately
+        showLoading();
+        
+        // Wait for Firebase to be ready
+        setTimeout(function() {
+            if (typeof firebase !== 'undefined' && firebase.auth) {
+                startAutoLogin();
+            } else {
+                console.error('❌ Firebase not available');
+                showError('Firebase not loaded. Please refresh the page.');
+            }
+        }, 2000); // Wait for Firebase to be ready
+    } else {
+        console.log('ℹ️ No impersonation parameters, showing normal login');
+    }
+    
+    function startAutoLogin() {
+        console.log('🚀 Starting auto-login...');
+        
+        const auth = firebase.auth();
+        
+        // Sign in with custom token
+        auth.signInWithCustomToken(impersonationToken)
+            .then(function(userCredential) {
+                console.log('✅ Login successful!');
+                console.log('User UID:', userCredential.user.uid);
+                console.log('Expected UID:', restaurantUid);
+                
+                // Verify UID matches
+                if (userCredential.user.uid !== restaurantUid) {
+                    throw new Error('UID mismatch - security violation');
+                }
+                
+                // Store impersonation info
+                localStorage.setItem('restaurant_impersonation', JSON.stringify({
+                    isImpersonated: true,
+                    restaurantUid: restaurantUid,
+                    impersonatedAt: new Date().toISOString()
+                }));
+                
+                console.log('🔄 Redirecting to dashboard...');
+                
+                // Redirect to dashboard
+                setTimeout(function() {
+                    window.location.href = '/dashboard';
+                }, 1000);
+            })
+            .catch(function(error) {
+                console.error('❌ Login failed:', error);
+                showError('Auto-login failed: ' + error.message);
+                
+                // Clean URL
+                window.history.replaceState({}, document.title, window.location.pathname);
+            });
+    }
+    
+    function showLoading() {
+        const loading = document.createElement('div');
+        loading.id = 'auto-login-loading';
+        loading.innerHTML = `
+            <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; display: flex; justify-content: center; align-items: center;">
+                <div style="background: white; padding: 30px; border-radius: 10px; text-align: center; max-width: 400px;">
+                    <div style="border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 20px;"></div>
+                    <h3>🔐 Admin Impersonation</h3>
+                    <p>Logging you in as restaurant owner...</p>
+                    <p style="font-size: 12px; color: #666;">Please wait while we authenticate you.</p>
+                </div>
+            </div>
+            <style>
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+            </style>
+        `;
+        document.body.appendChild(loading);
+    }
+    
+    function showError(message) {
+        // Remove loading first
+        const loading = document.getElementById('auto-login-loading');
+        if (loading) {
+            loading.remove();
+        }
+        
+        const error = document.createElement('div');
+        error.innerHTML = `
+            <div style="position: fixed; top: 20px; right: 20px; background: #f8d7da; color: #721c24; padding: 15px; border-radius: 5px; z-index: 9999; max-width: 400px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <strong>❌ Auto-login Failed:</strong><br>
+                ${message}
+                <button onclick="this.parentElement.parentElement.remove()" style="float: right; background: none; border: none; font-size: 18px; cursor: pointer; margin-left: 10px;">&times;</button>
+            </div>
+        `;
+        document.body.appendChild(error);
+    }
+})();
 </script>
 </body>
 </html>

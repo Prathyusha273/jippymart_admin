@@ -39,6 +39,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        // Load environment-specific impersonation config
+        $environment = app()->environment();
+        $configFile = "impersonation.{$environment}";
         
+        if (file_exists(config_path("{$configFile}.php"))) {
+            config([$configFile => require config_path("{$configFile}.php")]);
+        }
     }
 }

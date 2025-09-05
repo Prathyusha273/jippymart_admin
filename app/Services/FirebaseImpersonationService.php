@@ -8,12 +8,14 @@ use Firebase\JWT\Key;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
+use App\Services\ImpersonationSecurityMonitor;
 
 class FirebaseImpersonationService
 {
     private $firestore;
     private $serviceAccount;
     private $projectId;
+    private $securityMonitor;
 
     public function __construct()
     {
@@ -28,6 +30,9 @@ class FirebaseImpersonationService
             file_get_contents(config('firestore.credentials')), 
             true
         );
+        
+        // Initialize security monitor
+        $this->securityMonitor = new ImpersonationSecurityMonitor();
     }
 
     /**
@@ -41,30 +46,32 @@ class FirebaseImpersonationService
     public function generateImpersonationToken($restaurantId, $adminUserId, $expirationMinutes = 5)
     {
         try {
-            // Validate restaurant exists and get its data
-            $restaurantDoc = $this->firestore->collection('vendors')->document($restaurantId)->snapshot();
+            // Check cache first for restaurant data
+            $cacheKey = "restaurant_data_{$restaurantId}";
+            $restaurantData = Cache::remember($cacheKey, 300, function() use ($restaurantId) {
+                $restaurantDoc = $this->firestore->collection('vendors')->document($restaurantId)->snapshot();
+                
+                if (!$restaurantDoc->exists()) {
+                    throw new \Exception("Restaurant not found: {$restaurantId}");
+                }
+                
+                return $restaurantDoc->data();
+            });
             
-            if (!$restaurantDoc->exists()) {
-                throw new \Exception("Restaurant not found: {$restaurantId}");
-            }
+            // Check cache for restaurant owner UID
+            $ownerCacheKey = "restaurant_owner_{$restaurantId}";
+            $restaurantOwnerUid = Cache::remember($ownerCacheKey, 600, function() use ($restaurantId) {
+                $userQuery = $this->firestore->collection('users')
+                    ->where('vendorID', '=', $restaurantId)
+                    ->limit(1)
+                    ->documents();
 
-            $restaurantData = $restaurantDoc->data();
-            
-            // Get the restaurant owner's UID from users collection
-            $userQuery = $this->firestore->collection('users')
-                ->where('vendorID', '=', $restaurantId)
-                ->limit(1)
-                ->documents();
-
-            $restaurantOwnerUid = null;
-            foreach ($userQuery as $userDoc) {
-                $restaurantOwnerUid = $userDoc->id();
-                break;
-            }
-
-            if (!$restaurantOwnerUid) {
+                foreach ($userQuery as $userDoc) {
+                    return $userDoc->id();
+                }
+                
                 throw new \Exception("Restaurant owner not found for restaurant: {$restaurantId}");
-            }
+            });
 
             // Generate custom token
             $customToken = $this->createCustomToken($restaurantOwnerUid, [
@@ -77,6 +84,15 @@ class FirebaseImpersonationService
 
             // Log the impersonation for security audit
             $this->logImpersonation($adminUserId, $restaurantId, $restaurantOwnerUid, $restaurantData['title'] ?? 'Unknown');
+
+            // Monitor security activity
+            $this->securityMonitor->monitorActivity(
+                $adminUserId, 
+                $restaurantId, 
+                request()->ip(), 
+                request()->userAgent(), 
+                true
+            );
 
             // Cache the token for additional security (prevent reuse)
             $cacheKey = "impersonation_token_{$restaurantOwnerUid}_" . time();
@@ -91,12 +107,43 @@ class FirebaseImpersonationService
                 'cache_key' => $cacheKey
             ];
 
+        } catch (\Google\Cloud\Core\Exception\ServiceException $e) {
+            Log::error('Firestore Service Error', [
+                'error' => $e->getMessage(),
+                'code' => $e->getCode(),
+                'restaurant_id' => $restaurantId,
+                'admin_user_id' => $adminUserId
+            ]);
+
+            // Monitor failed attempt
+            $this->securityMonitor->monitorActivity(
+                $adminUserId, 
+                $restaurantId, 
+                request()->ip(), 
+                request()->userAgent(), 
+                false
+            );
+
+            return [
+                'success' => false,
+                'error' => 'Database service temporarily unavailable. Please try again.',
+                'retry_after' => 30
+            ];
         } catch (\Exception $e) {
             Log::error('Firebase Impersonation Error', [
                 'error' => $e->getMessage(),
                 'restaurant_id' => $restaurantId,
                 'admin_user_id' => $adminUserId
             ]);
+
+            // Monitor failed attempt
+            $this->securityMonitor->monitorActivity(
+                $adminUserId, 
+                $restaurantId, 
+                request()->ip(), 
+                request()->userAgent(), 
+                false
+            );
 
             return [
                 'success' => false,

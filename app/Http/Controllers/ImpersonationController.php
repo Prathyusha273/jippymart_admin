@@ -23,10 +23,14 @@ class ImpersonationController extends Controller
      */
     public function generateToken(Request $request)
     {
+        // Validate CSRF token
+        $this->validateCSRFToken($request);
+        
         // Validate request
         $validator = Validator::make($request->all(), [
             'restaurant_id' => 'required|string',
-            'expiration_minutes' => 'integer|min:1|max:30' // Max 30 minutes for security
+            'expiration_minutes' => 'integer|min:1|max:30', // Max 30 minutes for security
+            '_token' => 'required|string'
         ]);
 
         if ($validator->fails()) {
@@ -37,8 +41,9 @@ class ImpersonationController extends Controller
             ], 400);
         }
 
-        $restaurantId = $request->input('restaurant_id');
-        $expirationMinutes = $request->input('expiration_minutes', 5); // Default 5 minutes
+        // Sanitize and validate input
+        $restaurantId = $this->sanitizeRestaurantId($request->input('restaurant_id'));
+        $expirationMinutes = $this->sanitizeExpirationMinutes($request->input('expiration_minutes', 5));
         $adminUserId = Auth::id();
 
         // Check if admin has permission to impersonate (you can add role-based checks here)
@@ -97,12 +102,87 @@ class ImpersonationController extends Controller
     }
 
     /**
+     * Sanitize restaurant ID input
+     */
+    private function sanitizeRestaurantId($restaurantId)
+    {
+        if (!is_string($restaurantId) || strlen($restaurantId) > 100) {
+            throw new \InvalidArgumentException('Invalid restaurant ID format');
+        }
+        
+        // Check for potentially malicious patterns
+        if (preg_match('/[<>"\']/', $restaurantId)) {
+            throw new \SecurityException('Potentially malicious restaurant ID');
+        }
+        
+        return trim($restaurantId);
+    }
+
+    /**
+     * Sanitize expiration minutes input
+     */
+    private function sanitizeExpirationMinutes($minutes)
+    {
+        $minutes = (int) $minutes;
+        
+        if ($minutes < 1 || $minutes > 30) {
+            throw new \InvalidArgumentException('Expiration minutes must be between 1 and 30');
+        }
+        
+        return $minutes;
+    }
+
+    /**
+     * Validate CSRF token for impersonation requests
+     */
+    private function validateCSRFToken(Request $request)
+    {
+        $token = $request->header('X-CSRF-TOKEN') ?? $request->input('_token');
+        $sessionToken = session()->token();
+        
+        if (!hash_equals($sessionToken, $token)) {
+            throw new \SecurityException('CSRF token mismatch');
+        }
+        
+        // Additional validation for impersonation requests
+        $referrer = $request->header('Referer');
+        $allowedReferrers = [
+            'admin.jippymart.in',
+            'localhost:8000',
+            '127.0.0.1:8000'
+        ];
+        
+        $isValidReferrer = false;
+        foreach ($allowedReferrers as $allowed) {
+            if (strpos($referrer, $allowed) !== false) {
+                $isValidReferrer = true;
+                break;
+            }
+        }
+        
+        if (!$isValidReferrer) {
+            throw new \SecurityException('Invalid referrer for impersonation request');
+        }
+    }
+
+    /**
      * Create a signed URL for restaurant panel with impersonation token
      */
     private function createSignedImpersonationUrl($customToken, $restaurantUid, $cacheKey)
     {
-        // Create the restaurant panel URL with the custom token
-        $baseUrl = 'https://restaurant.jippymart.in'; // Your restaurant panel URL
+        // Get restaurant panel URL from config with fallback
+        $baseUrl = config('app.restaurant_panel_url', 'https://restaurant.jippymart.in');
+        
+        // Fallback URLs for different environments
+        $fallbackUrls = [
+            'production' => 'https://restaurant.jippymart.in',
+            'staging' => 'https://staging-restaurant.jippymart.in',
+            'local' => 'http://127.0.0.1:8001'
+        ];
+        
+        $environment = app()->environment();
+        $baseUrl = $fallbackUrls[$environment] ?? $baseUrl;
+        
         $params = http_build_query([
             'impersonation_token' => $customToken,
             'restaurant_uid' => $restaurantUid,
