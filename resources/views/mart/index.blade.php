@@ -21,7 +21,7 @@
             <div class="col-12">
                 <div class="d-flex top-title-section pb-4 justify-content-between">
                     <div class="d-flex top-title-left align-self-center">
-                        <span class="icon mr-3"><img src="{{ asset('images/mart.png') }}"></span>
+                        <span class="icon mr-3"><img src="{{ asset('images/users/mart.png') }}"></span>
                         <h3 class="mb-0">{{trans('lang.mart_plural')}}</h3>
                         <span class="counter ml-3 mart_count"></span>
                     </div>
@@ -34,17 +34,17 @@
                         </div>
                         <div class="select-box pl-3">
                             <select class="form-control business_model_selector">
-                                <option value="" disabled selected>{{trans('lang.business_model')}}</option>
+                                <option value="" >{{trans('lang.business_model')}}</option>
                             </select>
                         </div>
-                        <div class="select-box pl-3">
-                            <select class="form-control category_selector">
-                                <option value="" disabled selected>{{trans('lang.select_categories')}}</option>
-                            </select>
-                        </div>
+{{--                        <div class="select-box pl-3">--}}
+{{--                            <select class="form-control category_selector">--}}
+{{--                                <option value="" disabled selected>select categories</option>--}}
+{{--                            </select>--}}
+{{--                        </div>--}}
                         <div class="select-box pl-3">
                             <select class="form-control zone_selector">
-                            <option value="" disabled selected>{{trans('lang.select_zone')}}</option>
+                            <option value="" >{{trans('lang.select_zone')}}</option>
                             </select>
                         </div>
                     </div>
@@ -63,7 +63,7 @@
                                         <h4 class="text-dark-2 mb-1 h4 mart_count">00</h4>
                                         <p class="mb-0 small text-dark-2">{{trans('lang.dashboard_total_marts')}}</p>
                                        </div>
-                                        <span class="box-icon ab"><img src="{{ asset('images/mart_icon.png') }}"></span>
+                                        <span class="box-icon ab"><img src="{{ asset('images/restaurant_icon.png') }}" alt="mart"></span>
                                     </div>
                                 </div>
                             </div>
@@ -74,7 +74,7 @@
                                         <h4 class="text-dark-2 mb-1 h4 mart_active_count">00</h4>
                                         <p class="mb-0 small text-dark-2">{{trans('lang.active_marts')}}</p>
                                        </div>
-                                        <span class="box-icon ab"><img src="{{ asset('images/active_mart.png') }}"></span>
+                                        <span class="box-icon ab"><img src="{{ asset('images/active_mart.png') }}" alt="active"></span>
                                     </div>
                                 </div>
                             </div>
@@ -85,7 +85,7 @@
                                         <h4 class="text-dark-2 mb-1 h4 mart_inactive_count">00</h4>
                                         <p class="mb-0 small text-dark-2">{{trans('lang.inactive_marts')}}</p>
                                        </div>
-                                        <span class="box-icon ab"><img src="{{ asset('images/inactive_mart.png') }}"></span>
+                                        <span class="box-icon ab"><img src="{{ asset('images/inactive_restaurant.png') }}" alt="inactive"></span>
                                     </div>
                                 </div>
                             </div>
@@ -96,7 +96,7 @@
                                         <h4 class="text-dark-2 mb-1 h4 new_joined_mart">00</h4>
                                         <p class="mb-0 small text-dark-2">{{trans('lang.new_joined_marts')}}</p>
                                        </div>
-                                        <span class="box-icon ab"><img src="{{ asset('images/new_mart.png') }}"></span>
+                                        <span class="box-icon ab"><img src="{{ asset('images/new_restaurant.png') }}" alt="new"></span>
                                     </div>
                                 </div>
                             </div>
@@ -916,7 +916,9 @@
         };
     }
     $("#is_active").click(function () {
-        $("#storeTable .is_open").prop('checked', $(this).prop('checked'));
+        if (checkDeletePermission) {
+            $("#storeTable .is_open").prop('checked', $(this).prop('checked'));
+        }
     });
     $("#deleteAll").click(function () {
         if ($('#storeTable .is_open:checked').length) {

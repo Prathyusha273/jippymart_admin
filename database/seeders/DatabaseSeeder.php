@@ -34,5 +34,10 @@ class DatabaseSeeder extends Seeder
         $this->call([
             MartBannerPermissionsSeeder::class,
         ]);
+
+        // Add mart permissions to super admin
+        $this->call([
+            MartPermissionsSeeder::class,
+        ]);
     }
 }

@@ -1,7 +1,7 @@
 @extends('layouts.app')
-{{-- 
+{{--
     MART EDIT FORM - FIXED VERSION
-    
+
     Issues Fixed:
     1. Removed undefined vendorCuisine validation
     2. Fixed database reference (geoFirestore -> database)
@@ -10,7 +10,7 @@
     5. Enhanced error handling with timeout clearing
     6. Fixed activity logging references
     7. Added proper button state management
-    
+
     Key Features:
     - Proper error handling for all async operations
     - Loading states with timeout protection
@@ -76,7 +76,7 @@ foreach ($countries as $keycountry => $valuecountry) {
                                 <div class="col-7">
                                     <div id="selected_categories" class="mb-2"></div>
                                     <input type="text" id="category_search" class="form-control mb-2" placeholder="Search categories...">
-                                    <select id='restaurant_cuisines' class="form-control" multiple required>
+                                    <select id='restaurant_cuisines' class="form-control" multiple>
                                         <option value="">Select Cuisines</option>
                                         <!-- options populated dynamically -->
                                     </select>
@@ -761,13 +761,13 @@ foreach ($countries as $keycountry => $valuecountry) {
         <div class="form-group col-12 text-center btm-btn">
             <button type="button" class="btn btn-primary  edit-form-btn"><i class="fa fa-save"></i> {{trans('lang.save')}}
             </button>
-            <a href="{!! route('restaurants') !!}" class="btn btn-default"><i class="fa fa-undo"></i>{{trans('lang.cancel')}}</a>
+            <a href="{!! route('marts') !!}" class="btn btn-default"><i class="fa fa-undo"></i>{{trans('lang.cancel')}}</a>
         </div>
     </div>
 </div>
 </div>
 @endsection
-@endsection
+
 
 <style>
 /* Required field indicator */
@@ -779,6 +779,31 @@ foreach ($countries as $keycountry => $valuecountry) {
 .edit-form-btn:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+}
+/* Ensure proper display of selected categories */
+.selected-category-tag {
+    display: inline-block;
+    background: #007bff;
+    color: white;
+    padding: 2px 8px;
+    margin: 2px;
+    border-radius: 12px;
+    font-size: 12px;
+}
+.remove-tag {
+    cursor: pointer;
+    margin-left: 5px;
+    font-weight: bold;
+}
+.remove-tag:hover {
+    color: #ff6b6b;
+}
+/* Improve form validation feedback */
+.form-control:invalid {
+    border-color: #dc3545;
+}
+.form-control:valid {
+    border-color: #28a745;
 }
 </style>
 
@@ -1201,7 +1226,7 @@ foreach ($countries as $keycountry => $valuecountry) {
                     $('.profileRoute').attr('href', route1);
                 }
 
-                await database.collection('vendor_categories').where('publish', '==', true).get().then(async function(snapshots) {
+                await database.collection('mart_categories').where('publish', '==', true).get().then(async function(snapshots) {
                     snapshots.docs.forEach((listval) => {
                         var data = listval.data();
                         $('#restaurant_cuisines').append($("<option></option>")
@@ -1218,7 +1243,7 @@ foreach ($countries as $keycountry => $valuecountry) {
                             // Single category (backward compatibility)
                             $('#restaurant_cuisines').val([restaurant.categoryID]);
                         }
-                        updateSelectedCategoryTags(); // <-- Add this line
+                        updateSelectedCategoryTags(); // Update the tags display
                     }
                 });
                 if (restaurant.hasOwnProperty('phonenumber')) {
@@ -1502,11 +1527,6 @@ foreach ($countries as $keycountry => $valuecountry) {
                 $(".error_top").html("");
                 $(".error_top").append("<p>{{trans('lang.restaurant_name_error')}}</p>");
                 window.scrollTo(0, 0);
-            } else if (categoryIDs.length === 0 || (categoryIDs.length === 1 && categoryIDs[0] === '')) {
-                $(".error_top").show();
-                $(".error_top").html("");
-                $(".error_top").append("<p>{{trans('lang.restaurant_cuisine_error')}}</p>");
-                window.scrollTo(0, 0);
             } else if (phonenumber == '') {
                 $(".error_top").show();
                 $(".error_top").html("");
@@ -1620,11 +1640,11 @@ foreach ($countries as $keycountry => $valuecountry) {
                                         } catch (error) {
                                             console.error('❌ Error calling logActivity:', error);
                                         }
-                                        
+
                                         clearTimeout(saveTimeout);
                                         jQuery("#data-table_processing").hide();
                                         $('.edit-form-btn').prop('disabled', false).html('<i class="fa fa-save"></i> {{trans("lang.save")}}');
-                                        
+
                                         if (resStoryVid.length > 0 || story_thumbnail != '') {
                                             if (resStoryVid.length > 0 && story_thumbnail == '') {
                                                 $(".error_top").show();

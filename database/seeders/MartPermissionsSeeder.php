@@ -15,31 +15,54 @@ class MartPermissionsSeeder extends Seeder
      */
     public function run()
     {
-        // Get all roles
-        $roles = Role::all();
+        // Find Super Administrator role
+        $superAdminRole = Role::where('role_name', 'Super Administrator')->first();
 
-        // Mart permissions
+        if (!$superAdminRole) {
+            $this->command->error('Super Administrator role not found!');
+            return;
+        }
+
+        $this->command->info('Found Super Administrator role (ID: ' . $superAdminRole->id . ')');
+
+        // Define mart permissions
         $martPermissions = [
-            'marts' => [
-                'marts',
-                'marts.create',
-                'marts.edit',
-                'marts.view',
-                'marts.delete'
+            'mart' => [
+                'mart',
+                'mart.create',
+                'mart.edit',
+                'mart.view',
+                'mart.delete'
             ]
         ];
 
-        foreach ($roles as $role) {
-            foreach ($martPermissions as $permission => $routes) {
-                foreach ($routes as $route) {
+        $addedCount = 0;
+
+        foreach ($martPermissions as $permission => $routes) {
+            foreach ($routes as $route) {
+                // Check if permission already exists
+                $existingPermission = Permission::where('role_id', $superAdminRole->id)
+                    ->where('permission', $permission)
+                    ->where('routes', $route)
+                    ->first();
+
+                if (!$existingPermission) {
+                    // Create new permission
                     Permission::create([
-                        'role_id' => $role->id,
+                        'role_id' => $superAdminRole->id,
                         'permission' => $permission,
                         'routes' => $route
                     ]);
+
+                    $this->command->info('Added permission: ' . $permission . ' -> ' . $route);
+                    $addedCount++;
+                } else {
+                    $this->command->line('Permission already exists: ' . $permission . ' -> ' . $route);
                 }
             }
         }
+
+        $this->command->info('Successfully added ' . $addedCount . ' mart permissions to Super Administrator role!');
     }
 }
 
