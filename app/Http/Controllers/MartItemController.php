@@ -243,7 +243,7 @@ class MartItemController extends Controller
                     return $mediaData;
                 }
             }
-            
+
         } catch (\Exception $e) {
             // Log error but continue without image
             \Log::warning('Media lookup failed for: ' . $imageInput . ' - ' . $e->getMessage());
@@ -261,9 +261,9 @@ class MartItemController extends Controller
             $mediaQuery = $firestore->collection('media')
                 ->where($field, '==', $value)
                 ->limit(1);
-            
+
             $mediaDocs = $mediaQuery->documents();
-            
+
             foreach ($mediaDocs as $mediaDoc) {
                 if ($mediaDoc->exists()) {
                     return $mediaDoc->data();
@@ -340,7 +340,7 @@ class MartItemController extends Controller
 
         try {
             // Try to load the file with PhpSpreadsheet
-            $spreadsheet = IOFactory::load($request->file('file'));
+        $spreadsheet = IOFactory::load($request->file('file'));
             \Log::info('File loaded successfully with PhpSpreadsheet');
         } catch (\Exception $e) {
             \Log::error('Failed to load file with PhpSpreadsheet', [
@@ -381,7 +381,7 @@ class MartItemController extends Controller
                 // Validate required fields - support both ID and name fields
                 $vendorInput = $data['vendorID'] ?? $data['vendorName'] ?? '';
                 $categoryInput = $data['categoryID'] ?? $data['categoryName'] ?? '';
-                
+
                 if (empty($data['name']) || empty($data['price']) || empty($vendorInput) || empty($categoryInput)) {
                     $errors[] = "Row $rowNumber: Missing required fields (name, price, vendorID/vendorName, categoryID/categoryName)";
                     continue;
@@ -404,10 +404,10 @@ class MartItemController extends Controller
                 // Resolve subcategory ID (optional)
                 $subcategoryInput = $data['subcategoryID'] ?? $data['subcategoryName'] ?? '';
                 $resolvedSubcategoryID = $this->resolveSubcategoryID($subcategoryInput, $firestore);
-                
+
                 // Get section from subcategory
                 $section = $data['section'] ?? $this->getSectionFromSubcategory($resolvedSubcategoryID, $firestore);
-                
+
                 \Log::info('Section resolution - Input: ' . ($data['section'] ?? 'null') . ', Resolved: ' . $section);
 
                 // Handle subcategoryID as array (matching sample document structure)
@@ -420,7 +420,7 @@ class MartItemController extends Controller
                 $categoryTitle = '';
                 $subcategoryTitle = '';
                 $vendorTitle = '';
-                
+
                 // Get category title
                 if ($resolvedCategoryID) {
                     try {
@@ -433,7 +433,7 @@ class MartItemController extends Controller
                         // Continue without title if lookup fails
                     }
                 }
-                
+
                 // Get subcategory title
                 if (!empty($resolvedSubcategoryID)) {
                     try {
@@ -446,7 +446,7 @@ class MartItemController extends Controller
                         // Continue without title if lookup fails
                     }
                 }
-                
+
                 // Get vendor title
                 if ($resolvedVendorID) {
                     try {
@@ -462,17 +462,17 @@ class MartItemController extends Controller
                         \Log::warning('Vendor title lookup failed for ID: ' . $resolvedVendorID . ' - ' . $e->getMessage());
                     }
                 }
-                
+
                 // Resolve media/image from media collection
                 $resolvedPhoto = '';
                 $resolvedPhotos = [];
                 $imageInput = $data['photo'] ?? $data['image_name'] ?? '';
-                
+
                 \Log::info('Photo resolution - Row: ' . $rowNumber . ', Input: ' . $imageInput);
                 \Log::info('Photo resolution - Available data keys: ' . implode(', ', array_keys($data)));
                 \Log::info('Photo resolution - Data[photo]: ' . ($data['photo'] ?? 'null'));
                 \Log::info('Photo resolution - Data[image_name]: ' . ($data['image_name'] ?? 'null'));
-                
+
                 if (!empty($imageInput)) {
                     $mediaData = $this->resolveMediaImage($imageInput, $firestore);
                     if ($mediaData) {
@@ -489,7 +489,7 @@ class MartItemController extends Controller
                 // Prepare mart item data matching the sample document structure
                 \Log::info('Creating itemData - resolvedPhoto: ' . $resolvedPhoto);
                 \Log::info('Creating itemData - resolvedPhotos: ' . json_encode($resolvedPhotos));
-                
+
                 $itemData = [
                     'name' => trim($data['name']),
                     'price' => (float) $data['price'],
@@ -509,7 +509,7 @@ class MartItemController extends Controller
                     'nonveg' => strtolower($data['nonveg'] ?? 'false') === 'true',
                     'veg' => strtolower($data['nonveg'] ?? 'false') === 'true' ? false : true,
                     'takeawayOption' => false, // Default value
-                    
+
                     // Enhanced Filter Fields
                     'isSpotlight' => strtolower($data['isSpotlight'] ?? 'false') === 'true',
                     'isStealOfMoment' => strtolower($data['isStealOfMoment'] ?? 'false') === 'true',
@@ -715,7 +715,7 @@ class MartItemController extends Controller
     private function generateCSVTemplate($filePath)
     {
         $csvPath = str_replace('.xlsx', '.csv', $filePath);
-        
+
         $headers = [
             'name', 'price', 'disPrice', 'description', 'vendorID', 'vendorName',
             'categoryID', 'categoryName', 'subcategoryID', 'subcategoryName', 'section',
