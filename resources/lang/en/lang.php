@@ -1,7 +1,7 @@
 <?php
 
 
- 
+
 return [
 
     //---------------------------------------AAAA---------------------------------------
@@ -93,63 +93,63 @@ return [
     'app_setting_enable_mercadopago_help' => 'Check it to enable MercadoPago payment method',
 
     'app_setting_enable_xendit' => 'Enable Xendit',
-    
+
     'app_setting_enable_xendit_help' => 'Check it to enable Xendit payment method',
-    
+
     'app_setting_enable_orangepay' => 'Enable OrangePay',
-    
+
     'app_setting_enable_orangepay_help' => 'Check it to enable OrangePay payment method',
-    
+
     'app_setting_enable_midtrans' => 'Enable MidTrans',
-    
+
     'app_setting_enable_midtrans_help' => 'Check it to enable MidTrans payment method',
 
     'app_setting_midtrans_serverkey' => 'MidTrans Server Key',
-    
+
     'app_setting_midtrans_serverkey_help' => 'Insert MidTrans Server Key',
-    
+
     'app_setting_xendit_key' => 'Xendit Key',
-    
+
     'app_setting_xendit_key_help' => 'Insert Xendit Key',
-    
+
     'app_setting_orangepay_merchantKey' => 'OrangePay Merchant Key',
-    
+
     'app_setting_orangepay_merchantKey_help' => 'Insert OrangePay Merchant Key',
-    
+
     'app_setting_orangepay_auth' => 'OrangePay Auth',
-    
+
     'app_setting_orangepay_auth_help' => 'Insert OrangePay Auth',
-    
+
     'app_setting_orangepay_clientid' => 'OrangePay ClientId',
-    
+
     'app_setting_orangepay_clientid_help' => 'Insert OrangePay ClientId',
-    
+
     'app_setting_orangepay_secret' => 'OrangePay Secret',
-    
+
     'app_setting_orangepay_secret_help' => 'Insert OrangePay Secret',
-    
+
     'app_setting_orangepay_cancelurl' => 'OrangePay CancelUrl',
-    
+
     'app_setting_orangepay_cancelurl_help' => 'Insert OrangePay CancelUrl',
-    
+
     'app_setting_orangepay_notifyurl' => 'OrangePay NotifyUrl',
-    
+
     'app_setting_orangepay_notifyurl_help' => 'Insert OrangePay NotifyUrl',
-    
+
     'app_setting_orangepay_returnurl' => 'OrangePay ReturnUrl',
-    
+
     'app_setting_orangepay_returnurl_help' => 'Insert OrangePay ReturnUrl',
 
     'app_setting_xendit' => 'Xendit',
-    
+
     'app_setting_orangepay' => 'OrangePay',
-    
+
     'app_setting_midtrans' => 'MidTrans',
 
     'app_setting_enable_twitter' => 'Enable twitter',
 
     'app_setting_enable_twitter_help' => 'Check it to use twitter as login method',
-    
+
 
     'app_setting_facebook' => 'Authentication using facebook',
 
@@ -322,7 +322,7 @@ return [
     'category_create' => 'Create Category',
 
     'category_table' => 'Category List',
-    
+
     // Mart Categories
     'mart_category_plural' => 'Mart Categories',
     'mart_category_create' => 'Create Mart Category',
@@ -417,7 +417,7 @@ return [
     'cuisine_description_help' => 'Insert Description',
 
     'cuisines_description' => 'Description',
-    
+
     'lang.cuisines_table_text' => 'View and manage all the cuisines',
 
     'cuisines_description_help' => 'Insert Description',
@@ -1162,55 +1162,55 @@ return [
     'billing_details' => "Billing Details",
 
     'driver_detail' => "Driver Detail",
-    
+
     'assign_driver' => 'Assign Driver',
-    
+
     'select_driver' => 'Select Driver',
-    
+
     'manual_driver_assignment_help' => 'Manually assign a driver to this order when automatic assignment is not working',
-    
+
     'remove_driver' => 'Remove Driver',
-    
+
     'please_select_driver' => 'Please select a driver to assign',
-    
+
     'confirm_assign_driver' => 'Are you sure you want to assign this driver to the order?',
-    
+
     'confirm_remove_driver' => 'Are you sure you want to remove the driver from this order?',
-    
+
     'driver_not_found' => 'Driver not found',
-    
+
     'driver_assigned_successfully' => 'Driver assigned successfully',
-    
+
     'driver_removed_successfully' => 'Driver removed successfully',
-    
+
     'error_assigning_driver' => 'Error assigning driver to order',
-    
+
     'error_removing_driver' => 'Error removing driver from order',
-    
+
     'driver_assignment_loading' => 'Loading available drivers...',
-    
+
     'driver_assignment_error' => 'Error loading drivers',
-    
+
     'driver_online_status' => 'Online',
-    
+
     'driver_offline_status' => 'Offline',
-    
+
     'driver_wallet_amount' => 'Wallet Amount',
-    
+
     'manual_assignment_reason' => 'Manual assignment by admin',
-    
+
     'quick_assignment_reason' => 'Quick assignment from orders list',
-    
+
     'manual_removal_reason' => 'Manual removal by admin',
-    
+
     'driver_assignment_success' => 'Driver assigned successfully',
-    
+
     'driver_removal_success' => 'Driver removed successfully',
-    
+
     'order_not_eligible_assignment' => 'Order is not eligible for manual assignment',
-    
+
     'driver_not_active' => 'Driver is not active',
-    
+
     'takeaway_no_driver_needed' => 'Takeaway orders do not require driver assignment',
 
     'date_created' => "Date Created",
@@ -2327,7 +2327,7 @@ return [
 
     'price_instruction'=>'The price for product includes the admin commission. For instance, if the product is priced at $100 and the admin commission is 10% , the effective price would be $110 for customer, which will apply automatically.',
 
-    'document_verification_is_pending' => 'Document verification is pending, Please first verify your documents.',  
+    'document_verification_is_pending' => 'Document verification is pending, Please first verify your documents.',
 
     'notification_setting' => 'Notifications Setting',
 
@@ -2574,7 +2574,7 @@ return [
     'renew_plan'=>'Renew Plan',
     'change_expiry_date'=>'Change Expiry Date',
     'can_not_accept_more_orders'=>'This store have reached the maximum order capacity for current plan,Upgrade the subscription to continue accepting orders seamlessly!.',
-    
+
     // Import related translations
     'import'=>'Import',
     'download_template'=>'Download Template',
@@ -2587,6 +2587,45 @@ return [
     'import_instruction_3'=>'vendorID and categoryID must exist in the system before importing.',
     'import_instruction_4'=>'Boolean fields (publish, nonveg, isAvailable) should be "true" or "false".',
     'promotions_and_offers'=>'Promotions & Offers',
+    'brands' => 'Brands',
+    'brands_plural' => 'Brands',
+    'brands_table' => 'Brands Table',
+    'brands_table_text' => 'View and manage all the brands',
+    'add_brand' => 'Add Brand',
+    'edit_brand' => 'Edit Brand',
+    'brand_name' => 'Brand Name',
+    'brand_slug' => 'Brand Slug',
+    'brand_logo' => 'Brand Logo',
+    'brand_description' => 'Brand Description',
+    'brand_description_placeholder' => 'Enter brand description...',
+    'logo_help' => 'Upload a logo image (JPG, PNG, GIF - Max 2MB)',
+    'slug_help' => 'URL-friendly version of the name (auto-generated if left empty)',
+    'logo_preview' => 'Logo Preview',
+    'current_logo' => 'Current Logo',
+    'bulk_import' => 'Bulk Import',
+    'bulk_import_brands' => 'Bulk Import Brands',
+    'select_excel_file' => 'Select Excel File',
+    'import_file_help' => 'Please select an Excel file (.xlsx or .xls) to import brands data.',
+    'brand_information' => 'Brand Information',
+    'brand_name_help' => 'Enter the brand name',
+    'enter_brand_name_error' => 'Please enter brand name',
+    'enter_brand_description_error' => 'Please enter brand description',
+    'import_instructions' => 'Make sure your Excel file has the correct column headers: name, slug, description, status, logo_url',
+    'import_successful' => 'Brands imported successfully!',
+    'import_failed' => 'Failed to import brands. Please check your file format.',
+    'error_loading_data' => 'Error loading brand data',
+    'something_went_wrong' => 'Something went wrong. Please try again.',
+    'are_you_sure' => 'Are you sure?',
+    'back' => 'Back',
+    'save' => 'Save',
+    'update' => 'Update',
+    'cancel' => 'Cancel',
+    'active' => 'Active',
+    'inactive' => 'Inactive',
+    'status' => 'Status',
+    'actions' => 'Actions',
+    'created_at' => 'Created At',
+    'choose_file' => 'Choose File',
     'promotions_plural'=>'Promotions',
     'promotions_table_text'=>'View and manage all the promotions',
 ];

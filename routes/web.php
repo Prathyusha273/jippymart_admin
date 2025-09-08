@@ -289,6 +289,27 @@ Route::middleware(['permission:menu-periods,menu-periods.delete'])->group(functi
 });
 
 
+
+// Brands Routes
+Route::middleware(['permission:brands,brands'])->group(function () {
+    Route::get('/brands', [App\Http\Controllers\BrandController::class, 'index'])->name('brands');
+    Route::post('/brands', [App\Http\Controllers\BrandController::class, 'store'])->name('brands.store');
+    Route::get('/brands/data', [App\Http\Controllers\BrandController::class, 'getData'])->name('brands.data');
+});
+Route::middleware(['permission:brands,brands.edit'])->group(function () {
+    Route::get('/brands/edit/{id}', [App\Http\Controllers\BrandController::class, 'edit'])->name('brands.edit');
+    Route::put('/brands/{id}', [App\Http\Controllers\BrandController::class, 'update'])->name('brands.update');
+});
+Route::middleware(['permission:brands,brands.create'])->group(function () {
+    Route::get('/brands/create', [App\Http\Controllers\BrandController::class, 'create'])->name('brands.create');
+});
+Route::middleware(['permission:brands,brands.delete'])->group(function () {
+    Route::get('/brands/delete/{id}', [App\Http\Controllers\BrandController::class, 'delete'])->name('brands.delete');
+});
+Route::post('/brands/import', [App\Http\Controllers\BrandController::class, 'import'])->name('brands.import');
+Route::get('/brands/download-template', [App\Http\Controllers\BrandController::class, 'downloadTemplate'])->name('brands.download-template');
+
+
 Route::middleware(['permission:drivers,drivers'])->group(function () {
 
     Route::get('/drivers', [App\Http\Controllers\DriverController::class, 'index'])->name('drivers');

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "7314d621ed0724924d860473124c43d8",
+    "content-hash": "174b23a069b3ae3f0bd1983d240dc8c6",
     "packages": [
         {
             "name": "braintree/braintree_php",
@@ -1067,6 +1067,63 @@
                 "source": "https://github.com/googleapis/google-cloud-php-firestore/tree/v1.53.0"
             },
             "time": "2025-08-01T22:55:44+00:00"
+        },
+        {
+            "name": "google/cloud-storage",
+            "version": "v1.48.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/googleapis/google-cloud-php-storage.git",
+                "reference": "028f54ad28cdd023686e650e5c21798c6735c317"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/googleapis/google-cloud-php-storage/zipball/028f54ad28cdd023686e650e5c21798c6735c317",
+                "reference": "028f54ad28cdd023686e650e5c21798c6735c317",
+                "shasum": ""
+            },
+            "require": {
+                "google/cloud-core": "^1.57",
+                "php": "^8.1",
+                "ramsey/uuid": "^4.2.3"
+            },
+            "require-dev": {
+                "erusev/parsedown": "^1.6",
+                "google/cloud-pubsub": "^2.0",
+                "phpdocumentor/reflection": "^5.3.3||^6.0",
+                "phpdocumentor/reflection-docblock": "^5.3",
+                "phpseclib/phpseclib": "^2.0||^3.0",
+                "phpspec/prophecy-phpunit": "^2.0",
+                "phpunit/phpunit": "^9.0",
+                "squizlabs/php_codesniffer": "2.*"
+            },
+            "suggest": {
+                "google/cloud-pubsub": "May be used to register a topic to receive bucket notifications.",
+                "phpseclib/phpseclib": "May be used in place of OpenSSL for creating signed Cloud Storage URLs. Please require version ^2."
+            },
+            "type": "library",
+            "extra": {
+                "component": {
+                    "id": "cloud-storage",
+                    "path": "Storage",
+                    "entry": "src/StorageClient.php",
+                    "target": "googleapis/google-cloud-php-storage.git"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Google\\Cloud\\Storage\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "Apache-2.0"
+            ],
+            "description": "Cloud Storage Client for PHP",
+            "support": {
+                "source": "https://github.com/googleapis/google-cloud-php-storage/tree/v1.48.3"
+            },
+            "time": "2025-08-18T18:45:43+00:00"
         },
         {
             "name": "google/common-protos",

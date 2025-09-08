@@ -1,30 +1,5 @@
 @extends('layouts.app')
 @section('content')
-    <style>
-        .editable-price {
-            transition: all 0.2s ease;
-            border-radius: 3px;
-            padding: 2px 4px;
-        }
-        .editable-price:hover {
-            background-color: #f8f9fa;
-            border: 1px solid #dee2e6;
-        }
-        .editable-price.text-success {
-            background-color: #d4edda !important;
-            border-color: #c3e6cb !important;
-        }
-        .editable-price.text-danger {
-            background-color: #f8d7da !important;
-            border-color: #f5c6cb !important;
-        }
-        .editable-price input {
-            border: 2px solid #007bff;
-            border-radius: 3px;
-            padding: 2px 4px;
-            font-size: inherit;
-        }
-    </style>
     <div class="page-wrapper">
         <div class="row page-titles">
             <div class="col-md-5 align-self-center">
