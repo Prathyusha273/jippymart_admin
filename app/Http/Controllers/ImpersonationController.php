@@ -19,7 +19,7 @@ class ImpersonationController extends Controller
     }
 
     /**
-     * Generate impersonation token for a restaurant
+     * Generate impersonation token for a restaurant (Session-based approach)
      */
     public function generateToken(Request $request)
     {
@@ -68,20 +68,32 @@ class ImpersonationController extends Controller
             ], 400);
         }
 
-        // Create signed URL for restaurant panel
-        $restaurantPanelUrl = $this->createSignedImpersonationUrl(
-            $result['custom_token'],
-            $result['restaurant_uid'],
-            $result['cache_key']
-        );
+        // Store impersonation data in cache (shared between domains)
+        $cacheKey = 'impersonation_' . hash('sha256', $result['restaurant_uid'] . '_' . time() . '_' . $adminUserId);
+        $impersonationData = [
+            'token' => $result['custom_token'],
+            'restaurant_uid' => $result['restaurant_uid'],
+            'restaurant_id' => $restaurantId,
+            'restaurant_name' => $result['restaurant_name'],
+            'timestamp' => time(),
+            'admin_id' => $adminUserId,
+            'expires_at' => time() + ($expirationMinutes * 60)
+        ];
+        
+        // Store in cache for 10 minutes (longer than token expiration)
+        \Illuminate\Support\Facades\Cache::put($cacheKey, $impersonationData, 600);
 
+        // Create URL with cache key for restaurant panel to retrieve data
+        $restaurantUrl = config('app.restaurant_panel_url', 'http://127.0.0.1:8001');
+        $impersonationUrl = $restaurantUrl . '/login?impersonation_key=' . $cacheKey;
+        
         return response()->json([
             'success' => true,
             'restaurant_name' => $result['restaurant_name'],
             'restaurant_uid' => $result['restaurant_uid'],
             'expires_in' => $result['expires_in'],
-            'impersonation_url' => $restaurantPanelUrl,
-            'message' => "Impersonation token generated successfully. Redirecting to {$result['restaurant_name']}..."
+            'impersonation_url' => $impersonationUrl,
+            'message' => "Impersonation initiated successfully. Redirecting to {$result['restaurant_name']}..."
         ]);
     }
 
@@ -90,13 +102,32 @@ class ImpersonationController extends Controller
      */
     private function canImpersonate($adminUserId)
     {
-        // Add your role-based permission logic here
-        // For now, allowing all authenticated admins
-        // You can check against user roles, permissions, etc.
+        $user = Auth::user();
         
-        // Example: Check if user has admin role
-        // $user = Auth::user();
-        // return $user->role_id == 1; // Assuming 1 is admin role
+        // Check if user exists and is authenticated
+        if (!$user) {
+            return false;
+        }
+        
+        // Check if user has admin role (uncomment when roles are implemented)
+        // if (!$user->hasRole('admin')) {
+        //     return false;
+        // }
+        
+        // Check if user has impersonation permission (uncomment when permissions are implemented)
+        // if (!$user->hasPermission('restaurants.impersonate')) {
+        //     return false;
+        // }
+        
+        // Check if user account is active
+        if (isset($user->status) && $user->status !== 'active') {
+            return false;
+        }
+        
+        // Check if user is not suspended
+        if (isset($user->is_suspended) && $user->is_suspended) {
+            return false;
+        }
         
         return true; // For now, allow all authenticated users
     }
@@ -111,8 +142,18 @@ class ImpersonationController extends Controller
         }
         
         // Check for potentially malicious patterns
-        if (preg_match('/[<>"\']/', $restaurantId)) {
+        if (preg_match('/[<>"\'\x00-\x1f\x7f-\x9f]/', $restaurantId)) {
             throw new \SecurityException('Potentially malicious restaurant ID');
+        }
+        
+        // Additional security checks
+        if (preg_match('/\.\.|\/|\\|script|javascript|vbscript/i', $restaurantId)) {
+            throw new \SecurityException('Invalid characters in restaurant ID');
+        }
+        
+        // Check for SQL injection patterns
+        if (preg_match('/(union|select|insert|update|delete|drop|create|alter|exec|execute)/i', $restaurantId)) {
+            throw new \SecurityException('Suspicious SQL patterns detected');
         }
         
         return trim($restaurantId);

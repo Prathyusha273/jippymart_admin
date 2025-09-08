@@ -52,10 +52,14 @@
     <div class="col-12">
         <div class="card border">
             <div class="card-header d-flex justify-content-between align-items-center border-0">
-                <div class="card-header-title">
-                    <h3 class="text-dark-2 mb-2 h4">Bulk Import Mart Sub-Categories</h3>
-                    <p class="mb-0 text-dark-2">Upload Excel file to import multiple mart sub-categories at once</p>
-                </div>
+                            <div class="card-header-title">
+                                <h3 class="text-dark-2 mb-2 h4">Bulk Import Mart Sub-Categories</h3>
+                                <p class="mb-0 text-dark-2">Upload Excel file to import multiple mart sub-categories at once</p>
+                                <small class="text-info">
+                                    <i class="mdi mdi-lightbulb-outline mr-1"></i>
+                                    <strong>Tip:</strong> For photos, use media names, slugs, or direct URLs from the media module!
+                                </small>
+                            </div>
                 <div class="card-header-right d-flex align-items-center">
                     <div class="card-header-btn mr-3">
                         <a href="{{ route('mart-subcategories.download-template') }}" class="btn btn-outline-primary rounded-full">
@@ -74,7 +78,11 @@
                                 <input type="file" name="file" id="importFile" accept=".xls,.xlsx" class="form-control" required>
                                 <div class="form-text text-muted">
                                     <i class="mdi mdi-information-outline mr-1"></i>
-                                    File should contain: title, description, photo, parent_category_id, subcategory_order, publish, show_in_homepage, review_attributes
+                                    File should contain: title, description, photo (media name/slug/URL), parent_category_id, subcategory_order, publish, show_in_homepage, review_attributes
+                                    <br><small class="text-info">
+                                        <i class="mdi mdi-lightbulb-outline mr-1"></i>
+                                        Available parent categories: Groceries, Medicine, Pet, Beverages (Non-Alcoholic), Smoking Essentials, Meat Fish & eggs, Masala & Dry Fruits, Personel Care, Sample Category 1, Sample Category 2
+                                    </small>
                                 </div>
                             </div>
                         </div>

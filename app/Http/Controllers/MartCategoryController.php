@@ -60,21 +60,21 @@ class MartCategoryController extends Controller
                 continue; // Skip incomplete rows
             }
             
-            // Create document with auto-generated ID
+            // Create document with auto-generated ID - matching create form structure
             $docRef = $collection->add([
                 'title' => $data['title'],
                 'description' => $data['description'] ?? '',
-                'photo' => $data['photo'],
-                'publish' => strtolower($data['publish'] ?? '') === 'true',
-                'show_in_homepage' => strtolower($data['show_in_homepage'] ?? '') === 'true',
-                'mart_id' => $data['mart_id'] ?? '',
+                'photo' => $data['photo'] ?? '',
                 'section' => $data['section'] ?? 'General',
-                'section_order' => intval($data['section_order'] ?? 1),
                 'category_order' => intval($data['category_order'] ?? 1),
+                'section_order' => intval($data['category_order'] ?? 1), // Same as category_order
+                'publish' => strtolower($data['publish'] ?? 'false') === 'true',
+                'show_in_homepage' => strtolower($data['show_in_homepage'] ?? 'false') === 'true',
+                'mart_id' => '', // Empty string like in create form
                 'has_subcategories' => false,
                 'subcategories_count' => 0,
                 'review_attributes' => array_filter(array_map('trim', explode(',', $data['review_attributes'] ?? ''))),
-                'migratedBy' => 'migrate:mart-categories',
+                'migratedBy' => 'bulk_import',
             ]);
             
             // Set the internal 'id' field to match the Firestore document ID
@@ -115,48 +115,95 @@ class MartCategoryController extends Controller
     private function generateTemplate($filePath)
     {
         try {
+            // Create new spreadsheet
             $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
-            $sheet = $spreadsheet->getActiveSheet();
-
-            // Set headers
+            
+            // Remove default worksheet and create a new one
+            $spreadsheet->removeSheetByIndex(0);
+            $sheet = $spreadsheet->createSheet();
+            $sheet->setTitle('Mart Categories Import');
+            
+            // Set headers with proper formatting
             $headers = [
                 'A1' => 'title',
                 'B1' => 'description',
-                'C1' => 'section',
-                'D1' => 'category_order',
-                'E1' => 'publish',
-                'F1' => 'show_in_homepage'
+                'C1' => 'photo',
+                'D1' => 'section',
+                'E1' => 'category_order',
+                'F1' => 'publish',
+                'G1' => 'show_in_homepage',
+                'H1' => 'review_attributes'
             ];
 
-            // Set header values
+            // Set header values with bold formatting
             foreach ($headers as $cell => $value) {
                 $sheet->setCellValue($cell, $value);
+                $sheet->getStyle($cell)->getFont()->setBold(true);
             }
 
-            // Add sample data row
+            // Add sample data rows
             $sampleData = [
-                'A2' => 'Sample Category',
+                // Row 2
+                'A2' => 'Sample Category 1',
                 'B2' => 'This is a sample category description',
-                'C2' => 'Essentials & Daily Needs',
-                'D2' => '1',
-                'E2' => 'true',
-                'F2' => 'true'
+                'C2' => 'sample-media-slug',
+                'D2' => 'Essentials & Daily Needs',
+                'E2' => '1',
+                'F2' => 'true',
+                'G2' => 'true',
+                'H2' => 'quality,value,service',
+                // Row 3
+                'A3' => 'Sample Category 2',
+                'B3' => 'Another sample category description',
+                'C3' => 'another-media-slug',
+                'D3' => 'Health & Wellness',
+                'E3' => '2',
+                'F3' => 'false',
+                'G3' => 'false',
+                'H3' => 'freshness,organic'
             ];
 
             foreach ($sampleData as $cell => $value) {
                 $sheet->setCellValue($cell, $value);
             }
 
-            // Auto-size columns
-            foreach (range('A', 'F') as $column) {
-                $sheet->getColumnDimension($column)->setAutoSize(true);
+            // Set column widths manually for better compatibility
+            $sheet->getColumnDimension('A')->setWidth(20); // title
+            $sheet->getColumnDimension('B')->setWidth(25); // description
+            $sheet->getColumnDimension('C')->setWidth(20); // photo
+            $sheet->getColumnDimension('D')->setWidth(25); // section
+            $sheet->getColumnDimension('E')->setWidth(15); // category_order
+            $sheet->getColumnDimension('F')->setWidth(10); // publish
+            $sheet->getColumnDimension('G')->setWidth(15); // show_in_homepage
+            $sheet->getColumnDimension('H')->setWidth(25); // review_attributes
+
+            // Add borders to header row
+            $sheet->getStyle('A1:H1')->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+
+            // Create writer with proper options
+            $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+            $writer->setPreCalculateFormulas(false);
+            $writer->setIncludeCharts(false);
+            
+            // Ensure directory exists
+            $dir = dirname($filePath);
+            if (!is_dir($dir)) {
+                mkdir($dir, 0755, true);
+            }
+            
+            // Save the file
+            $writer->save($filePath);
+            
+            // Verify file was created and has content
+            if (!file_exists($filePath) || filesize($filePath) < 1000) {
+                throw new \Exception('Generated file is too small or corrupted');
             }
 
-            // Save the file
-            $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
-            $writer->save($filePath);
-
         } catch (\Exception $e) {
+            // Clean up any partial file
+            if (file_exists($filePath)) {
+                unlink($filePath);
+            }
             throw new \Exception('Failed to generate template: ' . $e->getMessage());
         }
     }
