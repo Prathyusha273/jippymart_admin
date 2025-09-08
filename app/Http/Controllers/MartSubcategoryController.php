@@ -123,31 +123,8 @@ class MartSubcategoryController extends Controller
                 }
             }
             
-            // Process photo - handle media module integration
-            $photoUrl = '';
-            if (!empty($data['photo'])) {
-                $photoInput = trim($data['photo']);
-                
-                // Check if it's already a URL (existing media)
-                if (filter_var($photoInput, FILTER_VALIDATE_URL)) {
-                    $photoUrl = $photoInput;
-                } else {
-                    // Try to find media by name or slug
-                    $mediaId = $this->resolveMediaId($photoInput, $firestore);
-                    if ($mediaId) {
-                        $mediaDoc = $firestore->collection('media')->document($mediaId)->snapshot();
-                        if ($mediaDoc->exists()) {
-                            $mediaData = $mediaDoc->data();
-                            $photoUrl = $mediaData['image_path'] ?? '';
-                        }
-                    }
-                    
-                    // If media not found, just use the input as-is (might be a placeholder or will be handled later)
-                    if (empty($photoUrl)) {
-                        $photoUrl = $photoInput; // Use the input as-is, don't throw error
-                    }
-                }
-            }
+            // Process photo - handle media module integration (MOST ADVANCED)
+            $photoUrl = $this->resolveMediaImage($data['photo'] ?? '', $firestore);
             
             // Create document with auto-generated ID - matching create form structure
             $docRef = $collection->add([
@@ -161,7 +138,7 @@ class MartSubcategoryController extends Controller
                 'section_order' => 1, // Fixed value like in create form
                 'category_order' => 1, // Fixed value like in create form
                 'subcategory_order' => intval($data['subcategory_order'] ?? 1),
-                'mart_id' => '', // Empty string like in create form
+                'mart_id' => $data['mart_id'] ?? '', // Use provided mart_id or empty string
                 'review_attributes' => $reviewAttributes,
                 'publish' => strtolower($data['publish'] ?? 'false') === 'true',
                 'show_in_homepage' => strtolower($data['show_in_homepage'] ?? 'false') === 'true',
@@ -326,50 +303,75 @@ class MartSubcategoryController extends Controller
     }
 
     /**
-     * Resolve media ID from input (can be ID, name, or slug)
+     * Resolve media image - lookup by multiple fields in media collection (MOST ADVANCED)
+     * Supports: image_name, name, slug, image_path
      */
-    private function resolveMediaId($input, $firestore)
+    private function resolveMediaImage($imageInput, $firestore)
     {
-        if (empty($input)) {
-            return null;
+        if (empty($imageInput)) {
+            return '';
         }
 
-        // First try as direct ID
         try {
-            $mediaDoc = $firestore->collection('media')->document($input)->snapshot();
-            if ($mediaDoc->exists()) {
-                return $input; // Return the ID as-is
+            // If input is already a full image_path URL, return it directly
+            if (filter_var($imageInput, FILTER_VALIDATE_URL) && strpos($imageInput, 'firebasestorage.googleapis.com') !== false) {
+                return $imageInput;
             }
+
+            // Try lookup by image_name
+            $mediaData = $this->queryMediaByField($firestore, 'image_name', $imageInput);
+            if ($mediaData && isset($mediaData['image_path'])) {
+                return $mediaData['image_path'];
+            }
+
+            // Try lookup by name
+            $mediaData = $this->queryMediaByField($firestore, 'name', $imageInput);
+            if ($mediaData && isset($mediaData['image_path'])) {
+                return $mediaData['image_path'];
+            }
+
+            // Try lookup by slug
+            $mediaData = $this->queryMediaByField($firestore, 'slug', $imageInput);
+            if ($mediaData && isset($mediaData['image_path'])) {
+                return $mediaData['image_path'];
+            }
+
+            // Try lookup by image_path (partial match for URLs)
+            if (strpos($imageInput, 'http') === 0) {
+                $mediaData = $this->queryMediaByField($firestore, 'image_path', $imageInput);
+                if ($mediaData && isset($mediaData['image_path'])) {
+                    return $mediaData['image_path'];
+                }
+            }
+
         } catch (\Exception $e) {
-            // Continue to name/slug lookup
+            // Log error but continue without image
+            \Log::warning('Media lookup failed for: ' . $imageInput . ' - ' . $e->getMessage());
         }
 
-        // Try name lookup
-        try {
-            $mediaDocs = $firestore->collection('media')
-                ->where('name', '==', trim($input))
-                ->limit(1)
-                ->documents();
+        // If no media found, return the input as-is (might be a placeholder or direct URL)
+        return $imageInput;
+    }
 
-            foreach ($mediaDocs as $media) {
-                return $media->id();
+    /**
+     * Helper method to query media collection by specific field
+     */
+    private function queryMediaByField($firestore, $field, $value)
+    {
+        try {
+            $mediaQuery = $firestore->collection('media')
+                ->where($field, '==', $value)
+                ->limit(1);
+
+            $mediaDocs = $mediaQuery->documents();
+
+            foreach ($mediaDocs as $mediaDoc) {
+                if ($mediaDoc->exists()) {
+                    return $mediaDoc->data();
+                }
             }
         } catch (\Exception $e) {
-            // Continue to slug lookup
-        }
-
-        // Try slug lookup
-        try {
-            $mediaDocs = $firestore->collection('media')
-                ->where('slug', '==', trim($input))
-                ->limit(1)
-                ->documents();
-
-            foreach ($mediaDocs as $media) {
-                return $media->id();
-            }
-        } catch (\Exception $e) {
-            // Log error if needed
+            // Continue to next field
         }
 
         return null;
@@ -389,16 +391,18 @@ class MartSubcategoryController extends Controller
             $sheet = $spreadsheet->createSheet();
             $sheet->setTitle('Mart Sub-Categories Import');
             
-            // Set headers with proper formatting
+            // Set headers with proper formatting - matching create form fields
+            // Field order matches the create form: title, description, photo, subcategory_order, parent_category_id, publish, show_in_homepage, mart_id, review_attributes
             $headers = [
-                'A1' => 'title',
-                'B1' => 'description', 
-                'C1' => 'photo',
-                'D1' => 'parent_category_id',
-                'E1' => 'subcategory_order',
-                'F1' => 'publish',
-                'G1' => 'show_in_homepage',
-                'H1' => 'review_attributes'
+                'A1' => 'title',                    // Sub-Category Name (required)
+                'B1' => 'description',              // Sub-Category Description
+                'C1' => 'photo',                    // Sub-Category Image (media name/slug/URL)
+                'D1' => 'subcategory_order',        // Display order within parent category
+                'E1' => 'parent_category_id',       // Parent Category ID or Name
+                'F1' => 'publish',                  // Publish status (true/false)
+                'G1' => 'show_in_homepage',         // Show in homepage (true/false)
+                'H1' => 'mart_id',                  // Mart ID (leave empty for general sub-categories)
+                'I1' => 'review_attributes'         // Review attributes (comma-separated)
             ];
 
             // Set header values with bold formatting
@@ -407,26 +411,28 @@ class MartSubcategoryController extends Controller
                 $sheet->getStyle($cell)->getFont()->setBold(true);
             }
 
-            // Add sample data rows - using actual parent categories from database
+            // Add sample data rows with helpful examples showing advanced media integration
             $sampleData = [
-                // Row 2
+                // Row 2 - Example sub-category with media slug
                 'A2' => 'Sample Sub-Category 1',
                 'B2' => 'Sample description for sub-category 1',
                 'C2' => 'sample-media-slug',
-                'D2' => 'Groceries',
-                'E2' => '1',
-                'F2' => 'TRUE',
-                'G2' => 'FALSE',
-                'H2' => 'quality,freshness',
-                // Row 3
+                'D2' => '1',
+                'E2' => 'Groceries',
+                'F2' => 'true',
+                'G2' => 'false',
+                'H2' => '', // mart_id - leave empty for general sub-categories
+                'I2' => 'quality,freshness',
+                // Row 3 - Another example sub-category with direct URL
                 'A3' => 'Sample Sub-Category 2',
                 'B3' => 'Sample description for sub-category 2',
-                'C3' => 'sample-media-slug',
-                'D3' => 'Medicine',
-                'E3' => '2',
-                'F3' => 'TRUE',
-                'G3' => 'FALSE',
-                'H3' => 'quality,freshness'
+                'C3' => 'https://firebasestorage.googleapis.com/example-image.jpg',
+                'D3' => '2',
+                'E3' => 'Medicine',
+                'F3' => 'true',
+                'G3' => 'false',
+                'H3' => '', // mart_id - leave empty for general sub-categories
+                'I3' => 'quality,freshness'
             ];
 
             foreach ($sampleData as $cell => $value) {
@@ -437,14 +443,15 @@ class MartSubcategoryController extends Controller
             $sheet->getColumnDimension('A')->setWidth(20); // title
             $sheet->getColumnDimension('B')->setWidth(25); // description
             $sheet->getColumnDimension('C')->setWidth(20); // photo
-            $sheet->getColumnDimension('D')->setWidth(25); // parent_category_id
-            $sheet->getColumnDimension('E')->setWidth(15); // subcategory_order
+            $sheet->getColumnDimension('D')->setWidth(15); // subcategory_order
+            $sheet->getColumnDimension('E')->setWidth(25); // parent_category_id
             $sheet->getColumnDimension('F')->setWidth(10); // publish
             $sheet->getColumnDimension('G')->setWidth(15); // show_in_homepage
-            $sheet->getColumnDimension('H')->setWidth(25); // review_attributes
+            $sheet->getColumnDimension('H')->setWidth(15); // mart_id
+            $sheet->getColumnDimension('I')->setWidth(25); // review_attributes
 
             // Add borders to header row
-            $sheet->getStyle('A1:H1')->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+            $sheet->getStyle('A1:I1')->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
             // Create writer with proper options
             $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);

@@ -59,6 +59,10 @@
                                     <i class="mdi mdi-lightbulb-outline mr-1"></i>
                                     <strong>Tip:</strong> For photos, use media names, slugs, or direct URLs from the media module!
                                 </small>
+                                <br><small class="text-success">
+                                    <i class="mdi mdi-shield-check mr-1"></i>
+                                    <strong>Smart Media Protection:</strong> Images are only deleted when no other items reference them!
+                                </small>
                             </div>
                 <div class="card-header-right d-flex align-items-center">
                     <div class="card-header-btn mr-3">
@@ -78,7 +82,11 @@
                                 <input type="file" name="file" id="importFile" accept=".xls,.xlsx" class="form-control" required>
                                 <div class="form-text text-muted">
                                     <i class="mdi mdi-information-outline mr-1"></i>
-                                    File should contain: title, description, photo (media name/slug/URL), parent_category_id, subcategory_order, publish, show_in_homepage, review_attributes
+                                    File should contain: title, description, photo (media name/slug/URL), subcategory_order, parent_category_id, publish, show_in_homepage, mart_id, review_attributes
+                                    <br><small class="text-success">
+                                        <i class="mdi mdi-check-circle mr-1"></i>
+                                        <strong>Advanced Media Integration:</strong> Supports media names, slugs, image names, direct URLs, and Firebase Storage URLs!
+                                    </small>
                                     <br><small class="text-info">
                                         <i class="mdi mdi-lightbulb-outline mr-1"></i>
                                         Available parent categories: Groceries, Medicine, Pet, Beverages (Non-Alcoholic), Smoking Essentials, Meat Fish & eggs, Masala & Dry Fruits, Personel Care, Sample Category 1, Sample Category 2
