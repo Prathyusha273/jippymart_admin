@@ -930,26 +930,26 @@
 
             const data = doc.data();
 
-            // Deleting single image field
+            // Deleting single image field with smart media deletion
             if (singleImageField) {
                 if (Array.isArray(singleImageField)) {
                     for (const field of singleImageField) {
                         const imageUrl = data[field];
-                        if (imageUrl) await deleteImageFromBucket(imageUrl);
+                        if (imageUrl) await smartDeleteImageFromBucket(imageUrl, collection, id);
                     }
                 } else {
                     const imageUrl = data[singleImageField];
-                    if (imageUrl) await deleteImageFromBucket(imageUrl);
+                    if (imageUrl) await smartDeleteImageFromBucket(imageUrl, collection, id);
                 }
             }
-            // Deleting array image field
+            // Deleting array image field with smart media deletion
             if (arrayImageField) {
                 if (Array.isArray(arrayImageField)) {
                     for (const field of arrayImageField) {
                         const arrayImages = data[field];
                         if (arrayImages && Array.isArray(arrayImages)) {
                             for (const imageUrl of arrayImages) {
-                                if (imageUrl) await deleteImageFromBucket(imageUrl);
+                                if (imageUrl) await smartDeleteImageFromBucket(imageUrl, collection, id);
                             }
                         }
                     }
@@ -957,7 +957,7 @@
                     const arrayImages = data[arrayImageField];
                     if (arrayImages && Array.isArray(arrayImages)) {
                         for (const imageUrl of arrayImages) {
-                            if (imageUrl) await deleteImageFromBucket(imageUrl);
+                            if (imageUrl) await smartDeleteImageFromBucket(imageUrl, collection, id);
                         }
                     }
                 }
@@ -970,7 +970,7 @@
                 for (const variant of variants) {
                     const variantImageUrl = variant.variant_image;
                     if (variantImageUrl) {
-                        await deleteImageFromBucket(variantImageUrl);
+                        await smartDeleteImageFromBucket(variantImageUrl, collection, id);
                     }
                 }
             }
@@ -980,6 +980,142 @@
             console.log("Document and images deleted successfully.");
         } catch (error) {
             console.error("Error deleting document and images:", error);
+        }
+    };
+
+    // Smart media deletion with reference counting
+    const smartDeleteImageFromBucket = async (imageUrl, currentCollection, currentId) => {
+        try {
+            console.log(`🔍 Checking if image ${imageUrl} is still referenced by other documents...`);
+            
+            // Check if this image is still referenced by other documents
+            const isStillReferenced = await checkImageReferences(imageUrl, currentCollection, currentId);
+            
+            if (isStillReferenced) {
+                console.log(`✅ Image ${imageUrl} is still referenced by other documents. Keeping the image.`);
+                return;
+            }
+            
+            console.log(`🗑️ Image ${imageUrl} is no longer referenced. Safe to delete.`);
+            await deleteImageFromBucket(imageUrl);
+            
+        } catch (error) {
+            console.error("Error in smart media deletion:", error);
+            // Fallback to old behavior if smart deletion fails
+            await deleteImageFromBucket(imageUrl);
+        }
+    };
+
+    // Check if an image is still referenced by other documents
+    const checkImageReferences = async (imageUrl, currentCollection, currentId) => {
+        try {
+            // Collections that might reference media images
+            const collectionsToCheck = [
+                'mart_categories',
+                'mart_subcategories', 
+                'mart_items',
+                'vendor_categories',
+                'vendor_products',
+                'media' // Check if it's still in media collection
+            ];
+
+            for (const collectionName of collectionsToCheck) {
+                // Skip the current collection and document
+                if (collectionName === currentCollection) {
+                    continue;
+                }
+
+                console.log(`🔍 Checking ${collectionName} for image references...`);
+                
+                const snapshot = await database.collection(collectionName).get();
+                
+                for (const doc of snapshot.docs) {
+                    // Skip the current document being deleted
+                    if (collectionName === currentCollection && doc.id === currentId) {
+                        continue;
+                    }
+                    
+                    const data = doc.data();
+                    
+                    // Check single photo field
+                    if (data.photo === imageUrl) {
+                        console.log(`✅ Found reference in ${collectionName}/${doc.id} (photo field)`);
+                        return true;
+                    }
+                    
+                    // Check photos array field
+                    if (data.photos && Array.isArray(data.photos) && data.photos.includes(imageUrl)) {
+                        console.log(`✅ Found reference in ${collectionName}/${doc.id} (photos array)`);
+                        return true;
+                    }
+                    
+                    // Check image_path field (for media collection)
+                    if (data.image_path === imageUrl) {
+                        console.log(`✅ Found reference in ${collectionName}/${doc.id} (image_path field)`);
+                        return true;
+                    }
+                }
+            }
+            
+            console.log(`❌ No other references found for image ${imageUrl}`);
+            return false;
+            
+        } catch (error) {
+            console.error("Error checking image references:", error);
+            // If we can't check references, assume it's still referenced (safer)
+            return true;
+        }
+    };
+
+    // Get media reference count for debugging/display purposes
+    const getMediaReferenceCount = async (imageUrl) => {
+        try {
+            const collectionsToCheck = [
+                'mart_categories',
+                'mart_subcategories', 
+                'mart_items',
+                'vendor_categories',
+                'vendor_products',
+                'media'
+            ];
+
+            let referenceCount = 0;
+            const references = [];
+
+            for (const collectionName of collectionsToCheck) {
+                const snapshot = await database.collection(collectionName).get();
+                
+                for (const doc of snapshot.docs) {
+                    const data = doc.data();
+                    
+                    // Check single photo field
+                    if (data.photo === imageUrl) {
+                        referenceCount++;
+                        references.push(`${collectionName}/${doc.id} (photo)`);
+                    }
+                    
+                    // Check photos array field
+                    if (data.photos && Array.isArray(data.photos) && data.photos.includes(imageUrl)) {
+                        referenceCount++;
+                        references.push(`${collectionName}/${doc.id} (photos array)`);
+                    }
+                    
+                    // Check image_path field (for media collection)
+                    if (data.image_path === imageUrl) {
+                        referenceCount++;
+                        references.push(`${collectionName}/${doc.id} (image_path)`);
+                    }
+                }
+            }
+            
+            return {
+                count: referenceCount,
+                references: references
+            };
+            
+        } catch (error) {
+            console.error("Error getting media reference count:", error);
+            return { count: 0, references: [] };
         }
     };
 

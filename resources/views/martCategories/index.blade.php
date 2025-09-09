@@ -50,10 +50,18 @@
     <div class="col-12">
         <div class="card border">
             <div class="card-header d-flex justify-content-between align-items-center border-0">
-                <div class="card-header-title">
-                    <h3 class="text-dark-2 mb-2 h4">Bulk Import Mart Categories</h3>
-                    <p class="mb-0 text-dark-2">Upload Excel file to import multiple mart categories at once</p>
-                </div>
+                            <div class="card-header-title">
+                                <h3 class="text-dark-2 mb-2 h4">Bulk Import Mart Categories</h3>
+                                <p class="mb-0 text-dark-2">Upload Excel file to import multiple mart categories at once</p>
+                                <small class="text-info">
+                                    <i class="mdi mdi-lightbulb-outline mr-1"></i>
+                                    <strong>Tip:</strong> For photos, use media names, slugs, or direct URLs from the media module!
+                                </small>
+                                <br><small class="text-success">
+                                    <i class="mdi mdi-shield-check mr-1"></i>
+                                    <strong>Smart Media Protection:</strong> Images are only deleted when no other items reference them!
+                                </small>
+                            </div>
                 <div class="card-header-right d-flex align-items-center">
                     <div class="card-header-btn mr-3">
                         <a href="{{ route('mart-categories.download-template') }}" class="btn btn-outline-primary rounded-full">
@@ -72,7 +80,11 @@
                                 <input type="file" name="file" id="importFile" accept=".xls,.xlsx" class="form-control" required>
                                 <div class="form-text text-muted">
                                     <i class="mdi mdi-information-outline mr-1"></i>
-                                    File should contain: title, description, photo, publish, show_in_homepage, mart_id, review_attributes
+                                    File should contain: title, description, photo (media name/slug/URL), section, category_order, publish, show_in_homepage, mart_id, review_attributes
+                                    <br><small class="text-success">
+                                        <i class="mdi mdi-check-circle mr-1"></i>
+                                        <strong>Advanced Media Integration:</strong> Supports media names, slugs, image names, direct URLs, and Firebase Storage URLs!
+                                    </small>
                                 </div>
                             </div>
                         </div>
