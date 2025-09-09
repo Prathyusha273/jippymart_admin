@@ -1,4 +1,4 @@
-  @extends('layouts.app')
+@extends('layouts.app')
 @section('content')
 <div class="page-wrapper">
     <div class="row page-titles">
@@ -426,10 +426,7 @@
     var attributes_list=[];
     var categories_list=[];
     var restaurant_list=[];
-    var productImagesCount=0;
     var product_specification={};
-    var photos=[];
-    var product_image_filename=[];
     var variant_photos=[];
     var variant_filename=[];
     var variant_vIds=[];
@@ -778,6 +775,11 @@
             console.log('✅ Validation passed, starting save process...');
             $(".error_top").hide();
 
+            // Process photo data first - convert base64 to Firebase URL if needed
+            console.log('🖼️ Processing photo data...');
+            photo = await storeProductImageData();
+            console.log('🖼️ Photo processed:', photo);
+
             const hasOptions = $(".has_options").is(":checked");
 
             if (hasOptions && optionsList.length === 0) {
@@ -876,7 +878,6 @@
                     addOnsPrice: addOnesPrice || [],
                     product_specification: product_specification || {},
                     item_attribute: null,
-                    photos: photos || [],
                     created_at: firebase.firestore.FieldValue.serverTimestamp(),
                     updated_at: firebase.firestore.FieldValue.serverTimestamp()
                 };
@@ -952,7 +953,6 @@
                     addOnsPrice: addOnesPrice || [],
                     product_specification: product_specification || {},
                     item_attribute: null,
-                    photos: photos || [],
                     created_at: firebase.firestore.FieldValue.serverTimestamp(),
                     updated_at: firebase.firestore.FieldValue.serverTimestamp()
                 };
@@ -1081,22 +1081,15 @@
                 uploadTask.on('state_changed',function(snapshot) {
                     var progress=(snapshot.bytesTransferred/snapshot.totalBytes)*100;
                     console.log('Upload is '+progress+'% done');
-                    $('.product_image').find(".uploding_image_photos").text(
-                        "Image is uploading...");
+                    jQuery("#uploding_image").text("Image is uploading...");
                 },function(error) {},function() {
                     uploadTask.snapshot.ref.getDownloadURL().then(function(downloadURL) {
                         jQuery("#uploding_image").text("Upload is completed");
-                        if(downloadURL) {
-                            productImagesCount++;
-                            photos_html='<span class="image-item" id="photo_'+
-                                productImagesCount+
-                                '"><span class="remove-btn" data-id="'+
-                                productImagesCount+'" data-img="'+downloadURL+
-                                '"><i class="fa fa-remove"></i></span><img width="100px" id="" height="auto" src="'+
-                                downloadURL+'"></span>';
-                            $(".product_image").append(photos_html);
-                            photos.push(downloadURL);
-                        }
+                        photo=downloadURL;
+                        $(".product_image").empty()
+                        $(".product_image").append(
+                            '<img class="rounded" style="width:50px" src="'+
+                            photo+'" alt="image">');
                     });
                 });
             };
@@ -1158,13 +1151,9 @@
         $("#add_ones_list_iteam_"+index).hide();
     }
     $(document).on("click",".remove-btn",function() {
-        var id=$(this).attr('data-id');
-        var photo_remove=$(this).attr('data-img');
-        $("#photo_"+id).remove();
-        index=photos.indexOf(photo_remove);
-        if(index>-1) {
-            photos.splice(index,1); // 2nd parameter means remove one item only
-        }
+        photo="";
+        $(".product_image").empty();
+        $("#product_image").val('');
     });
     async function storeVariantImageData() {
         var newPhoto=[];
@@ -1364,36 +1353,29 @@
         return `${prefix}${id}${random? `.${Math.trunc(Math.random()*100000000)}`:""}`;
     }
     async function storeProductImageData() {
-        var newPhoto=[];
-        if(photos.length>0) {
-            await Promise.all(photos.map(async (productPhoto,index) => {
-                productPhoto=productPhoto.replace(/^data:image\/[a-z]+;base64,/,"");
-                var uploadTask=await storageRef.child(product_image_filename[index]).putString(
-                    productPhoto,'base64',{
-                    contentType: 'image/jpg'
-                });
-                var downloadURL=await uploadTask.ref.getDownloadURL();
-                newPhoto.push(downloadURL);
-            }));
+        if(photo && photo.startsWith('data:image')) {
+            var base64Data = photo.replace(/^data:image\/[a-z]+;base64,/, "");
+            var timestamp = Number(new Date());
+            var filename = 'product_' + timestamp + '.jpg';
+            var uploadTask = await storageRef.child(filename).putString(base64Data, 'base64', {
+                contentType: 'image/jpg'
+            });
+            var downloadURL = await uploadTask.ref.getDownloadURL();
+            return downloadURL;
         }
-        return newPhoto;
+        return photo || '';
     }
     $("#product_image").resizeImg({
         callback: function(base64str) {
-            var val=$('#product_image').val().toLowerCase();
-            var ext=val.split('.')[1];
-            var docName=val.split('fakepath')[1];
-            var filename=$('#product_image').val().replace(/C:\\fakepath\\/i,'')
-            var timestamp=Number(new Date());
-            var filename=filename.split('.')[0]+"_"+timestamp+'.'+ext;
-            product_image_filename.push(filename);
-            productImagesCount++;
-            photos_html='<span class="image-item" id="photo_'+productImagesCount+
-                '"><span class="remove-btn" data-id="'+productImagesCount+'" data-img="'+base64str+
-                '"><i class="fa fa-remove"></i></span><img class="rounded" width="50px" id="" height="auto" src="'+
-                base64str+'"></span>'
-            $(".product_image").append(photos_html);
-            photos.push(base64str);
+            photo = base64str;
+            $(".product_image").empty();
+            $(".product_image").append(
+                '<span class="image-item" id="photo_1">' +
+                '<span class="remove-btn" data-id="1" data-img="' + base64str + '">' +
+                '<i class="fa fa-remove"></i></span>' +
+                '<img class="rounded" width="50px" id="" height="auto" src="' + base64str + '">' +
+                '</span>'
+            );
             $("#product_image").val('');
         }
     });
@@ -1405,19 +1387,15 @@
             var reader = new FileReader();
             reader.onload = function(e) {
                 var base64str = e.target.result;
-                var val = file.name.toLowerCase();
-                var ext = val.split('.')[1];
-                var timestamp = Number(new Date());
-                var filename = file.name.split('.')[0] + "_" + timestamp + '.' + ext;
-
-                product_image_filename.push(filename);
-                productImagesCount++;
-                photos_html = '<span class="image-item" id="photo_' + productImagesCount +
-                    '"><span class="remove-btn" data-id="' + productImagesCount + '" data-img="' + base64str +
-                    '"><i class="fa fa-remove"></i></span><img class="rounded" width="50px" id="" height="auto" src="' +
-                    base64str + '"></span>';
-                $(".product_image").append(photos_html);
-                photos.push(base64str);
+                photo = base64str;
+                $(".product_image").empty();
+                $(".product_image").append(
+                    '<span class="image-item" id="photo_1">' +
+                    '<span class="remove-btn" data-id="1" data-img="' + base64str + '">' +
+                    '<i class="fa fa-remove"></i></span>' +
+                    '<img class="rounded" width="50px" id="" height="auto" src="' + base64str + '">' +
+                    '</span>'
+                );
                 $("#product_image").val('');
             };
             reader.readAsDataURL(file);
