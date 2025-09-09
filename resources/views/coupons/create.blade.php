@@ -76,6 +76,16 @@
                                     </div>
                                 </div>
                             </div>
+                            <div class="form-group row width-50">
+                                <label class="col-3 control-label">{{trans('lang.coupon_type')}}</label>
+                                <div class="col-7">
+                                    <select class="form-control" id="coupon_type">
+                                    <option value="" selected>select coupon type</option>
+                                        <option value="restaurant">{{trans('lang.restaurant')}}</option>
+                                        <option value="mart">{{trans('lang.mart')}}</option>
+                                    </select>
+                                </div>
+                            </div>
                             <?php if ($id == '') { ?>
                                 <div class="form-group row width-50">
                                     <label class="col-3 control-label">{{trans('lang.coupon_restaurant_id')}}</label>
@@ -146,22 +156,85 @@ var restaurantOwnerId = "";
 var restaurantOwnerOnline = false;
 $(document).ready(function () {
     jQuery("#data-table_processing").show();
-    database.collection('vendors').orderBy('title', 'asc').get().then(async function (snapshots) {
+    // Function to load vendors based on coupon type
+    function loadVendorsByType(couponType) {
+        console.log('🚀 loadVendorsByType called with:', couponType);
+        $('#vendor_restaurant_select').empty();
+        
+        // If no coupon type is selected, show only the placeholder
+        if (!couponType || couponType === '') {
+            console.log('📋 No coupon type selected - showing placeholder only');
+            $('#vendor_restaurant_select').append($('<option></option>')
+                .attr('value', '')
+                .text('{{trans("lang.select_restaurant")}}'));
+            return;
+        }
+        
+        // Add "All" option when coupon type is selected
         $('#vendor_restaurant_select').append($('<option></option>')
             .attr('value', 'ALL')
             .text('All'));
-        snapshots.docs.forEach((listval) => {
-            var data = listval.data();
-            $('#vendor_restaurant_select').append($('<option></option>')
-                .attr('value', data.id)
-                .text(data.title));
-        })
+        
+        var vendorQuery = database.collection('vendors');
+        
+        // Filter by vendor type since coupon type is specified
+        console.log('🔍 Filtering vendors by vType:', couponType);
+        vendorQuery = vendorQuery.where('vType', '==', couponType);
+        
+        vendorQuery.get().then(async function (snapshots) {
+            console.log('📊 Found', snapshots.docs.length, 'vendors');
+            
+            // Sort vendors by title on client side
+            var vendors = [];
+            snapshots.docs.forEach((listval) => {
+                var data = listval.data();
+                vendors.push({id: listval.id, data: data});
+            });
+            
+            // Sort by title
+            vendors.sort((a, b) => a.data.title.localeCompare(b.data.title));
+            
+            // Add sorted vendors to dropdown
+            vendors.forEach((vendor) => {
+                console.log('🏪 Vendor:', vendor.data.title, 'vType:', vendor.data.vType);
+                $('#vendor_restaurant_select').append($('<option></option>')
+                    .attr('value', vendor.id)
+                    .text(vendor.data.title));
+            });
+        }).catch(function(error) {
+            console.error('❌ Error loading vendors:', error);
+        });
+    }
+    
+    // Load all vendors initially
+    loadVendorsByType('');
+    
+    // Debug: Check what vendors exist in the database
+    console.log('🔍 Checking all vendors in database...');
+    database.collection('vendors').get().then(function(snapshots) {
+        console.log('📊 Total vendors in database:', snapshots.docs.length);
+        snapshots.docs.forEach(function(doc) {
+            var data = doc.data();
+            console.log('🏪 Vendor:', data.title, 'vType:', data.vType, 'ID:', doc.id);
+        });
     });
+    
     $(function () {
         $('#datetimepicker1 .date_picker').datepicker({
             dateFormat: 'mm/dd/yyyy',
             startDate: new Date(),
         });
+        
+        // Add event handler for coupon type change after DOM is ready
+        $('#coupon_type').on('change', function() {
+            var selectedCouponType = $(this).val();
+            console.log('🎯 Coupon type changed to:', selectedCouponType);
+            console.log('🔄 Reloading vendors with type:', selectedCouponType);
+            loadVendorsByType(selectedCouponType);
+        });
+        
+        // Debug: Check if element exists
+        console.log('🔍 Coupon type element found:', $('#coupon_type').length);
     });
     var id = "<?php echo uniqid();?>";
     var resturant = "<?php echo $id; ?>";
@@ -179,6 +252,7 @@ $(document).ready(function () {
     var description = $(".coupon_description").val();
     var item_value = parseInt($(".item_value").val(), 10);
     var usage_limit = parseInt($(".usage_limit").val(), 10);
+    var couponType = $("#coupon_type").val();
 
     // Item value validation
     if (isNaN(item_value) || item_value < 0) {
@@ -252,6 +326,7 @@ $(document).ready(function () {
                         'discountType': discountType,
                         'image': IMG,
                         'resturant_id': resturant_id,
+                        'cType': couponType,
                         'isPublic': isPublic,
                         'item_value': item_value,
                         'usageLimit': usage_limit || 0,

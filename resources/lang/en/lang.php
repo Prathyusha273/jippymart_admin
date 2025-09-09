@@ -481,6 +481,8 @@ return [
 
     'coupon_plural' => 'Coupons',
 
+    'coupon_type' => 'Coupon Type',
+
     'coupon_table' => 'Coupons List',
 
     'currency_code' => 'Code',
