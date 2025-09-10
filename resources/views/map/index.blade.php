@@ -205,23 +205,44 @@
                             if (user.firstName || user.lastName) {
                                 html += '<h4 class="user-name">{{trans("lang.user_name")}} : ' + user.firstName + ' ' + user.lastName + '</h4>';
                             }
-                            if (val.author.shippingAddress && val.vendor.location) {
-                                html += '<div class="location-ride">';
-                                html += '<div class="from-ride"><span>' + val.vendor.location + '</span></div>';
-                                destination = val.author.shippingAddress.line1;
-                                if (val.author.shippingAddress.line2 != "null" && val.author.shippingAddress.line2 != '') {
-                                    destination = destination + "," + val.author.shippingAddress.line2;
+                            // Display pickup and destination locations
+                            html += '<div class="location-ride">';
+                            html += '<div class="from-ride"><span>' + (val.vendor && val.vendor.location ? val.vendor.location : 'Pickup location not available') + '</span></div>';
+                            
+                            // Build destination address with proper null/undefined checks
+                            var destinationParts = [];
+                            
+                            if (val.author && val.author.shippingAddress) {
+                                if (val.author.shippingAddress.line1 && val.author.shippingAddress.line1 !== "null" && val.author.shippingAddress.line1 !== '') {
+                                    destinationParts.push(val.author.shippingAddress.line1);
                                 }
-                                if (val.author.shippingAddress.city != "null" && val.author.shippingAddress.city != '') {
-                                    destination = destination + "," + val.author.shippingAddress.city;
+                                if (val.author.shippingAddress.line2 && val.author.shippingAddress.line2 !== "null" && val.author.shippingAddress.line2 !== '') {
+                                    destinationParts.push(val.author.shippingAddress.line2);
                                 }
-                                if (val.author.shippingAddress.country != "null" && val.author.shippingAddress.country != '') {
-                                    destination = destination + "," + val.author.shippingAddress.country;
+                                if (val.author.shippingAddress.city && val.author.shippingAddress.city !== "null" && val.author.shippingAddress.city !== '') {
+                                    destinationParts.push(val.author.shippingAddress.city);
                                 }
-                                html += '<div class="to-ride"><span>' + destination + '</span></div>';
-                                html += '</div>';
+                                if (val.author.shippingAddress.country && val.author.shippingAddress.country !== "null" && val.author.shippingAddress.country !== '') {
+                                    destinationParts.push(val.author.shippingAddress.country);
+                                }
                             }
-                            html += '<span class="badge badge-danger">In Tranist</span>';
+                            
+                            // Determine destination based on order type
+                            var destination = '';
+                            if (val.hasOwnProperty('takeAway') && val.takeAway) {
+                                destination = 'Customer pickup at restaurant';
+                            } else if (destinationParts.length > 0) {
+                                destination = destinationParts.join(', ');
+                            } else {
+                                destination = 'Destination address not available';
+                            }
+                            html += '<div class="to-ride"><span>' + destination + '</span></div>';
+                            html += '</div>';
+                            // Display order type (takeaway vs delivery)
+                            var orderType = val.hasOwnProperty('takeAway') && val.takeAway ? 'Takeaway' : 'Delivery';
+                            var orderTypeClass = val.hasOwnProperty('takeAway') && val.takeAway ? 'badge-warning' : 'badge-primary';
+                            html += '<span class="badge ' + orderTypeClass + '">' + orderType + '</span>';
+                            html += '&nbsp;&nbsp;<span class="badge badge-danger">In Tranist</span>';
                             html += '&nbsp;&nbsp;<a href="/orders/edit/' + val.id + '" class="badge badge-info" target="_blank">{{trans("lang.order_id")}} : ' + val.id.substring(0, 7) + '</a>';
                             html += '</div>';
                             html += '</div>';

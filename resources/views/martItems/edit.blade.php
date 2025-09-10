@@ -397,7 +397,7 @@
                     <?php if(isset($_GET['eid']) && $_GET['eid'] != ''){?>
                     <a href="{{route('marts.mart-items',$_GET['eid'])}}" class="btn btn-default"><i class="fa fa-undo"></i>{{trans('lang.cancel')}}</a>
                     <?php }else{ ?>
-                    <a href="{!! route('foods') !!}" class="btn btn-default"><i class="fa fa-undo"></i>{{trans('lang.cancel')}}</a>
+                    <a href="{!! route('mart-items') !!}" class="btn btn-default"><i class="fa fa-undo"></i>{{trans('lang.cancel')}}</a>
                     <?php } ?>
                 </div>
             </div>

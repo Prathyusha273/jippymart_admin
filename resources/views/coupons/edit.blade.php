@@ -36,10 +36,10 @@
                         <div class="form-group row width-50">
                             <label class="col-3 control-label">{{trans('lang.coupon_discount_type')}}</label>
                             <div class="col-7">
-                                <select id="coupon_discount_type" class="form-control">
-                                    <option value="Percentage">{{trans('lang.coupon_percent')}}</option>
-                                    <option value="Fix Price">{{trans('lang.coupon_fixed')}}</option>
-                                </select>
+                                    <select id="coupon_discount_type" class="form-control">
+                                        <option value="Fix Price" selected>{{trans('lang.coupon_fixed')}}</option>
+                                        <option value="Percentage">{{trans('lang.coupon_percent')}}</option>
+                                    </select>
                                 <div class="form-text text-muted">{{ trans("lang.coupon_discount_type_help") }}</div>
                             </div>
                         </div>
@@ -57,10 +57,10 @@
                                 <div class="form-text text-muted">Minimum order value required to use this coupon (e.g., 299 for FLAT100, 30 for SAVE30)</div>
                             </div>
                         </div>
-                        <div class="form-group row width-50">
+                        <div class="form-group row width-50" style="display: none;">
                             <label class="col-3 control-label">Usage Limit</label>
                             <div class="col-7">
-                                <input type="number" class="form-control usage_limit" min="0" placeholder="0 for unlimited">
+                                <input type="number" class="form-control usage_limit" min="0" placeholder="0 for unlimited" value="0">
                                 <div class="form-text text-muted">Maximum number of users who can use this coupon (e.g., 100 for "First-100"). Leave empty or 0 for unlimited usage.</div>
                             </div>
                         </div>
@@ -79,11 +79,11 @@
                         <div class="form-group row width-50">
                             <label class="col-3 control-label">{{trans('lang.coupon_type')}}</label>
                             <div class="col-7">
-                                <select class="form-control" id="coupon_type">
-                                <option value="" selected>select coupon type</option>
-                                    <option value="restaurant">{{trans('lang.restaurant')}}</option>
-                                    <option value="mart">{{trans('lang.mart')}}</option>
-                                </select>
+                                    <select class="form-control" id="coupon_type">
+                                    <option value="" selected>select coupon type</option>
+                                        <option value="restaurant">🍽️ {{trans('lang.restaurant')}}</option>
+                                        <option value="mart">🛒 {{trans('lang.mart')}}</option>
+                                    </select>
                             </div>
                         </div>
                         <div class="form-group row width-50">
@@ -307,14 +307,9 @@ $(document).ready(function () {
             return;
         }
 
-        // Usage limit validation
+        // Usage limit validation (hidden field - default to 0 for unlimited)
         if (isNaN(usage_limit) || usage_limit < 0) {
-            $(".error_top").show();
-            $(".error_top").html("");
-            $(".error_top").append("<p>Usage Limit must be a valid number (0 or greater).</p>");
-            $(".usage_limit").focus();
-            window.scrollTo(0, 0);
-            return;
+            usage_limit = 0; // Default to unlimited if invalid
         }
         var newdate = new Date($(".date_picker").val());
         var expiresAt = new Date(newdate.setHours(23, 59, 59, 999));

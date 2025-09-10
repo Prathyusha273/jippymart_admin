@@ -26,10 +26,10 @@
                     </div>
                     <div class="d-flex top-title-right align-self-center">
                         <div class="select-box pl-3">
-                            <select class="form-control coupon_type_selector filteredRecords">
-                                <option value="" selected>{{trans("lang.coupon_type")}}</option>
-                                <option value="restaurant">{{trans("lang.restaurant")}}</option>
-                                <option value="mart">{{trans("lang.mart")}}</option>
+                            <select class="form-control coupon_type_selector filteredRecords extraordinary-select">
+                                <option value="" selected>🎯 {{trans("lang.coupon_type")}}</option>
+                                <option value="restaurant">🍽️ {{trans("lang.restaurant")}}</option>
+                                <option value="mart">🛒 {{trans("lang.mart")}}</option>
                             </select>
                         </div>
                     <div class="d-flex top-title-right align-self-center">
@@ -100,7 +100,7 @@
                                     <th>{{trans('lang.coupon_code')}}</th>
                                     <th>{{trans('lang.coupon_discount')}}</th>
                                     <th>Item Value</th>
-                                    <th>Usage Limit</th>
+                                    <th style="display: none;">Usage Limit</th>
                                     <th>{{trans('lang.coupon_privacy')}}</th>
                                     <th>{{trans('lang.coupon_type')}}</th>
                                     <th>{{trans('lang.coupon_restaurant_id')}}</th>
@@ -119,6 +119,304 @@
         </div>
     </div>
 </div>
+@endsection
+@section('styles')
+<style>
+/* 🎨 EXTRAORDINARY COUPON TYPE CARDS */
+.coupon-type-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2px;
+}
+
+.coupon-type-card {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    min-width: 100px;
+    backdrop-filter: blur(10px);
+}
+
+.coupon-type-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    transition: left 0.5s;
+}
+
+.coupon-type-card:hover::before {
+    left: 100%;
+}
+
+.type-icon-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    margin-right: 8px;
+    position: relative;
+    z-index: 2;
+}
+
+.type-icon {
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.type-content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    position: relative;
+    z-index: 2;
+}
+
+.type-label {
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.type-indicator {
+    width: 100%;
+    height: 2px;
+    border-radius: 1px;
+    margin-top: 2px;
+    transition: all 0.3s ease;
+}
+
+/* 🍽️ RESTAURANT CARD - Extraordinary Design */
+.restaurant-card {
+    background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
+    color: white;
+    border: 2px solid #ff5252;
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+}
+
+.restaurant-card .type-icon-wrapper {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(5px);
+}
+
+.restaurant-card .type-icon {
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.restaurant-card .type-indicator {
+    background: linear-gradient(90deg, #fff, #ffebee);
+    box-shadow: 0 1px 3px rgba(255, 255, 255, 0.3);
+}
+
+.restaurant-card:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+    border-color: #ff1744;
+}
+
+.restaurant-card:hover .type-icon {
+    transform: rotate(15deg) scale(1.1);
+    color: #ffebee;
+}
+
+/* 🛒 MART CARD - Extraordinary Design */
+.mart-card {
+    background: linear-gradient(135deg, #4ecdc4, #44a08d);
+    color: white;
+    border: 2px solid #26a69a;
+    box-shadow: 0 4px 15px rgba(78, 205, 196, 0.3);
+}
+
+.mart-card .type-icon-wrapper {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(5px);
+}
+
+.mart-card .type-icon {
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.mart-card .type-indicator {
+    background: linear-gradient(90deg, #fff, #e0f2f1);
+    box-shadow: 0 1px 3px rgba(255, 255, 255, 0.3);
+}
+
+.mart-card:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 8px 25px rgba(78, 205, 196, 0.4);
+    border-color: #00bcd4;
+}
+
+.mart-card:hover .type-icon {
+    transform: rotate(-15deg) scale(1.1);
+    color: #e0f2f1;
+}
+
+/* ❓ DEFAULT CARD - Extraordinary Design */
+.default-card {
+    background: linear-gradient(135deg, #a8a8a8, #757575);
+    color: white;
+    border: 2px solid #616161;
+    box-shadow: 0 4px 15px rgba(168, 168, 168, 0.3);
+}
+
+.default-card .type-icon-wrapper {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(5px);
+}
+
+.default-card .type-icon {
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.default-card .type-indicator {
+    background: linear-gradient(90deg, #fff, #f5f5f5);
+    box-shadow: 0 1px 3px rgba(255, 255, 255, 0.3);
+}
+
+.default-card:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 8px 25px rgba(168, 168, 168, 0.4);
+    border-color: #424242;
+}
+
+.default-card:hover .type-icon {
+    transform: rotate(360deg) scale(1.1);
+    color: #f5f5f5;
+}
+
+/* 🌟 PULSE ANIMATION */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.coupon-type-card.pulse {
+    animation: pulse 2s infinite;
+}
+
+/* 🎭 GLOW EFFECT */
+@keyframes glow {
+    0% { box-shadow: 0 0 5px currentColor; }
+    50% { box-shadow: 0 0 20px currentColor, 0 0 30px currentColor; }
+    100% { box-shadow: 0 0 5px currentColor; }
+}
+
+.coupon-type-card.glow {
+    animation: glow 2s infinite;
+}
+
+/* 📱 RESPONSIVE DESIGN */
+@media (max-width: 768px) {
+    .coupon-type-card {
+        min-width: 80px;
+        padding: 6px 10px;
+    }
+    
+    .type-icon-wrapper {
+        width: 20px;
+        height: 20px;
+        margin-right: 6px;
+    }
+    
+    .type-icon {
+        font-size: 12px;
+    }
+    
+    .type-label {
+        font-size: 10px;
+    }
+}
+
+/* 🎨 DARK MODE SUPPORT */
+@media (prefers-color-scheme: dark) {
+    .coupon-type-card {
+        backdrop-filter: blur(15px);
+    }
+}
+
+/* ⚡ PERFORMANCE OPTIMIZATIONS */
+.coupon-type-card {
+    will-change: transform, box-shadow;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+}
+
+/* 🎨 EXTRAORDINARY SELECT DROPDOWN */
+.extraordinary-select {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: 2px solid #5a67d8;
+    border-radius: 12px;
+    padding: 8px 12px;
+    font-weight: 600;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+}
+
+.extraordinary-select:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    border-color: #4c51bf;
+}
+
+.extraordinary-select:focus {
+    outline: none;
+    border-color: #3182ce;
+    box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
+}
+
+.extraordinary-select option {
+    background: white;
+    color: #2d3748;
+    padding: 8px;
+    font-weight: 500;
+}
+
+.extraordinary-select option:hover {
+    background: #f7fafc;
+}
+
+/* 🌟 FILTER ACTIVE STATE */
+.extraordinary-select.filter-active {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    border-color: #e53e3e;
+    animation: pulse 1.5s infinite;
+}
+
+/* 🎭 LOADING ANIMATION */
+@keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+}
+
+.coupon-type-card.loading {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200px 100%;
+    animation: shimmer 1.5s infinite;
+}
+</style>
 @endsection
 @section('scripts')
 <script type="text/javascript">
@@ -299,18 +597,9 @@
                             '<a href="' + route1 + '"  class="redirecttopage">' + childData.code + '</a>',
                             discount_price,
                             (childData.item_value ? '<span class="item-value-td">' + childData.item_value + '</span>' : '<span class="text-muted">-</span>'),
-                            (() => {
-                                if (childData.usageLimit && childData.usageLimit > 0) {
-                                    var usedCount = childData.usedCount || 0;
-                                    var remaining = childData.usageLimit - usedCount;
-                                    var statusClass = remaining > 0 ? 'text-success' : 'text-danger';
-                                    return '<span class="' + statusClass + '">' + usedCount + '/' + childData.usageLimit + '</span>';
-                                } else {
-                                    return '<span class="text-muted">Unlimited</span>';
-                                }
-                            })(),
+                            '<span style="display: none;">' + (childData.usageLimit || 0) + '</span>', // Hidden usage limit column
                             childData.hasOwnProperty('isPublic') && childData.isPublic ? '<td class="success"><span class="badge badge-success py-2 px-3">{{trans("lang.public")}}</sapn></td>' : '<td class="danger"><span class="badge badge-danger py-2 px-3">{{trans("lang.private")}}</sapn></td>',
-                            childData.cType ? childData.cType : '',   // ✅ This is where Coupon Type should go
+                            childData.cType || 'Unknown',
                             '<td  data-url="' + route_view + '" class="redirecttopage storeName_' + childData.resturant_id + '" >' + childData.restaurantName + '</td>',
                             '<td class="dt-time">' + date + ' ' + time + '</td>',
                             (() => {
@@ -342,7 +631,8 @@
             },
             order: (checkDeletePermission) ? [6, 'desc'] : [5, 'desc'],
             columnDefs: [
-                { targets: (checkDeletePermission) ? [0, 7, 9] : [6, 8], orderable: false }
+                { targets: (checkDeletePermission) ? [0, 4, 7, 9] : [4, 6, 8], orderable: false }, // Hide usage limit column (index 4)
+                { targets: 4, visible: false } // Hide usage limit column completely
             ],
             language: {
                 zeroRecords: "{{trans("lang.no_record_found")}}",

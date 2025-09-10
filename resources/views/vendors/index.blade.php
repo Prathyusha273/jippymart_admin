@@ -906,14 +906,10 @@
                 }
             }
         });
-        await database.collection('coupons').where('resturant_id','in',[VendorId,'ALL']).get().then(async function(snapshotsItem) {
-            if(snapshotsItem.docs.length>0) {
-                for(const temData of snapshotsItem.docs) {
-                    var item_data=temData.data();
-                    await deleteDocumentWithImage('coupons',item_data.id,'image');
-                }
-            }
-        });
+        // 🧠 Smart Coupon Deletion - Preserves Global Coupons
+        console.log(`🔍 Starting smart coupon deletion for vendor: ${VendorId}`);
+        const couponDeletionResult = await smartDeleteCouponsForVendor(VendorId);
+        console.log(`📊 Coupon deletion completed: ${couponDeletionResult.deleted} deleted, ${couponDeletionResult.preserved} preserved`);
         await database.collection('favorite_restaurant').where('restaurant_id','==',VendorId).get().then(async function(snapshotsItem) {
             if(snapshotsItem.docs.length>0) {
                 snapshotsItem.docs.forEach((temData) => {

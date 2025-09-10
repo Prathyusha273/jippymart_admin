@@ -917,6 +917,99 @@
         }
     });
 
+    // 🧠 Smart Coupon Deletion Function - Preserves Global Coupons
+    const smartDeleteCouponsForVendor = async (vendorId) => {
+        console.log(`🔍 Smart coupon deletion for vendor: ${vendorId}`);
+        
+        try {
+            // Get all coupons for this vendor (including global ones)
+            const couponsSnapshot = await database.collection('coupons')
+                .where('resturant_id', 'in', [vendorId, 'ALL'])
+                .get();
+            
+            if (couponsSnapshot.empty) {
+                console.log(`📝 No coupons found for vendor: ${vendorId}`);
+                return { deleted: 0, preserved: 0 };
+            }
+            
+            let deletedCount = 0;
+            let preservedCount = 0;
+            const deletedCoupons = [];
+            const preservedCoupons = [];
+            
+            // Process each coupon
+            for (const doc of couponsSnapshot.docs) {
+                const couponData = doc.data();
+                const couponId = doc.id;
+                
+                // Only delete vendor-specific coupons, preserve global ones
+                if (couponData.resturant_id === vendorId) {
+                    // This is a vendor-specific coupon - safe to delete
+                    await deleteDocumentWithImage('coupons', couponId, 'image');
+                    deletedCount++;
+                    deletedCoupons.push(couponData.code || 'Unknown');
+                    console.log(`🗑️ Deleted vendor-specific coupon: ${couponData.code}`);
+                } else if (couponData.resturant_id === 'ALL') {
+                    // This is a global coupon - preserve it
+                    preservedCount++;
+                    preservedCoupons.push(couponData.code || 'Unknown');
+                    console.log(`✅ Preserved global coupon: ${couponData.code}`);
+                }
+            }
+            
+            // Log the smart deletion results
+            console.log(`📊 Smart Coupon Deletion Results:`);
+            console.log(`   🗑️ Deleted: ${deletedCount} vendor-specific coupons`);
+            console.log(`   ✅ Preserved: ${preservedCount} global coupons`);
+            
+            if (deletedCoupons.length > 0) {
+                console.log(`   Deleted coupons: ${deletedCoupons.join(', ')}`);
+            }
+            if (preservedCoupons.length > 0) {
+                console.log(`   Preserved coupons: ${preservedCoupons.join(', ')}`);
+            }
+            
+            // Show user-friendly notification
+            if (preservedCount > 0) {
+                showSmartDeletionNotification(deletedCount, preservedCount, deletedCoupons, preservedCoupons);
+            }
+            
+            return { 
+                deleted: deletedCount, 
+                preserved: preservedCount,
+                deletedCoupons: deletedCoupons,
+                preservedCoupons: preservedCoupons
+            };
+            
+        } catch (error) {
+            console.error(`❌ Error in smart coupon deletion:`, error);
+            throw error;
+        }
+    };
+
+    // 📢 Smart Deletion Notification Function
+    const showSmartDeletionNotification = (deletedCount, preservedCount, deletedCoupons, preservedCoupons) => {
+        const message = `
+            <div class="alert alert-info alert-dismissible fade show" role="alert">
+                <h5><i class="fas fa-brain"></i> Smart Coupon Deletion Completed</h5>
+                <p><strong>✅ Preserved ${preservedCount} global coupon(s):</strong> ${preservedCoupons.join(', ')}</p>
+                <p><strong>🗑️ Deleted ${deletedCount} vendor-specific coupon(s):</strong> ${deletedCoupons.join(', ')}</p>
+                <p class="mb-0"><small>Global coupons work for all restaurants and are automatically preserved when vendors are deleted.</small></p>
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        `;
+        
+        // Show notification at the top of the page
+        $('body').prepend(message);
+        
+        // Auto-dismiss after 10 seconds
+        setTimeout(() => {
+            $('.alert').fadeOut();
+        }, 10000);
+    };
+
     //On delete item delete image also from bucket general code
     const deleteDocumentWithImage = async (collection, id, singleImageField, arrayImageField) => {
         // Reference to the Firestore document
