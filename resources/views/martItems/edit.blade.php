@@ -433,47 +433,6 @@
 
                 <div class="col-md-6">
                     <div class="form-group">
-                        <label>Option Title</label>
-                        <input type="text" class="form-control option-title" placeholder="e.g., Pack of 2">
-                    </div>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label>Option Subtitle</label>
-                        <input type="text" class="form-control option-subtitle" placeholder="e.g., 180 g X 2">
-                    </div>
-                </div>
-
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label>Price (₹)</label>
-                        <input type="number" class="form-control option-price" step="0.01" min="0">
-                    </div>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label>Original Price (₹)</label>
-                        <input type="number" class="form-control option-original-price" step="0.01" min="0">
-                    </div>
-                </div>
-
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label>Quantity</label>
-                        <input type="number" class="form-control option-quantity" min="0">
-                    </div>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="form-group">
                         <label>Unit</label>
                         <select class="form-control option-quantity-unit">
                             <option value="g">Grams (g)</option>
@@ -488,6 +447,34 @@
                         </select>
                     </div>
                 </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Unit Price (₹)</label>
+                        <input type="number" class="form-control option-unit-price" step="0.01" min="0" placeholder="Price per unit">
+                        <small class="form-text text-muted">Price per unit (will calculate total price)</small>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Original Unit Price (₹)</label>
+                        <input type="number" class="form-control option-original-unit-price" step="0.01" min="0" placeholder="Original price per unit">
+                        <small class="form-text text-muted">Original price per unit (for discount calculation)</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Quantity</label>
+                        <input type="number" class="form-control option-quantity" min="0">
+                    </div>
+                </div>
+
                 <div class="col-md-6">
                     <div class="form-group">
                         <label>Unit Measure Base</label>
@@ -499,15 +486,54 @@
             <div class="row">
                 <div class="col-md-6">
                     <div class="form-group">
-                        <label>Unit Price Display</label>
-                        <input type="text" class="form-control option-unit-price-display" readonly>
+                        <label>Option Title</label>
+                        <input type="text" class="form-control option-title" placeholder="Auto-filled from item name" readonly>
+                        <small class="form-text text-muted">Auto-filled from main item name</small>
                     </div>
                 </div>
 
                 <div class="col-md-6">
                     <div class="form-group">
-                        <label>Discount Amount</label>
-                        <input type="number" class="form-control option-discount" step="0.01" readonly>
+                        <label>Option Subtitle</label>
+                        <input type="text" class="form-control option-subtitle" placeholder="Auto-generated: unit_measure + quantity_unit + x + quantity" readonly>
+                        <small class="form-text text-muted">Auto-generated format: 500ml x 2</small>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Total Price (₹)</label>
+                        <input type="number" class="form-control option-total-price" step="0.01" readonly>
+                        <small class="form-text text-muted">Auto-calculated: Unit Price × Quantity</small>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Original Total Price (₹)</label>
+                        <input type="number" class="form-control option-original-total-price" step="0.01" readonly>
+                        <small class="form-text text-muted">Auto-calculated: Original Unit Price × Quantity</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Discount Amount (₹)</label>
+                        <input type="number" class="form-control option-discount-amount" step="0.01" readonly>
+                        <small class="form-text text-muted">Auto-calculated: Original Total - Total Price</small>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Discount Percentage (%)</label>
+                        <input type="number" class="form-control option-discount-percentage" step="0.01" readonly>
+                        <small class="form-text text-muted">Auto-calculated discount percentage</small>
                     </div>
                 </div>
             </div>
@@ -1253,7 +1279,7 @@
                         if (hasOptions && optionsList.length > 0) {
                             // Validate options
                             for (let option of optionsList) {
-                                if (!option.title || !option.price || option.price <= 0) {
+                                if (!option.title || !option.unit_price || option.unit_price <= 0) {
                                     alert('Please fill all required fields for all options.');
                                     return;
                                 }
@@ -1282,23 +1308,25 @@
                                 option_type: option.type || 'size',
                                 option_title: option.title || '',
                                 option_subtitle: option.subtitle || '',
-                                price: parseFloat(option.price) || 0, // Number format to match create.blade.php
-                                original_price: parseFloat(option.original_price) || parseFloat(option.price) || 0, // Number format to match create.blade.php
-                                discount_amount: parseFloat(option.discount_amount) || 0, // Number format to match create.blade.php
-                                unit_price: parseFloat(option.unit_price) || 0, // Number format to match create.blade.php
-                                unit_measure: parseFloat(option.unit_measure) || 100, // Number format to match create.blade.php
-                                unit_measure_type: option.unit_measure_type || 'g',
-                                quantity: parseFloat(option.quantity) || 0, // Number format to match create.blade.php
+                                unit_price: parseFloat(option.unit_price) || 0, // UI Unit Price
+                                original_unit_price: parseFloat(option.original_unit_price) || 0, // UI Original Unit Price
+                                price: parseFloat(option.total_price) || 0, // Calculated Total Price (for mobile app)
+                                original_price: parseFloat(option.original_total_price) || 0, // Calculated Original Total Price (for mobile app)
+                                discount_amount: parseFloat(option.discount_amount) || 0,
+                                discount_percentage: parseFloat(option.discount_percentage) || 0,
+                                unit_measure: parseFloat(option.unit_measure) || 100,
+                                unit_measure_type: option.quantity_unit || 'g', // Fixed: use quantity_unit as unit_measure_type
+                                quantity: parseFloat(option.quantity) || 0,
                                 quantity_unit: option.quantity_unit || 'g',
                                 image: option.image || '', // Now contains Firebase URL instead of base64
-                                is_available: option.is_available !== false, // Boolean format to match create.blade.php
-                                is_featured: option.is_featured === true, // Boolean format to match create.blade.php
-                                sort_order: index + 1, // Number format to match create.blade.php
-                                created_at: new Date().toISOString() // Use created_at to match create.blade.php
+                                is_available: option.is_available !== false,
+                                is_featured: option.is_featured === true,
+                                sort_order: index + 1,
+                                created_at: new Date().toISOString()
                             }));
 
                             // Calculate price range - matching sample document structure
-                            const prices = optionsList.map(opt => opt.price);
+                            const prices = optionsList.map(opt => opt.total_price);
                             const minPrice = Math.min(...prices);
                             const maxPrice = Math.max(...prices);
                             const defaultOptionId = optionsList.find(opt => opt.is_featured)?.id || optionsList[0]?.id;
@@ -1313,8 +1341,8 @@
                                 max_price: maxPrice || 0, // Number format to match create.blade.php
                                 price_range: `₹${minPrice || 0} - ₹${maxPrice || 0}`, // String format to match create.blade.php
                                 default_option_id: defaultOptionId || '', // String format to match create.blade.php
-                                best_value_option: optionsList.find(opt => opt.unit_price === Math.min(...optionsList.map(o => o.unit_price)))?.id || '', // String format to match create.blade.php
-                                savings_percentage: Math.max(...optionsList.map(opt => opt.original_price > opt.price ? ((opt.original_price - opt.price) / opt.original_price) * 100 : 0)) || 0, // Number format to match create.blade.php
+                                best_value_option: optionsList.find(opt => opt.total_price === Math.min(...optionsList.map(o => o.total_price)))?.id || '', // String format to match create.blade.php
+                                savings_percentage: Math.max(...optionsList.map(opt => opt.original_total_price > opt.total_price ? ((opt.original_total_price - opt.total_price) / opt.original_total_price) * 100 : 0)) || 0, // Number format to match create.blade.php
                                 options: optionsData
                             };
                         } else {
@@ -1363,8 +1391,8 @@
                     //     window.scrollTo(0, 0);
                     // });
                 }
-            })
-        })
+            });
+        });
         // Fallback file input handler
         function handleFileSelect(evt) {
             var f = evt.target.files[0];
@@ -1961,16 +1989,13 @@
 
             // Populate fields with existing data
             template.find('.option-type').val(optionData.option_type || 'size');
-            template.find('.option-title').val(optionData.option_title || '');
+            template.find('.option-title').val(optionData.option_title || $('.food_name').val() || '');
             template.find('.option-subtitle').val(optionData.option_subtitle || '');
-            template.find('.option-price').val(optionData.price || 0);
-            template.find('.option-original-price').val(optionData.original_price || optionData.price || 0);
+            template.find('.option-unit-price').val(optionData.unit_price || 0); // UI Unit Price gets value from DB unit_price
+            template.find('.option-original-unit-price').val(optionData.original_price || optionData.unit_price || 0); // UI Original Unit Price gets value from DB original_price
             template.find('.option-quantity').val(optionData.quantity || optionData.weight || 0);
             template.find('.option-quantity-unit').val(optionData.quantity_unit || 'g');
             template.find('.option-unit-measure').val(optionData.unit_measure || 100);
-            template.find('.option-unit-price-display').val(optionData.unit_price_display || '');
-            template.find('.option-unit-price').val(optionData.unit_price || 0);
-            template.find('.option-discount').val(optionData.discount_amount || 0);
             template.find('.option-available').prop('checked', optionData.is_available !== false);
             template.find('.option-featured').prop('checked', optionData.is_featured === true);
 
@@ -1989,16 +2014,18 @@
             optionsList.push({
                 id: optionId,
                 type: optionData.option_type || 'size',
-                title: optionData.option_title || '',
+                title: optionData.option_title || $('.food_name').val() || '',
                 subtitle: optionData.option_subtitle || '',
-                price: (optionData.price || '0').toString(), // String format to match sample
-                original_price: parseFloat(optionData.original_price) || parseFloat(optionData.price) || 0, // Number format to match sample
+                unit_price: parseFloat(optionData.unit_price) || 0,
+                original_unit_price: parseFloat(optionData.original_unit_price) || parseFloat(optionData.unit_price) || 0,
+                total_price: parseFloat(optionData.total_price) || 0,
+                original_total_price: parseFloat(optionData.original_total_price) || 0,
                 quantity: parseFloat(optionData.quantity) || parseFloat(optionData.weight) || 0,
                 quantity_unit: optionData.quantity_unit || 'g',
                 unit_measure: parseFloat(optionData.unit_measure) || 100,
-                unit_price: parseFloat(optionData.unit_price) || 0,
-                unit_price_display: optionData.unit_price_display || '',
+                unit_measure_type: optionData.quantity_unit || 'g', // Fixed: use quantity_unit as unit_measure_type
                 discount_amount: parseFloat(optionData.discount_amount) || 0,
+                discount_percentage: parseFloat(optionData.discount_percentage) || 0,
                 image: optionData.image || '',
                 is_available: optionData.is_available !== false,
                 is_featured: optionData.is_featured === true
@@ -2006,6 +2033,9 @@
 
             console.log('🔧 Option added to optionsList. Total options:', optionsList.length);
             attachOptionEventListeners(optionId);
+            
+            // Trigger calculations to populate calculated fields
+            calculateOptionCalculations(optionId);
         }
 
         function addNewOption() {
@@ -2018,26 +2048,31 @@
             $('.options-list').append(template);
             template.show();
 
-            optionsList.push({
-                id: optionId,
-                type: 'size',
-                title: '',
-                subtitle: '',
-                price: 0,
-                original_price: 0,
-                quantity: 0,
-                quantity_unit: 'g',
-                unit_measure: 100,
-                unit_measure_type: 'g',
-                unit_price: 0,
-                unit_price_display: '',
-                discount_amount: 0,
-                image: '',
-                is_available: true,
-                is_featured: false
-            });
+        optionsList.push({
+            id: optionId,
+            type: 'size',
+            title: $('.food_name').val() || '', // Auto-fetch from main item name
+            subtitle: '',
+            unit_price: 0, // UI input field
+            original_unit_price: 0, // UI input field
+            total_price: 0, // Calculated field
+            original_total_price: 0, // Calculated field
+            quantity: 0,
+            quantity_unit: 'g',
+            unit_measure: 100,
+            unit_measure_type: 'g',
+            discount_amount: 0,
+            discount_percentage: 0,
+            image: '',
+            is_available: true,
+            is_featured: false
+        });
 
             attachOptionEventListeners(optionId);
+            
+            // Trigger calculations to populate calculated fields
+            calculateOptionCalculations(optionId);
+            
             updateOptionsSummary();
             updateDefaultOptionSelect();
         }
@@ -2083,26 +2118,32 @@
                 updateOptionInList(optionId, 'type', $(this).val());
             });
 
-            optionItem.find('.option-title').on('input', function() {
-                updateOptionInList(optionId, 'title', $(this).val());
+            // Auto-fetch title from main item name
+            optionItem.find('.option-title').val($('.food_name').val() || '');
+            updateOptionInList(optionId, 'title', $('.food_name').val() || '');
+
+            // Listen for main item name changes to update all option titles
+            $('.food_name').on('input', function() {
+                $('.option-title').val($(this).val());
+                optionsList.forEach(opt => {
+                    opt.title = $(this).val();
+                });
                 updateOptionsSummary();
                 updateDefaultOptionSelect();
             });
 
-            optionItem.find('.option-subtitle').on('input', function() {
-                updateOptionInList(optionId, 'subtitle', $(this).val());
-            });
+            // Option subtitle is now read-only and auto-generated
 
-            optionItem.find('.option-price').on('input', function() {
-                const price = parseFloat($(this).val()) || 0;
-                updateOptionInList(optionId, 'price', price);
+            optionItem.find('.option-unit-price').on('input', function() {
+                const unitPrice = parseFloat($(this).val()) || 0;
+                updateOptionInList(optionId, 'unit_price', unitPrice);
                 calculateOptionCalculations(optionId);
                 updateOptionsSummary();
             });
 
-            optionItem.find('.option-original-price').on('input', function() {
-                const originalPrice = parseFloat($(this).val()) || 0;
-                updateOptionInList(optionId, 'original_price', originalPrice);
+            optionItem.find('.option-original-unit-price').on('input', function() {
+                const originalUnitPrice = parseFloat($(this).val()) || 0;
+                updateOptionInList(optionId, 'original_unit_price', originalUnitPrice);
                 calculateOptionCalculations(optionId);
             });
 
@@ -2229,8 +2270,8 @@
             const autoCorrections = {};
 
             // Price validation
-            if (optionData.price > optionData.original_price) {
-                errors.push('Price cannot be greater than Original Price');
+            if (optionData.unit_price > optionData.original_unit_price) {
+                errors.push('Unit Price cannot be greater than Original Unit Price');
             }
 
             // Quantity validation
@@ -2339,88 +2380,71 @@
             return defaults[optionType] || defaults['quantity'];
         }
 
-        // Enhanced Calculation Engine
+        // Enhanced Calculation Engine - Unit Price Input Logic
         function calculateOptionCalculations(optionId) {
             const optionItem = $(`[data-option-id="${optionId}"]`);
-            const price = parseFloat(optionItem.find('.option-price').val()) || 0;
+            const unitPrice = parseFloat(optionItem.find('.option-unit-price').val()) || 0;
+            const originalUnitPrice = parseFloat(optionItem.find('.option-original-unit-price').val()) || 0;
             const quantity = parseFloat(optionItem.find('.option-quantity').val()) || 0;
-            const originalPrice = parseFloat(optionItem.find('.option-original-price').val()) || 0;
             const unitMeasure = parseFloat(optionItem.find('.option-unit-measure').val()) || 100;
             const quantityUnit = optionItem.find('.option-quantity-unit').val() || 'g';
             const optionType = optionItem.find('.option-type').val();
 
-            // Enhanced unit price calculation
-            let unitPrice = 0;
-            let unitPriceDisplay = '';
-            let savingsPercentage = 0;
-            let savingsAmount = 0;
+            // Calculate total prices from unit prices
+            const totalPrice = unitPrice * quantity;
+            const originalTotalPrice = originalUnitPrice * quantity;
 
-            if (quantity > 0) {
-                switch(optionType) {
-                    case 'size':
-                    case 'volume':
-                        // For size/volume, calculate per unit first
-                        unitPrice = price / quantity;
-                        // Show per unit price with unit measure base for display only
-                        unitPriceDisplay = `₹${unitPrice.toFixed(2)}/${unitMeasure}${quantityUnit}`;
-                        break;
-                    case 'quantity':
-                    case 'pack':
-                    case 'bundle':
-                        unitPrice = price / quantity;
-                        const unitLabel = quantityUnit === 'pcs' ? 'piece' : quantityUnit;
-                        unitPriceDisplay = `₹${unitPrice.toFixed(2)}/${unitLabel}`;
-                        break;
-                    default:
-                        unitPrice = price / quantity;
-                        unitPriceDisplay = `₹${unitPrice.toFixed(2)}/${quantityUnit}`;
-                }
-
-                optionItem.find('.option-unit-price-display').val(unitPriceDisplay);
+            // Calculate discount
+            let discountAmount = 0;
+            let discountPercentage = 0;
+            
+            if (originalTotalPrice > 0 && originalTotalPrice > totalPrice) {
+                discountAmount = originalTotalPrice - totalPrice;
+                discountPercentage = ((discountAmount / originalTotalPrice) * 100);
             }
 
-            // Enhanced discount calculation
-            if (originalPrice > 0 && originalPrice > price) {
-                savingsAmount = originalPrice - price;
-                savingsPercentage = ((savingsAmount / originalPrice) * 100);
+            // Update calculated fields
+            optionItem.find('.option-total-price').val(totalPrice.toFixed(2));
+            optionItem.find('.option-original-total-price').val(originalTotalPrice.toFixed(2));
+            optionItem.find('.option-discount-amount').val(discountAmount.toFixed(2));
+            optionItem.find('.option-discount-percentage').val(discountPercentage.toFixed(2));
 
-                optionItem.find('.option-discount').val(savingsAmount.toFixed(2));
-
-                // Add savings percentage display
-                const savingsDisplay = `Save ₹${savingsAmount.toFixed(2)} (${savingsPercentage.toFixed(1)}%)`;
-                if (optionItem.find('.option-savings-display').length) {
-                    optionItem.find('.option-savings-display').val(savingsDisplay);
-                }
+            // Update Savings Display
+            let savingsDisplay = '';
+            if (discountAmount > 0) {
+                savingsDisplay = `Save ₹${discountAmount.toFixed(2)} (${discountPercentage.toFixed(1)}%)`;
             }
+            optionItem.find('.option-savings-display').val(savingsDisplay);
+
+            // Auto-generate subtitle in format: unit_measure + quantity_unit + ' x ' + quantity
+            // Remove unnecessary .00 decimals for cleaner display
+            const formattedUnitMeasure = unitMeasure % 1 === 0 ? unitMeasure.toString() : unitMeasure.toFixed(2);
+            const subtitle = `${formattedUnitMeasure}${quantityUnit} x ${quantity}`;
+            optionItem.find('.option-subtitle').val(subtitle);
 
             // Update in optionsList
             updateOptionInList(optionId, 'unit_price', unitPrice);
-            updateOptionInList(optionId, 'discount_amount', savingsAmount);
-            updateOptionInList(optionId, 'savings_percentage', savingsPercentage);
+            updateOptionInList(optionId, 'original_unit_price', originalUnitPrice);
+            updateOptionInList(optionId, 'total_price', totalPrice);
+            updateOptionInList(optionId, 'original_total_price', originalTotalPrice);
+            updateOptionInList(optionId, 'discount_amount', discountAmount);
+            updateOptionInList(optionId, 'discount_percentage', discountPercentage);
+            updateOptionInList(optionId, 'subtitle', subtitle);
 
-            // Auto-generate title and subtitle
+            // Show validation feedback
             const optionData = {
+                unit_price: unitPrice,
+                original_unit_price: originalUnitPrice,
                 quantity: quantity,
                 quantity_unit: quantityUnit,
                 option_type: optionType,
-                unit_measure: unitMeasure
+                unit_measure: unitMeasure,
+                total_price: totalPrice,
+                original_total_price: originalTotalPrice,
+                discount_amount: discountAmount,
+                discount_percentage: discountPercentage
             };
 
-            const autoTitle = autoGenerateTitle(optionData);
-            const autoSubtitle = autoGenerateSubtitle(optionData);
-
-            // Only auto-fill if fields are empty
-            if (!optionItem.find('.option-title').val()) {
-                optionItem.find('.option-title').val(autoTitle);
-                updateOptionInList(optionId, 'title', autoTitle);
-            }
-
-            if (!optionItem.find('.option-subtitle').val()) {
-                optionItem.find('.option-subtitle').val(autoSubtitle);
-                updateOptionInList(optionId, 'subtitle', autoSubtitle);
-            }
-
-            // Show validation feedback
             showValidationFeedback(optionId, optionData);
         }
 
@@ -2532,24 +2556,24 @@
 
         function updateOptionsSummary() {
             if (optionsList.length > 0) {
-                const prices = optionsList.map(opt => opt.price).filter(p => p > 0);
+                const prices = optionsList.map(opt => opt.total_price).filter(p => p > 0);
                 const minPrice = Math.min(...prices);
                 const maxPrice = Math.max(...prices);
 
                 $('.options-summary').show();
                 $('.summary-content').html(`
-            <div class="row">
-                <div class="col-md-4">
-                    <strong>Price Range:</strong> ₹${minPrice} - ₹${maxPrice}
-                </div>
-                <div class="col-md-4">
-                    <strong>Total Options:</strong> ${optionsList.length}
-                </div>
-                <div class="col-md-4">
-                    <strong>Featured Option:</strong> ${optionsList.find(opt => opt.is_featured)?.title || 'None'}
-                </div>
-            </div>
-        `);
+                    <div class="row">
+                        <div class="col-md-4">
+                            <strong>Price Range:</strong> ₹${minPrice} - ₹${maxPrice}
+                        </div>
+                        <div class="col-md-4">
+                            <strong>Total Options:</strong> ${optionsList.length}
+                        </div>
+                        <div class="col-md-4">
+                            <strong>Featured Option:</strong> ${optionsList.find(opt => opt.is_featured)?.title || 'None'}
+                        </div>
+                    </div>
+                `);
             } else {
                 $('.options-summary').hide();
             }

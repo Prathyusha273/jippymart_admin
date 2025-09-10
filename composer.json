@@ -25,6 +25,7 @@
     "paytm/paytmchecksum": "^1.1",
     "phpoffice/phpspreadsheet": "^4.5",
     "razorpay/razorpay": "2.*",
+    "spatie/laravel-sitemap": "*",
     "stripe/stripe-php": "^14.10"
   },
   "require-dev": {
