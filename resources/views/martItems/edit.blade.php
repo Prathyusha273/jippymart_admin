@@ -674,10 +674,10 @@
         var attributes_list = [];
         var categories_list = [];
         var restaurant_list = [];
-        var photos = [];
-        var new_added_photos = [];
-        var new_added_photos_filename = [];
-        var photosToDelete = [];
+        var photos = []; // DISABLED: Using single photo field only
+        var new_added_photos = []; // DISABLED: Using single photo field only
+        var new_added_photos_filename = []; // DISABLED: Using single photo field only
+        var photosToDelete = []; // DISABLED: Using single photo field only
         var product_specification = {};
         var placeholderImage = '';
         var productImagesCount = 0;
@@ -883,21 +883,24 @@
                             '<div class="col-2"><button class="btn" type="button" onclick=deleteProductSpecificationSingle("' + key + '")><span class="mdi mdi-delete"></span></button></div></div>');
                     }
                 }
+                // SINGLE PHOTO FIELD APPROACH - Following create.blade.php pattern
                 if (product.hasOwnProperty('photo')) {
                     photo = product.photo;
-                    if (product.photos != undefined && product.photos != '') {
-                        photos = product.photos;
-                    } else {
-                        if (photo != '' && photo != null) {
-                            photos.push(photo);
-                        }
-                    }
-                    if (photos != '' && photos != null) {
-                        photos.forEach((element, index) => {
-                            $(".product_image").append('<span class="image-item" id="photo_' + index + '"><span class="remove-btn" data-id="' + index + '" data-img="' + photos[index] + '" data-status="old"><i class="fa fa-remove"></i></span><img onerror="this.onerror=null;this.src=\'' + placeholderImage + '\'" class="rounded" width="50px" id="" height="auto" src="' + photos[index] + '"></span>');
-                        })
-                    } else if (photo != '' && photo != null) {
-                        $(".product_image").append('<span class="image-item" id="photo_1"><img onerror="this.onerror=null;this.src=\'' + placeholderImage + '\'" class="rounded" width="50px" id="" height="auto" src="' + photo + '"></span>');
+                    // DISABLED: photos array logic - using single photo field only
+                    // if (product.photos != undefined && product.photos != '') {
+                    //     photos = product.photos;
+                    // } else {
+                    //     if (photo != '' && photo != null) {
+                    //         photos.push(photo);
+                    //     }
+                    // }
+                    // if (photos != '' && photos != null) {
+                    //     photos.forEach((element, index) => {
+                    //         $(".product_image").append('<span class="image-item" id="photo_' + index + '"><span class="remove-btn" data-id="' + index + '" data-img="' + photos[index] + '" data-status="old"><i class="fa fa-remove"></i></span><img onerror="this.onerror=null;this.src=\'' + placeholderImage + '\'" class="rounded" width="50px" id="" height="auto" src="' + photos[index] + '"></span>');
+                    //     })
+                    // } else 
+                    if (photo != '' && photo != null) {
+                        $(".product_image").append('<span class="image-item" id="photo_1"><span class="remove-btn" data-id="1" data-img="' + photo + '" data-status="old"><i class="fa fa-remove"></i></span><img onerror="this.onerror=null;this.src=\'' + placeholderImage + '\'" class="rounded" width="50px" id="" height="auto" src="' + photo + '"></span>');
                     } else {
                         $(".product_image").append('<span class="image-item" id="photo_1"><img class="rounded" style="width:50px" src="' + placeholderImage + '" alt="image">');
                     }
@@ -995,12 +998,44 @@
                 var price = $(".food_price").val();
                 var quantity = $(".item_quantity").val();
                 var restaurant = $("#food_restaurant option:selected").val();
-                var category = $("#food_category option:selected").val();
-                var foodCalories = parseInt($(".food_calories").val());
-                var foodGrams = parseInt($(".food_grams").val());
-                var foodProteins = parseInt($(".food_proteins").val());
-                var foodFats = parseInt($(".food_fats").val());
-                var description = $("#food_description").val();
+            var category = $("#food_category option:selected").val();
+            var subcategory = $("#food_subcategory").val();
+            
+            // Handle multiple subcategory selection - take the first selected subcategory (matching create.blade.php)
+            if (Array.isArray(subcategory) && subcategory.length > 0) {
+                subcategory = subcategory[0]; // Take the first selected subcategory
+            } else if (subcategory === '') {
+                subcategory = '';
+            }
+            var foodCalories = parseInt($(".food_calories").val());
+            var foodGrams = parseInt($(".food_grams").val());
+            var foodProteins = parseInt($(".food_proteins").val());
+            var foodFats = parseInt($(".food_fats").val());
+            var description = $("#food_description").val();
+            
+            // Get category and subcategory titles - matching create.blade.php
+            var categoryTitle = '';
+            var subcategoryTitle = '';
+            var vendorTitle = '';
+            
+            if (category) {
+                categoryTitle = $("#food_category option:selected").text() || '';
+            }
+            
+            if (subcategory) {
+                // Get the title of the first selected subcategory (matching create.blade.php)
+                var selectedSubcategoryOption = $("#food_subcategory option[value='" + subcategory + "']");
+                subcategoryTitle = selectedSubcategoryOption.text() || '';
+            }
+            
+            // Get vendor title from restaurant_list - matching create.blade.php
+            if (restaurant) {
+                restaurant_list.forEach((vendor) => {
+                    if (vendor.id == restaurant) {
+                        vendorTitle = vendor.title || '';
+                    }
+                });
+            }
                 var foodPublish = $(".food_publish").is(":checked");
                 var nonveg = $(".food_nonveg").is(":checked");
                 var veg = !nonveg;
@@ -1021,11 +1056,13 @@
                 if (!foodProteins) {
                     foodProteins = 0;
                 }
-                if (photos.length > 0) {
-                    photo = photos[0];
-                } else {
-                    photo = '';
-                }
+                // SINGLE PHOTO FIELD APPROACH - No need to check photos array
+                // if (photos.length > 0) {
+                //     photo = photos[0];
+                // } else {
+                //     photo = '';
+                // }
+                // photo is already set from the form or remains empty
                 if (name == '') {
                     $(".error_top").show();
                     $(".error_top").html("");
@@ -1149,10 +1186,11 @@
                     photo = await storeProductImageData();
                     console.log('🖼️ Photo processed:', photo);
                     
-                    await storeImageData().then(async (IMG) => {
-                        if (IMG.length > 0) {
-                            photo = IMG[0];
-                        }
+                    // SINGLE PHOTO FIELD APPROACH - Following create.blade.php pattern
+                    // await storeImageData().then(async (IMG) => {
+                    //     if (IMG.length > 0) {
+                    //         photo = IMG[0];
+                    //     }
                         var foodIsAvailable = $(".food_is_available").is(":checked");
                         const hasOptions = $(".has_options").is(":checked");
                         // Get enhanced filter fields from checkboxes
@@ -1164,17 +1202,21 @@
                         const isBestSeller = $('#isBestSeller').is(':checked');
                         const isSeasonal = $('#isSeasonal').is(':checked');
 
-                        // Store image data first
-                        storeImageData().then(IMG => {
+                        // SINGLE PHOTO FIELD APPROACH - Direct photo usage
+                        // storeImageData().then(IMG => {
                             let updateData = {
                                 'name': name || '',
-                                'price': (price || '0').toString(), // String format to match sample
-                                'quantity': parseInt(quantity) || -1, // Number format to match sample
-                                'disPrice': (discount || '0').toString(), // String format to match sample
+                                'price': parseFloat(price) || 0, // Number format to match create.blade.php
+                                'quantity': parseInt(quantity) || -1, // Number format to match create.blade.php (FIXED)
+                                'disPrice': parseFloat(discount) || parseFloat(price) || 0, // Number format to match create.blade.php
                                 'vendorID': restaurant || '',
+                                'vendorTitle': vendorTitle || '', // Add vendor title to match create.blade.php
                                 'categoryID': category || '',
-                                'subcategoryID': $("#food_subcategory").val() || [], // Array format to match sample
-                                'photo': IMG || '',
+                                'categoryTitle': categoryTitle || '', // Add category title to match create.blade.php
+                                'subcategoryID': subcategory || '', // String format to match create.blade.php
+                                'subcategoryTitle': subcategoryTitle || '', // Add subcategory title to match create.blade.php
+                                'section': $('#section_info').val() || 'General', // Add section to match create.blade.php
+                                'photo': photo || '', // Using single photo field
                             'calories': parseInt(foodCalories) || 0, // Number format to match sample
                             "grams": parseInt(foodGrams) || 0, // Number format to match sample
                             'proteins': parseInt(foodProteins) || 0, // Number format to match sample
@@ -1188,21 +1230,21 @@
                             'takeawayOption': Boolean(foodTakeaway), // Boolean format to match sample
                             'product_specification': product_specification || {}, // Object format to match sample
                             'item_attribute': item_attribute || null, // Null format to match sample
-                            'photos': Array.isArray(IMG) ? IMG : [], // Array format to match sample
+                            // 'photos': [], // REMOVED: Not needed for mobile app compatibility
                             'isAvailable': Boolean(foodIsAvailable), // Boolean format to match sample
                             
-                            // Enhanced Filter Fields - matching sample document structure
-                            'isSpotlight': Boolean(isSpotlight), // Boolean format to match sample
-                            'isStealOfMoment': Boolean(isStealOfMoment), // Boolean format to match sample
-                            'isFeature': Boolean(isFeature), // Boolean format to match sample
-                            'isTrending': Boolean(isTrending), // Boolean format to match sample
-                            'isNew': Boolean(isNew), // Boolean format to match sample
-                            'isBestSeller': Boolean(isBestSeller), // Boolean format to match sample
-                            'isSeasonal': Boolean(isSeasonal), // Boolean format to match sample
+                            // Review fields - string format to match create.blade.php
+                            'reviewCount': '0', // String format to match create.blade.php
+                            'reviewSum': '0', // String format to match create.blade.php
                             
-                            // Review fields - string format to match sample
-                            'reviewCount': '0', // String format to match sample
-                            'reviewSum': '0', // String format to match sample
+                            // Enhanced Filter Fields - matching create.blade.php
+                            'isSpotlight': Boolean(isSpotlight), // Boolean format to match create.blade.php
+                            'isStealOfMoment': Boolean(isStealOfMoment), // Boolean format to match create.blade.php
+                            'isFeature': Boolean(isFeature), // Boolean format to match create.blade.php
+                            'isTrending': Boolean(isTrending), // Boolean format to match create.blade.php
+                            'isNew': Boolean(isNew), // Boolean format to match create.blade.php
+                            'isBestSeller': Boolean(isBestSeller), // Boolean format to match create.blade.php
+                            'isSeasonal': Boolean(isSeasonal), // Boolean format to match create.blade.php
                             
                             'updated_at': firebase.firestore.FieldValue.serverTimestamp()
                         };
@@ -1217,25 +1259,42 @@
                                 }
                             }
 
-                            // Prepare options data - matching sample document structure
+                            // Process all option images to Firebase URLs before saving
+                            console.log('🖼️ Processing option images to Firebase URLs...');
+                            for (let i = 0; i < optionsList.length; i++) {
+                                const option = optionsList[i];
+                                if (option.image && option.image.startsWith('data:image')) {
+                                    console.log(`🔄 Converting option ${i + 1} image to Firebase URL...`);
+                                    try {
+                                        const firebaseUrl = await storeOptionImageData(option.image, option.id);
+                                        optionsList[i].image = firebaseUrl;
+                                        console.log(`✅ Option ${i + 1} image converted:`, firebaseUrl);
+                                    } catch (error) {
+                                        console.error(`❌ Error converting option ${i + 1} image:`, error);
+                                        optionsList[i].image = ''; // Clear invalid image
+                                    }
+                                }
+                            }
+
+                            // Prepare options data - matching create.blade.php exactly
                             const optionsData = optionsList.map((option, index) => ({
                                 id: option.id || `option_${Date.now()}_${index}`,
                                 option_type: option.type || 'size',
                                 option_title: option.title || '',
                                 option_subtitle: option.subtitle || '',
-                                price: (option.price || '0').toString(), // String format to match sample
-                                original_price: parseFloat(option.original_price) || parseFloat(option.price) || 0, // Number format to match sample
-                                discount_amount: parseFloat(option.discount_amount) || 0, // Number format to match sample
-                                unit_price: parseFloat(option.unit_price) || 0, // Number format to match sample
-                                unit_measure: parseFloat(option.unit_measure) || 100, // Number format to match sample
+                                price: parseFloat(option.price) || 0, // Number format to match create.blade.php
+                                original_price: parseFloat(option.original_price) || parseFloat(option.price) || 0, // Number format to match create.blade.php
+                                discount_amount: parseFloat(option.discount_amount) || 0, // Number format to match create.blade.php
+                                unit_price: parseFloat(option.unit_price) || 0, // Number format to match create.blade.php
+                                unit_measure: parseFloat(option.unit_measure) || 100, // Number format to match create.blade.php
                                 unit_measure_type: option.unit_measure_type || 'g',
-                                quantity: parseFloat(option.quantity) || 0, // Number format to match sample
+                                quantity: parseFloat(option.quantity) || 0, // Number format to match create.blade.php
                                 quantity_unit: option.quantity_unit || 'g',
-                                image: option.image || '',
-                                is_available: Boolean(option.is_available !== false), // Boolean format to match sample
-                                is_featured: Boolean(option.is_featured === true), // Boolean format to match sample
-                                sort_order: index + 1, // Number format to match sample
-                                updated_at: new Date().toISOString()
+                                image: option.image || '', // Now contains Firebase URL instead of base64
+                                is_available: option.is_available !== false, // Boolean format to match create.blade.php
+                                is_featured: option.is_featured === true, // Boolean format to match create.blade.php
+                                sort_order: index + 1, // Number format to match create.blade.php
+                                created_at: new Date().toISOString() // Use created_at to match create.blade.php
                             }));
 
                             // Calculate price range - matching sample document structure
@@ -1246,33 +1305,30 @@
 
                             updateData = {
                                 ...updateData,
-                                has_options: Boolean(true), // Boolean format to match sample
-                                options_enabled: Boolean(true), // Boolean format to match sample
-                                options_toggle: Boolean(true), // Boolean format to match sample
-                                options_count: parseInt(optionsList.length) || 0, // Number format to match sample
-                                min_price: parseFloat(minPrice) || 0, // Number format to match sample
-                                max_price: parseFloat(maxPrice) || 0, // Number format to match sample
-                                price_range: `₹${minPrice || 0} - ₹${maxPrice || 0}`, // String format to match sample
-                                default_option_id: defaultOptionId || '', // String format to match sample
-                                best_value_option: defaultOptionId || '', // String format to match sample
+                                has_options: true, // Boolean format to match create.blade.php
+                                options_enabled: true, // Boolean format to match create.blade.php
+                                options_toggle: true, // Boolean format to match create.blade.php
+                                options_count: optionsList.length || 0, // Number format to match create.blade.php
+                                min_price: minPrice || 0, // Number format to match create.blade.php
+                                max_price: maxPrice || 0, // Number format to match create.blade.php
+                                price_range: `₹${minPrice || 0} - ₹${maxPrice || 0}`, // String format to match create.blade.php
+                                default_option_id: defaultOptionId || '', // String format to match create.blade.php
+                                best_value_option: optionsList.find(opt => opt.unit_price === Math.min(...optionsList.map(o => o.unit_price)))?.id || '', // String format to match create.blade.php
+                                savings_percentage: Math.max(...optionsList.map(opt => opt.original_price > opt.price ? ((opt.original_price - opt.price) / opt.original_price) * 100 : 0)) || 0, // Number format to match create.blade.php
                                 options: optionsData
                             };
                         } else {
                             updateData = {
                                 ...updateData,
-                                has_options: Boolean(false), // Boolean format to match sample
-                                options_enabled: Boolean(false), // Boolean format to match sample
-                                options_toggle: Boolean(false), // Boolean format to match sample
-                                options_count: parseInt(0), // Number format to match sample
-                                min_price: parseFloat(0), // Number format to match sample
-                                max_price: parseFloat(0), // Number format to match sample
-                                price_range: '', // String format to match sample
-                                default_option_id: '', // String format to match sample
-                                best_value_option: '', // String format to match sample
-                                options: [] // Array format to match sample
+                                has_options: false, // Boolean format to match create.blade.php
+                                options_enabled: false, // Boolean format to match create.blade.php
+                                options_toggle: false, // Boolean format to match create.blade.php
+                                options_count: 0, // Number format to match create.blade.php
+                                options: [] // Array format to match create.blade.php
                             };
                         }
 
+                        // SINGLE PHOTO FIELD APPROACH - Direct save without storeImageData wrapper
                         database.collection('mart_items').doc(id).update(updateData).then(async function (result) {
                             console.log('✅ Mart item updated successfully, now logging activity...');
                             try {
@@ -1292,7 +1348,6 @@
                             jQuery("#data-table_processing").hide();
                             window.location.href = '{{ route("mart-items")}}';
                             <?php } ?>
-                            });
                         }).catch(err => {
                             jQuery("#data-table_processing").hide();
                             $(".error_top").show();
@@ -1300,13 +1355,13 @@
                             $(".error_top").append("<p>" + err + "</p>");
                             window.scrollTo(0, 0);
                         });
-                    }).catch(function (error) {
-                        jQuery("#data-table_processing").hide();
-                        $(".error_top").show();
-                        $(".error_top").html("");
-                        $(".error_top").append("<p>" + error + "</p>");
-                        window.scrollTo(0, 0);
-                    });
+                    // }).catch(function (error) {
+                    //     jQuery("#data-table_processing").hide();
+                    //     $(".error_top").show();
+                    //     $(".error_top").html("");
+                    //     $(".error_top").append("<p>" + error + "</p>");
+                    //     window.scrollTo(0, 0);
+                    // });
                 }
             })
         })
@@ -1378,18 +1433,18 @@
         }
         
         // Upload image with compression - matching mart categories format
+        // SINGLE PHOTO FIELD APPROACH - Following create.blade.php pattern
         $("#product_image").resizeImg({
             callback: function(base64str) {
-                var val = $('#product_image').val().toLowerCase();
-                var ext = val.split('.')[1];
-                var docName = val.split('fakepath')[1];
-                var filename = $('#product_image').val().replace(/C:\\fakepath\\/i, '')
-                var timestamp = Number(new Date());
-                var filename = filename.split('.')[0] + "_" + timestamp + '.' + ext;
                 photo = base64str;
-                fileName = filename;
                 $(".product_image").empty();
-                $(".product_image").append('<img class="rounded" style="width:50px" src="' + photo + '" alt="image">');
+                $(".product_image").append(
+                    '<span class="image-item" id="photo_1">' +
+                    '<span class="remove-btn" data-id="1" data-img="' + base64str + '">' +
+                    '<i class="fa fa-remove"></i></span>' +
+                    '<img class="rounded" width="50px" id="" height="auto" src="' + base64str + '">' +
+                    '</span>'
+                );
                 $("#product_image").val('');
             }
         });
@@ -1467,6 +1522,21 @@
             }
             return photo || '';
         }
+
+        // Store option image data to Firebase storage (same approach as main product image)
+        async function storeOptionImageData(base64Image, optionId) {
+            if(base64Image && base64Image.startsWith('data:image')) {
+                var base64Data = base64Image.replace(/^data:image\/[a-z]+;base64,/, "");
+                var timestamp = Number(new Date());
+                var filename = 'option_' + optionId + '_' + timestamp + '.jpg';
+                var uploadTask = await storageRef.child(filename).putString(base64Data, 'base64', {
+                    contentType: 'image/jpg'
+                });
+                var downloadURL = await uploadTask.ref.getDownloadURL();
+                return downloadURL;
+            }
+            return base64Image || '';
+        }
         
         async function storeImageData() {
             var newPhoto = [];
@@ -1498,38 +1568,49 @@
             }
             return newPhoto;
         }
-        $("#product_image").resizeImg({
-            callback: function (base64str) {
-                var val = $('#product_image').val().toLowerCase();
-                var ext = val.split('.')[1];
-                var docName = val.split('fakepath')[1];
-                var filename = $('#product_image').val().replace(/C:\\fakepath\\/i, '')
-                var timestamp = Number(new Date());
-                var filename = filename.split('.')[0] + "_" + timestamp + '.' + ext;
-                productImagesCount++;
-                photos_html = '<span class="image-item" id="photo_' + productImagesCount + '"><span class="remove-btn" data-id="' + productImagesCount + '" data-img="' + base64str + '" data-status="new"><i class="fa fa-remove"></i></span><img class="rounded" width="50px" id="" height="auto" src="' + base64str + '"></span>'
-                $(".product_image").append(photos_html);
-                new_added_photos.push(base64str);
-                new_added_photos_filename.push(filename);
-                $("#product_image").val('');
-            }
-        });
+        // DISABLED: Multiple photos approach - using single photo field only
+        // $("#product_image").resizeImg({
+        //     callback: function (base64str) {
+        //         var val = $('#product_image').val().toLowerCase();
+        //         var ext = val.split('.')[1];
+        //         var docName = val.split('fakepath')[1];
+        //         var filename = $('#product_image').val().replace(/C:\\fakepath\\/i, '')
+        //         var timestamp = Number(new Date());
+        //         var filename = filename.split('.')[0] + "_" + timestamp + '.' + ext;
+        //         productImagesCount++;
+        //         photos_html = '<span class="image-item" id="photo_' + productImagesCount + '"><span class="remove-btn" data-id="' + productImagesCount + '" data-img="' + base64str + '" data-status="new"><i class="fa fa-remove"></i></span><img class="rounded" width="50px" id="" height="auto" src="' + base64str + '"></span>'
+        //         $(".product_image").append(photos_html);
+        //         new_added_photos.push(base64str);
+        //         new_added_photos_filename.push(filename);
+        //         $("#product_image").val('');
+        //     }
+        // });
+        // SINGLE PHOTO FIELD APPROACH - Following create.blade.php pattern
         $(document).on("click", ".remove-btn", function () {
-            var id = $(this).attr('data-id');
-            var photo_remove = $(this).attr('data-img');
-            var status=$(this).attr('data-status');
-            if(status=="old"){
-                photosToDelete.push(firebase.storage().refFromURL(photo_remove));
-            }
-            $("#photo_" + id).remove();
-            index = photos.indexOf(photo_remove);
-            if (index > -1) {
-                photos.splice(index, 1); // 2nd parameter means remove one item only
-            }
-            index = new_added_photos.indexOf(photo_remove);
-            if (index > -1) {
-                new_added_photos.splice(index, 1); // 2nd parameter means remove one item only
-                new_added_photos_filename.splice(index, 1);
+            photo = "";
+            $(".product_image").empty();
+            $("#product_image").val('');
+        });
+
+        // Add direct file input handler as fallback - Following create.blade.php pattern
+        $("#product_image").on('change', function() {
+            if (this.files && this.files[0]) {
+                var file = this.files[0];
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    var base64str = e.target.result;
+                    photo = base64str;
+                    $(".product_image").empty();
+                    $(".product_image").append(
+                        '<span class="image-item" id="photo_1">' +
+                        '<span class="remove-btn" data-id="1" data-img="' + base64str + '">' +
+                        '<i class="fa fa-remove"></i></span>' +
+                        '<img class="rounded" width="50px" id="" height="auto" src="' + base64str + '">' +
+                        '</span>'
+                    );
+                    $("#product_image").val('');
+                };
+                reader.readAsDataURL(file);
             }
         });
         $("#food_restaurant").change(function () {
@@ -2401,20 +2482,42 @@
             });
         }
 
-        function handleOptionImageUpload(input, optionId) {
+        async function handleOptionImageUpload(input, optionId) {
             const file = input.files[0];
             if (file) {
                 const reader = new FileReader();
-                reader.onload = function(e) {
+                reader.onload = async function(e) {
                     const optionItem = $(`[data-option-id="${optionId}"]`);
+                    const base64Image = e.target.result;
+                    
+                    // Show preview immediately
                     optionItem.find('.option-image-preview').html(
-                        `<img src="${e.target.result}" style="max-width: 100px; max-height: 100px; border-radius: 4px;">`
+                        `<img src="${base64Image}" style="max-width: 100px; max-height: 100px; border-radius: 4px;">
+                         <div class="mt-1"><small class="text-muted">Uploading to Firebase...</small></div>`
                     );
 
-                    // Store image data
-                    const optionIndex = optionsList.findIndex(opt => opt.id === optionId);
-                    if (optionIndex !== -1) {
-                        optionsList[optionIndex].image = e.target.result;
+                    try {
+                        // Convert base64 to Firebase storage URL
+                        const firebaseUrl = await storeOptionImageData(base64Image, optionId);
+                        
+                        // Update preview with Firebase URL
+                        optionItem.find('.option-image-preview').html(
+                            `<img src="${firebaseUrl}" style="max-width: 100px; max-height: 100px; border-radius: 4px;">
+                             <div class="mt-1"><small class="text-success">✅ Uploaded successfully</small></div>`
+                        );
+
+                        // Store Firebase URL in optionsList (not base64)
+                        const optionIndex = optionsList.findIndex(opt => opt.id === optionId);
+                        if (optionIndex !== -1) {
+                            optionsList[optionIndex].image = firebaseUrl;
+                        }
+                        
+                        console.log('✅ Option image uploaded to Firebase:', firebaseUrl);
+                    } catch (error) {
+                        console.error('❌ Error uploading option image:', error);
+                        optionItem.find('.option-image-preview').html(
+                            `<div class="text-danger">❌ Upload failed: ${error.message}</div>`
+                        );
                     }
                 };
                 reader.readAsDataURL(file);

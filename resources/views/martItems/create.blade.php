@@ -796,6 +796,23 @@
                     }
                 }
 
+                // Process all option images to Firebase URLs before saving
+                console.log('🖼️ Processing option images to Firebase URLs...');
+                for (let i = 0; i < optionsList.length; i++) {
+                    const option = optionsList[i];
+                    if (option.image && option.image.startsWith('data:image')) {
+                        console.log(`🔄 Converting option ${i + 1} image to Firebase URL...`);
+                        try {
+                            const firebaseUrl = await storeOptionImageData(option.image, option.id);
+                            optionsList[i].image = firebaseUrl;
+                            console.log(`✅ Option ${i + 1} image converted:`, firebaseUrl);
+                        } catch (error) {
+                            console.error(`❌ Error converting option ${i + 1} image:`, error);
+                            optionsList[i].image = ''; // Clear invalid image
+                        }
+                    }
+                }
+
                 // Prepare options data
                 const optionsData = optionsList.map((option, index) => ({
                     id: option.id || `option_${Date.now()}_${index}`,
@@ -810,7 +827,7 @@
                     unit_measure_type: option.unit_measure_type || 'g',
                     quantity: parseFloat(option.quantity) || 0,
                     quantity_unit: option.quantity_unit || 'g',
-                    image: option.image || '',
+                    image: option.image || '', // Now contains Firebase URL instead of base64
                     is_available: option.is_available !== false,
                     is_featured: option.is_featured === true,
                     sort_order: index + 1,
@@ -1364,6 +1381,21 @@
             return downloadURL;
         }
         return photo || '';
+    }
+
+    // Store option image data to Firebase storage (same approach as main product image)
+    async function storeOptionImageData(base64Image, optionId) {
+        if(base64Image && base64Image.startsWith('data:image')) {
+            var base64Data = base64Image.replace(/^data:image\/[a-z]+;base64,/, "");
+            var timestamp = Number(new Date());
+            var filename = 'option_' + optionId + '_' + timestamp + '.jpg';
+            var uploadTask = await storageRef.child(filename).putString(base64Data, 'base64', {
+                contentType: 'image/jpg'
+            });
+            var downloadURL = await uploadTask.ref.getDownloadURL();
+            return downloadURL;
+        }
+        return base64Image || '';
     }
     $("#product_image").resizeImg({
         callback: function(base64str) {
@@ -2175,20 +2207,42 @@ function showValidationFeedback(optionId, optionData) {
     });
 }
 
-function handleOptionImageUpload(input, optionId) {
+async function handleOptionImageUpload(input, optionId) {
     const file = input.files[0];
     if (file) {
         const reader = new FileReader();
-        reader.onload = function(e) {
+        reader.onload = async function(e) {
             const optionItem = $(`[data-option-id="${optionId}"]`);
+            const base64Image = e.target.result;
+            
+            // Show preview immediately
             optionItem.find('.option-image-preview').html(
-                `<img src="${e.target.result}" style="max-width: 100px; max-height: 100px; border-radius: 4px;">`
+                `<img src="${base64Image}" style="max-width: 100px; max-height: 100px; border-radius: 4px;">
+                 <div class="mt-1"><small class="text-muted">Uploading to Firebase...</small></div>`
             );
 
-            // Store image data
-            const optionIndex = optionsList.findIndex(opt => opt.id === optionId);
-            if (optionIndex !== -1) {
-                optionsList[optionIndex].image = e.target.result;
+            try {
+                // Convert base64 to Firebase storage URL
+                const firebaseUrl = await storeOptionImageData(base64Image, optionId);
+                
+                // Update preview with Firebase URL
+                optionItem.find('.option-image-preview').html(
+                    `<img src="${firebaseUrl}" style="max-width: 100px; max-height: 100px; border-radius: 4px;">
+                     <div class="mt-1"><small class="text-success">✅ Uploaded successfully</small></div>`
+                );
+
+                // Store Firebase URL in optionsList (not base64)
+                const optionIndex = optionsList.findIndex(opt => opt.id === optionId);
+                if (optionIndex !== -1) {
+                    optionsList[optionIndex].image = firebaseUrl;
+                }
+                
+                console.log('✅ Option image uploaded to Firebase:', firebaseUrl);
+            } catch (error) {
+                console.error('❌ Error uploading option image:', error);
+                optionItem.find('.option-image-preview').html(
+                    `<div class="text-danger">❌ Upload failed: ${error.message}</div>`
+                );
             }
         };
         reader.readAsDataURL(file);
