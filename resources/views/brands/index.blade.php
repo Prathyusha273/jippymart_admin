@@ -3,26 +3,26 @@
 <div class="page-wrapper">
     <div class="row page-titles">
         <div class="col-md-5 align-self-center">
-            <h3 class="text-themecolor">{{trans('lang.category_plural')}}</h3>
+            <h3 class="text-themecolor">{{trans('lang.brands')}}</h3>
         </div>
         <div class="col-md-7 align-self-center">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
-                <li class="breadcrumb-item active">{{trans('lang.category_plural')}}</li>
+                <li class="breadcrumb-item active">{{trans('lang.brands')}}</li>
             </ol>
         </div>
         <div>
         </div>
     </div>
     <div class="container-fluid">
-       <div class="admin-top-section">
+       <div class="admin-top-section"> 
         <div class="row">
             <div class="col-12">
                 <div class="d-flex top-title-section pb-4 justify-content-between">
                     <div class="d-flex top-title-left align-self-center">
-                        <span class="icon mr-3"><img src="{{ asset('images/category.png') }}"></span>
-                        <h3 class="mb-0">{{trans('lang.category_table')}}</h3>
-                        <span class="counter ml-3 category_count"></span>
+                        <span class="icon mr-3"><img src="{{ asset('images/brand.png') }}"></span>
+                        <h3 class="mb-0">{{trans('lang.brands_table')}}</h3>
+                        <span class="counter ml-3 brand_count"></span>
                     </div>
                     <div class="d-flex top-title-right align-self-center">
                         <div class="select-box pl-3">
@@ -30,8 +30,8 @@
                     </div>
                 </div>
             </div>
-        </div>
-
+        </div> 
+      
        </div>
        @if(session('success'))
     <div class="alert alert-success">{{ session('success') }}</div>
@@ -51,19 +51,19 @@
         <div class="card border">
             <div class="card-header d-flex justify-content-between align-items-center border-0">
                 <div class="card-header-title">
-                    <h3 class="text-dark-2 mb-2 h4">Bulk Import Categories</h3>
-                    <p class="mb-0 text-dark-2">Upload Excel file to import multiple categories at once</p>
+                    <h3 class="text-dark-2 mb-2 h4">Bulk Import Brands</h3>
+                    <p class="mb-0 text-dark-2">Upload Excel file to import multiple brands at once</p>
                 </div>
                 <div class="card-header-right d-flex align-items-center">
                     <div class="card-header-btn mr-3">
-                        <a href="{{ route('categories.download-template') }}" class="btn btn-outline-primary rounded-full">
+                        <a href="{{ route('brands.download-template') }}" class="btn btn-outline-primary rounded-full">
                             <i class="mdi mdi-download mr-2"></i>Download Template
                         </a>
                     </div>
                 </div>
             </div>
             <div class="card-body">
-                <form action="{{ route('categories.import') }}" method="POST" enctype="multipart/form-data">
+                <form action="{{ route('brands.import') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <div class="row">
                         <div class="col-md-8">
@@ -72,13 +72,13 @@
                                 <input type="file" name="file" id="importFile" accept=".xls,.xlsx" class="form-control" required>
                                 <div class="form-text text-muted">
                                     <i class="mdi mdi-information-outline mr-1"></i>
-                                    File should contain: title, description, photo, publish, show_in_homepage, restaurant_id, review_attributes
+                                    File should contain: name, slug, description, status, logo_url
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-4 d-flex align-items-end">
                             <button type="submit" class="btn btn-primary rounded-full">
-                                <i class="mdi mdi-upload mr-2"></i>Import Categories
+                                <i class="mdi mdi-upload mr-2"></i>Import Brands
                             </button>
                         </div>
                     </div>
@@ -93,27 +93,29 @@
                <div class="card border">
                  <div class="card-header d-flex justify-content-between align-items-center border-0">
                    <div class="card-header-title">
-                    <h3 class="text-dark-2 mb-2 h4">{{trans('lang.category_table')}}</h3>
-                    <p class="mb-0 text-dark-2">{{trans('lang.category_table_text')}}</p>
+                    <h3 class="text-dark-2 mb-2 h4">{{trans('lang.brands_table')}}</h3>
+                    <p class="mb-0 text-dark-2">{{trans('lang.brands_table_text')}}</p>
                    </div>
                    <div class="card-header-right d-flex align-items-center">
-                    <div class="card-header-btn mr-3">
-                        <a class="btn-primary btn rounded-full" href="{!! route('categories.create') !!}"><i class="mdi mdi-plus mr-2"></i>{{trans('lang.category_create')}}</a>
+                    <div class="card-header-btn mr-3"> 
+                        <a class="btn-primary btn rounded-full" href="{!! route('brands.create') !!}"><i class="mdi mdi-plus mr-2"></i>{{trans('lang.add_brand')}}</a>
                      </div>
-                   </div>
+                   </div>                
                  </div>
                  <div class="card-body">
                          <div class="table-responsive m-t-10">
-                            <table id="categoriesTable" class="display nowrap table table-hover table-striped table-bordered table table-striped" cellspacing="0" width="100%">
+                            <table id="brandsTable" class="display nowrap table table-hover table-striped table-bordered table table-striped" cellspacing="0" width="100%">
                                 <thead>
                                 <tr>
-                                    <?php if (in_array('category.delete', json_decode(@session('user_permissions'),true))) { ?>
+                                    <?php if (in_array('brands.delete', json_decode(@session('user_permissions'),true))) { ?>
                                     <th class="delete-all"><input type="checkbox" id="is_active"><label class="col-3 control-label" for="is_active">
                                             <a id="deleteAll" class="do_not_delete" href="javascript:void(0)"><i class="mdi mdi-delete"></i> {{trans('lang.all')}}</a></label></th>
                                     <?php } ?>
-                                    <th>{{trans('lang.faq_category_name')}}</th>
-                                    <th>{{trans('lang.food_plural')}}</th>
-                                    <th> {{trans('lang.item_publish')}}</th>
+                                    <th>{{trans('lang.brand_name')}}</th>
+                                    <th>{{trans('lang.brand_slug')}}</th>
+                                    <th>{{trans('lang.brand_logo')}}</th>
+                                    <th>{{trans('lang.brand_description')}}</th>
+                                    <th> {{trans('lang.status')}}</th>
                                     <th>{{trans('lang.actions')}}</th>
                                 </tr>
                                 </thead>
@@ -130,12 +132,12 @@
 @section('scripts')
 <script type="text/javascript">
     var database = firebase.firestore();
-    var ref = database.collection('vendor_categories').orderBy('title');
+    var ref = database.collection('brands').orderBy('name');
     var placeholderImage = '';
     var user_permissions = '<?php echo @session("user_permissions")?>';
     user_permissions = Object.values(JSON.parse(user_permissions));
     var checkDeletePermission = false;
-    if ($.inArray('category.delete', user_permissions) >= 0) {
+    if ($.inArray('brands.delete', user_permissions) >= 0) {
         checkDeletePermission = true;
     }
     $(document).ready(function () {
@@ -145,7 +147,7 @@
             var placeholderImageData = snapshotsimage.data();
             placeholderImage = placeholderImageData.image;
         });
-        const table = $('#categoriesTable').DataTable({
+        const table = $('#brandsTable').DataTable({
             pageLength: 10, // Number of rows per page
             processing: false, // Show processing indicator
             serverSide: true, // Enable server-side processing
@@ -156,14 +158,14 @@
                 const searchValue = data.search.value.toLowerCase();
                 const orderColumnIndex = data.order[0].column;
                 const orderDirection = data.order[0].dir;
-                const orderableColumns = (checkDeletePermission) ? ['','title', 'totalProducts','',''] : ['title', 'totalProducts','','']; // Ensure this matches the actual column names
+                const orderableColumns = (checkDeletePermission) ? ['','name', 'slug', 'logo_url', 'description', 'status',''] : ['name', 'slug', 'logo_url', 'description', 'status','']; // Ensure this matches the actual column names
                 const orderByField = orderableColumns[orderColumnIndex]; // Adjust the index to match your table
                 if (searchValue.length >= 3 || searchValue.length === 0) {
                     $('#data-table_processing').show();
                 }
                 ref.get().then(async function (querySnapshot) {
                     if (querySnapshot.empty) {
-                        $('.category_count').text(0);
+                        $('.brand_count').text(0);    
                         console.error("No data found in Firestore.");
                         $('#data-table_processing').hide(); // Hide loader
                         callback({
@@ -175,20 +177,15 @@
                         return;
                     }
                     let records = [];
-                    let filteredRecords = [];
+                    let filteredRecords = [];    
                     await Promise.all(querySnapshot.docs.map(async (doc) => {
                         let childData = doc.data();
                         childData.id = doc.id; // Ensure the document ID is included in the data
-                        if (childData.id) {
-                            childData.totalProducts = await getProductTotal(childData.id);
-                        }
-                        else {
-                            childData.totalProducts = 0;
-                        }
                         if (searchValue) {
                             if (
-                                (childData.title && childData.title.toString().toLowerCase().includes(searchValue)) ||
-                                (childData.totalProducts && childData.totalProducts.toString().includes(searchValue))
+                                (childData.name && childData.name.toString().toLowerCase().includes(searchValue)) ||
+                                (childData.slug && childData.slug.toString().toLowerCase().includes(searchValue)) ||
+                                (childData.description && childData.description.toString().toLowerCase().includes(searchValue))
                             ) {
                                 filteredRecords.push(childData);
                             }
@@ -199,10 +196,10 @@
                     filteredRecords.sort((a, b) => {
                         let aValue = a[orderByField] ? a[orderByField].toString().toLowerCase() : '';
                         let bValue = b[orderByField] ? b[orderByField].toString().toLowerCase() : '';
-                        if (orderByField === 'totalProducts') {
-                            aValue = a[orderByField] ? parseInt(a[orderByField]) : 0;
-                            bValue = b[orderByField] ? parseInt(b[orderByField]) : 0;
-                        }
+                        if (orderByField === 'status') {
+                            aValue = a[orderByField] ? 1 : 0;
+                            bValue = b[orderByField] ? 1 : 0;
+                        }                        
                         if (orderDirection === 'asc') {
                             return (aValue > bValue) ? 1 : -1;
                         } else {
@@ -210,20 +207,20 @@
                         }
                     });
                     const totalRecords = filteredRecords.length;
-                    $('.category_count').text(totalRecords);
+                    $('.brand_count').text(totalRecords);    
                     filteredRecords.slice(start, start + length).forEach(function (childData) {
                         var id = childData.id;
-                        var route1 = '{{route("categories.edit",":id")}}';
+                        var route1 = '{{route("brands.edit",":id")}}';
                         route1 = route1.replace(':id', id);
-                        var url = '{{url("foods?categoryID=id")}}';
-                        url = url.replace("id", id);
-                        var ImageHtml=childData.photo == '' || childData.photo == null ? '<img alt="" width="100%" style="width:70px;height:70px;" src="' + placeholderImage + '" alt="image">' : '<img onerror="this.onerror=null;this.src=\'' + placeholderImage + '\'" alt="" width="100%" style="width:70px;height:70px;" src="' + childData.photo + '" alt="image">'
+                        var ImageHtml=childData.logo_url == '' || childData.logo_url == null ? '<img alt="" width="100%" style="width:70px;height:70px;" src="' + placeholderImage + '" alt="image">' : '<img onerror="this.onerror=null;this.src=\'' + placeholderImage + '\'" alt="" width="100%" style="width:70px;height:70px;" src="' + childData.logo_url + '" alt="image">'
                         records.push([
                             checkDeletePermission ? '<td class="delete-all"><input type="checkbox" id="is_open_' + childData.id + '" class="is_open" dataId="' + childData.id + '"><label class="col-3 control-label"\n' + 'for="is_open_' + childData.id + '" ></label></td>' : '',
-                            ImageHtml+'<a href="' + route1 + '">' + childData.title + '</a>',
-                            '<a href="' + url + '">'+childData.totalProducts+'</a>',
-                            childData.publish ? '<label class="switch"><input type="checkbox" checked id="' + childData.id + '" name="isSwitch"><span class="slider round"></span></label>' : '<label class="switch"><input type="checkbox" id="' + childData.id + '" name="isSwitch"><span class="slider round"></span></label>',
-                            '<span class="action-btn"><a href="' + route1 + '"><i class="mdi mdi-lead-pencil" title="Edit"></i></a><?php if(in_array('category.delete', json_decode(@session('user_permissions'),true))){ ?> <a id="' + childData.id + '" name="category-delete" class="delete-btn" href="javascript:void(0)"><i class="mdi mdi-delete"></i></a><?php } ?></span>'
+                            '<a href="' + route1 + '">' + childData.name + '</a>',
+                            childData.slug || '-',
+                            ImageHtml,
+                            childData.description || '-',
+                            childData.status ? '<label class="switch"><input type="checkbox" checked id="' + childData.id + '" name="isSwitch"><span class="slider round"></span></label>' : '<label class="switch"><input type="checkbox" id="' + childData.id + '" name="isSwitch"><span class="slider round"></span></label>',
+                            '<span class="action-btn"><a href="' + route1 + '"><i class="mdi mdi-lead-pencil" title="Edit"></i></a>' + (checkDeletePermission ? ' <a id="' + childData.id + '" name="brand-delete" class="delete-btn" href="javascript:void(0)"><i class="mdi mdi-delete"></i></a>' : '') + '</span>'                           
                         ]);
                     });
                     $('#data-table_processing').hide(); // Hide loader
@@ -243,10 +240,10 @@
                         data: [] // No data due to error
                     });
                 });
-            },
+            },           
             order: (checkDeletePermission) ? [1, 'asc'] : [0,'asc'],
             columnDefs: [
-                { orderable: false, targets: (checkDeletePermission) ? [0,3,4] : [2, 3] },
+                { orderable: false, targets: (checkDeletePermission) ? [0,2,6] : [2, 5] },
             ],
             "language": {
                 "zeroRecords": "{{trans("lang.no_record_found")}}",
@@ -274,79 +271,139 @@
             }
         }, 300));
     });
-    async function getProductTotal(id, section_id) {
-        var vendor_products = database.collection('vendor_products').where('categoryID', '==', id);
-        var Product_total = 0;
-        if (section_id) {
-            vendor_products = vendor_products.where('section_id', '==', section_id)
-        }
-        await vendor_products.get().then(async function (productSnapshots) {
-            Product_total = productSnapshots.docs.length;
-        });
-        return Product_total;
-    }
-    $(document).on("click", "a[name='category-delete']", async function (e) {
+    $(document).on("click", "a[name='brand-delete']", async function (e) {
         var id = this.id;
-        var categoryTitle = '';
+        var brandTitle = '';
+        var logoUrl = '';
+        
         try {
-            var doc = await database.collection('vendor_categories').doc(id).get();
+            var doc = await database.collection('brands').doc(id).get();
             if (doc.exists) {
-                categoryTitle = doc.data().title || 'Unknown';
+                var data = doc.data();
+                brandTitle = data.name || 'Unknown';
+                logoUrl = data.logo_url || '';
             }
         } catch (error) {
-            console.error('Error getting category title:', error);
+            console.error('Error getting brand data:', error);
         }
-        await deleteDocumentWithImage('vendor_categories',id,'photo');
-        console.log('✅ Category deleted successfully, now logging activity...');
-        try {
-            if (typeof logActivity === 'function') {
-                console.log('🔍 Calling logActivity for category deletion...');
-                await logActivity('categories', 'deleted', 'Deleted category: ' + categoryTitle);
-                console.log('✅ Activity logging completed successfully');
-            } else {
-                console.error('❌ logActivity function is not available');
-            }
-        } catch (error) {
-            console.error('❌ Error calling logActivity:', error);
-        }
-        window.location.href = '{{ route("categories")}}';
-    });
-    $("#is_active").click(function () {
-        $("#categoriesTable .is_open").prop('checked', $(this).prop('checked'));
-    });
-    $("#deleteAll").click(async function () {
-        if ($('#categoriesTable .is_open:checked').length) {
-            if (confirm("{{trans('lang.selected_delete_alert')}}")) {
-                jQuery("#data-table_processing").show();
-                var selectedCategories = [];
-                for (let i = 0; i < $('#categoriesTable .is_open:checked').length; i++) {
-                    var dataId = $('#categoriesTable .is_open:checked').eq(i).attr('dataId');
+        
+        if (confirm("{{trans('lang.are_you_sure')}}")) {
+            jQuery("#data-table_processing").show();
+            
+            try {
+                // Delete logo from storage if exists
+                if (logoUrl && logoUrl !== '') {
                     try {
-                        var doc = await database.collection('vendor_categories').doc(dataId).get();
-                        if (doc.exists) {
-                            selectedCategories.push(doc.data().title || 'Unknown');
-                        }
-                    } catch (error) {
-                        console.error('Error getting category title:', error);
+                        var imageRef = firebase.storage().refFromURL(logoUrl);
+                        await imageRef.delete();
+                        console.log('✅ Logo deleted from storage');
+                    } catch (storageError) {
+                        console.log('⚠️ Could not delete logo from storage:', storageError);
                     }
                 }
-                for (let i = 0; i < $('#categoriesTable .is_open:checked').length; i++) {
-                    var dataId = $('#categoriesTable .is_open:checked').eq(i).attr('dataId');
-                    await deleteDocumentWithImage('vendor_categories',dataId,'photo');
-                }
-                console.log('✅ Bulk category deletion completed, now logging activity...');
+                
+                // Delete document from Firestore
+                await database.collection('brands').doc(id).delete();
+                console.log('✅ Brand deleted from Firestore');
+                
+                // Log activity
                 try {
                     if (typeof logActivity === 'function') {
-                        console.log('🔍 Calling logActivity for bulk category deletion...');
-                        await logActivity('categories', 'bulk_deleted', 'Bulk deleted categories: ' + selectedCategories.join(', '));
-                        console.log('✅ Activity logging completed successfully');
-                    } else {
-                        console.error('❌ logActivity function is not available');
+                        await logActivity('brands', 'deleted', 'Deleted brand: ' + brandTitle);
+                        console.log('✅ Activity logged successfully');
                     }
                 } catch (error) {
-                    console.error('❌ Error calling logActivity:', error);
+                    console.error('❌ Error logging activity:', error);
                 }
-                window.location.reload();
+                
+                // Reload table data instead of full page reload
+                $('#brandsTable').DataTable().ajax.reload();
+                jQuery("#data-table_processing").hide();
+                
+            } catch (error) {
+                console.error('❌ Error deleting brand:', error);
+                alert('Error deleting brand. Please try again.');
+                jQuery("#data-table_processing").hide();
+            }
+        }
+    });
+    $("#is_active").click(function () {
+        $("#brandsTable .is_open").prop('checked', $(this).prop('checked'));
+    });
+    $("#deleteAll").click(async function () {
+        if ($('#brandsTable .is_open:checked').length) {
+            if (confirm("{{trans('lang.selected_delete_alert')}}")) {
+                jQuery("#data-table_processing").show();
+                var selectedBrands = [];
+                var selectedIds = [];
+                
+                // Collect brand data
+                for (let i = 0; i < $('#brandsTable .is_open:checked').length; i++) {
+                    var dataId = $('#brandsTable .is_open:checked').eq(i).attr('dataId');
+                    selectedIds.push(dataId);
+                    try {
+                        var doc = await database.collection('brands').doc(dataId).get();
+                        if (doc.exists) {
+                            selectedBrands.push(doc.data().name || 'Unknown');
+                        }
+                    } catch (error) {
+                        console.error('Error getting brand title:', error);
+                    }
+                }
+                
+                try {
+                    // Delete all brands in parallel for better performance
+                    var deletePromises = selectedIds.map(async (dataId) => {
+                        try {
+                            // Get brand data first
+                            var doc = await database.collection('brands').doc(dataId).get();
+                            var logoUrl = '';
+                            if (doc.exists) {
+                                logoUrl = doc.data().logo_url || '';
+                            }
+                            
+                            // Delete logo from storage if exists
+                            if (logoUrl && logoUrl !== '') {
+                                try {
+                                    var imageRef = firebase.storage().refFromURL(logoUrl);
+                                    await imageRef.delete();
+                                } catch (storageError) {
+                                    console.log('⚠️ Could not delete logo from storage for brand:', dataId);
+                                }
+                            }
+                            
+                            // Delete document from Firestore
+                            await database.collection('brands').doc(dataId).delete();
+                            return true;
+                        } catch (error) {
+                            console.error('❌ Error deleting brand:', dataId, error);
+                            return false;
+                        }
+                    });
+                    
+                    // Wait for all deletions to complete
+                    await Promise.all(deletePromises);
+                    console.log('✅ Bulk brand deletion completed');
+                    
+                    // Log activity
+                    try {
+                        if (typeof logActivity === 'function') {
+                            await logActivity('brands', 'bulk_deleted', 'Bulk deleted brands: ' + selectedBrands.join(', '));
+                            console.log('✅ Activity logged successfully');
+                        }
+                    } catch (error) {
+                        console.error('❌ Error logging activity:', error);
+                    }
+                    
+                    // Reload table data instead of full page reload
+                    $('#brandsTable').DataTable().ajax.reload();
+                    jQuery("#data-table_processing").hide();
+                    
+                } catch (error) {
+                    console.error('❌ Bulk deletion failed:', error);
+                    alert('Some brands could not be deleted. Please try again.');
+                    jQuery("#data-table_processing").hide();
+                }
             }
         } else {
             alert("{{trans('lang.select_delete_alert')}}");
@@ -355,22 +412,22 @@
     $(document).on("click", "input[name='isSwitch']", async function (e) {
         var ischeck = $(this).is(':checked');
         var id = this.id;
-        var categoryTitle = '';
+        var brandTitle = '';
         try {
-            var doc = await database.collection('vendor_categories').doc(id).get();
+            var doc = await database.collection('brands').doc(id).get();
             if (doc.exists) {
-                categoryTitle = doc.data().title || 'Unknown';
+                brandTitle = doc.data().name || 'Unknown';
             }
         } catch (error) {
-            console.error('Error getting category title:', error);
+            console.error('Error getting brand title:', error);
         }
         if (ischeck) {
-            database.collection('vendor_categories').doc(id).update({'publish': true}).then(async function (result) {
-                console.log('✅ Category published successfully, now logging activity...');
+            database.collection('brands').doc(id).update({'status': true}).then(async function (result) {
+                console.log('✅ Brand published successfully, now logging activity...');
                 try {
                     if (typeof logActivity === 'function') {
-                        console.log('🔍 Calling logActivity for category publish...');
-                        await logActivity('categories', 'published', 'Published category: ' + categoryTitle);
+                        console.log('🔍 Calling logActivity for brand publish...');
+                        await logActivity('brands', 'published', 'Published brand: ' + brandTitle);
                         console.log('✅ Activity logging completed successfully');
                     } else {
                         console.error('❌ logActivity function is not available');
@@ -380,12 +437,12 @@
                 }
             });
         } else {
-            database.collection('vendor_categories').doc(id).update({'publish': false}).then(async function (result) {
-                console.log('✅ Category unpublished successfully, now logging activity...');
+            database.collection('brands').doc(id).update({'status': false}).then(async function (result) {
+                console.log('✅ Brand unpublished successfully, now logging activity...');
                 try {
                     if (typeof logActivity === 'function') {
-                        console.log('🔍 Calling logActivity for category unpublish...');
-                        await logActivity('categories', 'unpublished', 'Unpublished category: ' + categoryTitle);
+                        console.log('🔍 Calling logActivity for brand unpublish...');
+                        await logActivity('brands', 'unpublished', 'Unpublished brand: ' + brandTitle);
                         console.log('✅ Activity logging completed successfully');
                     } else {
                         console.error('❌ logActivity function is not available');

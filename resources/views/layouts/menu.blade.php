@@ -196,6 +196,14 @@ $role_has_permission = App\Models\Permission::where('role_id', $user->role_id)->
             </a>
         </li>
         @endif
+        @if(in_array('brands', $role_has_permission))
+        <li class="nav-subtitle text-center"><span class="nav-subtitle-span ">{{trans('lang.brands')}}</span></li>
+        <li><a class="waves-effect waves-dark" href="{!! url('brands') !!}" aria-expanded="false">
+                <i class="mdi mdi-tag"></i>
+                <span class="hide-menu">{{trans('lang.brands_plural')}}</span>
+            </a>
+        </li>
+        @endif
         @if(in_array('promotions', $role_has_permission))
         <li class="nav-subtitle"><span class="nav-subtitle-span">{{trans('lang.promotions_and_offers')}}</span></li>
         <li><a class="waves-effect waves-dark" href="{!! url('promotions') !!}" aria-expanded="false">

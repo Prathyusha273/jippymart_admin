@@ -1,4 +1,4 @@
- @extends('layouts.app')
+@extends('layouts.app')
 @section('content')
 <div class="page-wrapper">
     <div class="row page-titles">
@@ -24,6 +24,14 @@
                         <h3 class="mb-0">{{trans('lang.coupon_plural')}}</h3>
                         <span class="counter ml-3 coupon_count"></span>
                     </div>
+                    <div class="d-flex top-title-right align-self-center">
+                        <div class="select-box pl-3">
+                            <select class="form-control coupon_type_selector filteredRecords">
+                                <option value="" selected>{{trans("lang.coupon_type")}}</option>
+                                <option value="restaurant">{{trans("lang.restaurant")}}</option>
+                                <option value="mart">{{trans("lang.mart")}}</option>
+                            </select>
+                        </div>
                     <div class="d-flex top-title-right align-self-center">
                         <div class="select-box pl-3">
 
@@ -94,6 +102,7 @@
                                     <th>Item Value</th>
                                     <th>Usage Limit</th>
                                     <th>{{trans('lang.coupon_privacy')}}</th>
+                                    <th>{{trans('lang.coupon_type')}}</th>
                                     <th>{{trans('lang.coupon_restaurant_id')}}</th>
                                     <th>{{trans('lang.coupon_expires_at')}}</th>
                                     <th>{{trans('lang.coupon_enabled')}}</th>
@@ -164,8 +173,9 @@
                 const searchValue = data.search.value.toLowerCase();
                 const orderColumnIndex = data.order[0].column;
                 const orderDirection = data.order[0].dir;
-                const orderableColumns =(checkDeletePermission) ? ['','code', 'discount', 'item_value', 'usageLimit', 'isPublic', 'restaurantName', 'expiresAt','', 'description',''] : ['code', 'discount', 'item_value', 'usageLimit', 'isPublic', 'restaurantName', 'expiresAt', '', 'description', '']; // Ensure this matches the actual column names
+                const orderableColumns =(checkDeletePermission) ? ['','code', 'discount', 'item_value', 'usageLimit', 'isPublic', 'coupon Type','restaurantName','expiresAt','', 'description',''] : ['code', 'discount', 'item_value', 'usageLimit', 'isPublic', 'restaurantName', 'expiresAt', '', 'description', '']; // Ensure this matches the actual column names
                 const orderByField = orderableColumns[orderColumnIndex]; // Adjust the index to match your table
+                const selectedCouponType = $('.coupon_type_selector').val(); // Get selected coupon type
                 if (searchValue.length >= 3 || searchValue.length === 0) {
                     $('#data-table_processing').show();
                 }
@@ -188,26 +198,35 @@
                         let childData = doc.data();
                         childData.id = doc.id; // Ensure the document ID is included in the data
                         childData.restaurantName = await getrestaurantName(childData.resturant_id);
-                        if (searchValue) {
-                            var date = '';
-                            var time = '';
-                            if (childData.hasOwnProperty("expiresAt")) {
-                                try {
-                                    date = childData.expiresAt.toDate().toDateString();
-                                    time = childData.expiresAt.toDate().toLocaleTimeString('en-US');
-                                } catch (err) {
+                        // Apply coupon type filter first
+                        var passesTypeFilter = true;
+                        if (selectedCouponType && selectedCouponType !== '') {
+                            var couponType = childData.cType || 'restaurant'; // Default to restaurant if cType is not set
+                            passesTypeFilter = (couponType === selectedCouponType);
+                        }
+
+                        if (passesTypeFilter) {
+                            if (searchValue) {
+                                var date = '';
+                                var time = '';
+                                if (childData.hasOwnProperty("expiresAt")) {
+                                    try {
+                                        date = childData.expiresAt.toDate().toDateString();
+                                        time = childData.expiresAt.toDate().toLocaleTimeString('en-US');
+                                    } catch (err) {
+                                    }
                                 }
-                            }
-                            var expiresAt = date + ' ' + time;
-                            if (
-                                (childData.code && childData.code.toString().toLowerCase().includes(searchValue)) ||
-                                (expiresAt && expiresAt.toString().toLowerCase().indexOf(searchValue) > -1) || (childData.restaurantName && childData.restaurantName.toString().toLowerCase().includes(searchValue)) || (childData.description && childData.description.toString().toLowerCase().includes(searchValue)) ||
-                                (childData.usageLimit && childData.usageLimit.toString().toLowerCase().includes(searchValue))
-                            ) {
+                                var expiresAt = date + ' ' + time;
+                                if (
+                                    (childData.code && childData.code.toString().toLowerCase().includes(searchValue)) ||
+                                    (expiresAt && expiresAt.toString().toLowerCase().indexOf(searchValue) > -1) || (childData.restaurantName && childData.restaurantName.toString().toLowerCase().includes(searchValue)) || (childData.description && childData.description.toString().toLowerCase().includes(searchValue)) ||
+                                    (childData.usageLimit && childData.usageLimit.toString().toLowerCase().includes(searchValue))
+                                ) {
+                                    filteredRecords.push(childData);
+                                }
+                            } else {
                                 filteredRecords.push(childData);
                             }
-                        } else {
-                            filteredRecords.push(childData);
                         }
                     }));
                     filteredRecords.sort((a, b) => {
@@ -236,7 +255,11 @@
                         }
                     });
                     const totalRecords = filteredRecords.length;
-                    $('.coupon_count').text(totalRecords);
+                    var countText = totalRecords;
+                    // if (selectedCouponType && selectedCouponType !== '') {
+                    //     countText += ' (' + selectedCouponType + ' only)';
+                    // }
+                    $('.coupon_count').text(countText);
                     const paginatedRecords = filteredRecords.slice(start, start + length);
                     paginatedRecords.forEach(function (childData) {
                         var route1 = '{{route("coupons.edit", ":id")}}';
@@ -287,6 +310,7 @@
                                 }
                             })(),
                             childData.hasOwnProperty('isPublic') && childData.isPublic ? '<td class="success"><span class="badge badge-success py-2 px-3">{{trans("lang.public")}}</sapn></td>' : '<td class="danger"><span class="badge badge-danger py-2 px-3">{{trans("lang.private")}}</sapn></td>',
+                            childData.cType ? childData.cType : '',   // ✅ This is where Coupon Type should go
                             '<td  data-url="' + route_view + '" class="redirecttopage storeName_' + childData.resturant_id + '" >' + childData.restaurantName + '</td>',
                             '<td class="dt-time">' + date + ' ' + time + '</td>',
                             (() => {
@@ -344,6 +368,30 @@
                 table.search('').draw();
             }
         }, 300));
+        
+        // Add event handler for coupon type filtering
+        $('.coupon_type_selector').on('change', function() {
+            var selectedType = $(this).val();
+            console.log('🎯 Coupon type filter changed to:', selectedType);
+            
+            // Add visual indicator when filter is active
+            if (selectedType && selectedType !== '') {
+                $(this).addClass('filter-active');
+            } else {
+                $(this).removeClass('filter-active');
+            }
+            
+            // Trigger table redraw with new filter
+            $('#data-table_processing').show();
+            table.draw();
+        });
+        
+        // Initialize select2 for coupon type selector
+        $('.coupon_type_selector').select2({
+            placeholder: '{{trans("lang.coupon_type")}}',
+            minimumResultsForSearch: Infinity,
+            allowClear: true
+        });
     });
     async function getStoreNameFunction(resturant_id) {
         var vendorName = '';
@@ -410,6 +458,7 @@
             });
         }
     });
+
     async function getrestaurantName(resturant_id) {
         if (resturant_id === "ALL") {
             return "All Restaurants";

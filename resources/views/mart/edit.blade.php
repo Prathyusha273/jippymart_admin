@@ -80,7 +80,7 @@ foreach ($countries as $keycountry => $valuecountry) {
                                         <option value="">Select Cuisines</option>
                                         <!-- options populated dynamically -->
                                     </select>
-                                                                    <div class="form-text text-muted">
+                                  <div class="form-text text-muted">
                                     {{ trans("lang.mart_cuisines_help") }} (Hold Ctrl/Cmd to select multiple)
                                 </div>
                                 </div>
