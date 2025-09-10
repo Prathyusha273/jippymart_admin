@@ -492,8 +492,8 @@ class MartItemController extends Controller
 
                 $itemData = [
                     'name' => trim($data['name']),
-                    'price' => (float) $data['price'],
-                    'disPrice' => !empty($data['disPrice']) ? (float) $data['disPrice'] : (float) $data['price'],
+                    'price' => (string) $data['price'], // String format to match sample
+                    'disPrice' => !empty($data['disPrice']) ? (string) $data['disPrice'] : (string) $data['price'], // String format to match sample
                     'description' => trim($data['description'] ?? ''),
                     'vendorID' => $resolvedVendorID,
                     'vendorTitle' => $vendorTitle, // Add vendor title
@@ -508,9 +508,9 @@ class MartItemController extends Controller
                     'isAvailable' => strtolower($data['isAvailable'] ?? 'true') === 'true',
                     'nonveg' => strtolower($data['nonveg'] ?? 'false') === 'true',
                     'veg' => strtolower($data['nonveg'] ?? 'false') === 'true' ? false : true,
-                    'takeawayOption' => false, // Default value
+                    'takeawayOption' => strtolower($data['takeawayOption'] ?? 'false') === 'true',
 
-                    // Enhanced Filter Fields
+                    // Enhanced Filter Fields - boolean format to match sample
                     'isSpotlight' => strtolower($data['isSpotlight'] ?? 'false') === 'true',
                     'isStealOfMoment' => strtolower($data['isStealOfMoment'] ?? 'false') === 'true',
                     'isFeature' => strtolower($data['isFeature'] ?? 'false') === 'true',
@@ -518,29 +518,28 @@ class MartItemController extends Controller
                     'isNew' => strtolower($data['isNew'] ?? 'false') === 'true',
                     'isBestSeller' => strtolower($data['isBestSeller'] ?? 'false') === 'true',
                     'isSeasonal' => strtolower($data['isSeasonal'] ?? 'false') === 'true',
-                    'takeawayOption' => strtolower($data['takeawayOption'] ?? 'false') === 'true',
 
-                    // Options configuration
+                    // Options configuration - boolean format to match sample
                     'has_options' => strtolower($data['has_options'] ?? 'false') === 'true',
                     'options_enabled' => strtolower($data['options_enabled'] ?? 'false') === 'true',
                     'options_toggle' => strtolower($data['options_toggle'] ?? 'false') === 'true',
                     'options_count' => !empty($data['options_count']) ? (int) $data['options_count'] : 0,
                     'options' => [],
 
-                    // Nutritional information
+                    // Nutritional information - number format to match sample
                     'quantity' => !empty($data['quantity']) ? (int) $data['quantity'] : -1,
                     'calories' => !empty($data['calories']) ? (int) $data['calories'] : 0,
                     'grams' => !empty($data['grams']) ? (int) $data['grams'] : 0,
                     'proteins' => !empty($data['proteins']) ? (int) $data['proteins'] : 0,
                     'fats' => !empty($data['fats']) ? (int) $data['fats'] : 0,
 
-                    // Review fields - automatically set to "0" for new items
-                    'reviewCount' => '0', // Default review count as string
-                    'reviewSum' => '0', // Default review sum as string
+                    // Review fields - string format to match sample
+                    'reviewCount' => '0', // String format to match sample
+                    'reviewSum' => '0', // String format to match sample
 
                     // Additional fields matching sample structure
-                    'addOnsTitle' => [], // Array format
-                    'addOnsPrice' => [], // Array format
+                    'addOnsTitle' => [], // Array format to match sample
+                    'addOnsPrice' => [], // Array format to match sample
                     'product_specification' => (object) [], // Empty map/object to match sample
                     'item_attribute' => null,
 
@@ -776,7 +775,7 @@ class MartItemController extends Controller
             $updateData = [];
 
             if ($field === 'price') {
-                $updateData[] = ['path' => 'price', 'value' => (string) $value]; // Convert to string like edit page
+                $updateData[] = ['path' => 'price', 'value' => (string) $value]; // String format to match sample
 
                 // If discount price is higher than new price, reset it
                 if (isset($currentData['disPrice']) && !empty($currentData['disPrice']) && (float)$currentData['disPrice'] > (float)$value) {
@@ -787,7 +786,7 @@ class MartItemController extends Controller
                 if ($value == 0 || empty($value)) {
                     $updateData[] = ['path' => 'disPrice', 'value' => ''];
                 } else {
-                    $updateData[] = ['path' => 'disPrice', 'value' => (string) $value]; // Convert to string like edit page
+                    $updateData[] = ['path' => 'disPrice', 'value' => (string) $value]; // String format to match sample
 
                     // Validate discount price is not higher than original price
                     if ((float)$value > (float)$currentData['price']) {

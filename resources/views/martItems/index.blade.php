@@ -38,27 +38,28 @@
             font-size: 10px;
         }
 
-        /* Mobile-friendly image display */
-        .table-responsive img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 4px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        /* Delete button styling */
+        .delete-btn {
+            color: #dc3545 !important;
+            margin-left: 10px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
         }
 
-        /* Ensure images are properly sized on mobile */
-        @media (max-width: 768px) {
-            .table-responsive img {
-                width: 50px !important;
-                height: 50px !important;
-                object-fit: cover;
-            }
+        .delete-btn:hover {
+            color: #c82333 !important;
+            text-decoration: none;
         }
 
-        /* Image error handling */
-        .table-responsive img[src*="data:image"] {
-            max-width: 100%;
-            height: auto;
+        .delete-btn i {
+            font-size: 16px;
+        }
+
+        .action-btn {
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
     </style>
     <div class="page-wrapper">
@@ -178,9 +179,9 @@
                                         </div>
                                     </div>
                                     <div class="col-md-4 d-flex align-items-end">
-                                                                            <button type="submit" class="btn btn-primary rounded-full">
-                                        <i class="mdi mdi-upload mr-2"></i>Import Mart Items
-                                    </button>
+                                        <button type="submit" class="btn btn-primary rounded-full">
+                                            <i class="mdi mdi-upload mr-2"></i>Import Mart Items
+                                        </button>
                                     </div>
                                 </div>
                             </form>
@@ -229,13 +230,13 @@
                                 </div>
                                 <div class="card-header-right d-flex align-items-center">
                                     <div class="card-header-btn mr-3">
-                                                                                  <?php if ($id != '') { ?>
-                                          <a class="btn-primary btn rounded-full"
-                                             href="{!! route('mart-items.create') !!}/{{$id}}"><i
-                                                  class="mdi mdi-plus mr-2"></i>Create Mart Item</a>
-                                                                                  <?php } else { ?>
-                                          <a class="btn-primary btn rounded-full" href="{!! route('mart-items.create') !!}"><i
-                                                  class="mdi mdi-plus mr-2"></i>Create Mart Item</a>
+                                        <?php if ($id != '') { ?>
+                                        <a class="btn-primary btn rounded-full"
+                                           href="{!! route('mart-items.create') !!}/{{$id}}"><i
+                                                class="mdi mdi-plus mr-2"></i>Create Mart Item</a>
+                                        <?php } else { ?>
+                                        <a class="btn-primary btn rounded-full" href="{!! route('mart-items.create') !!}"><i
+                                                class="mdi mdi-plus mr-2"></i>Create Mart Item</a>
                                         <?php } ?>
                                     </div>
                                 </div>
@@ -300,8 +301,13 @@
         var user_permissions='<?php echo @session("user_permissions") ?>';
         user_permissions=Object.values(JSON.parse(user_permissions));
         var checkDeletePermission=false;
-                                if($.inArray('mart-items.delete',user_permissions)>=0) {
+        console.log('🔍 User permissions:', user_permissions);
+        console.log('🔍 Checking for mart-items.delete permission...');
+        if($.inArray('mart-items.delete',user_permissions)>=0) {
             checkDeletePermission=true;
+            console.log('✅ Delete permission granted');
+        } else {
+            console.log('❌ Delete permission not found. Available permissions:', user_permissions);
         }
         var restaurantID="{{$id}}";
         if(categoryID!=''&&categoryID!=undefined) {
@@ -531,21 +537,21 @@
                             childData.finalPrice=parseInt(finalPrice);
                             childData.restaurant=restaurantNames[childData.vendorID]||'';
                             childData.category=categoryNames[childData.categoryID]||'';
-                                                    if(searchValue) {
-                            if(
-                                (childData.name&&childData.name.toString().toLowerCase().includes(searchValue))||
-                                (childData.price&&childData.price.toString().includes(searchValue))||
-                                (childData.disPrice&&childData.disPrice.toString().includes(searchValue))||
-                                (childData.restaurant&&childData.restaurant.toString().toLowerCase().includes(searchValue))||
-                                (childData.category&&childData.category.toString().toLowerCase().includes(searchValue))||
-                                (childData.price_range&&childData.price_range.toString().toLowerCase().includes(searchValue))||
-                                (childData.best_value_option&&childData.best_value_option.toString().toLowerCase().includes(searchValue))
-                            ) {
+                            if(searchValue) {
+                                if(
+                                    (childData.name&&childData.name.toString().toLowerCase().includes(searchValue))||
+                                    (childData.price&&childData.price.toString().includes(searchValue))||
+                                    (childData.disPrice&&childData.disPrice.toString().includes(searchValue))||
+                                    (childData.restaurant&&childData.restaurant.toString().toLowerCase().includes(searchValue))||
+                                    (childData.category&&childData.category.toString().toLowerCase().includes(searchValue))||
+                                    (childData.price_range&&childData.price_range.toString().toLowerCase().includes(searchValue))||
+                                    (childData.best_value_option&&childData.best_value_option.toString().toLowerCase().includes(searchValue))
+                                ) {
+                                    filteredRecords.push(childData);
+                                }
+                            } else {
                                 filteredRecords.push(childData);
                             }
-                        } else {
-                            filteredRecords.push(childData);
-                        }
                         }));
                         filteredRecords.sort((a,b) => {
                             let aValue=a[orderByField];
@@ -674,9 +680,7 @@
             <?php if ($id != '') { ?>
                 route1=route1+'?eid={{$id}}';
             <?php } ?>
-            if(val.photos!=''&&val.photos!=null) {
-                imageHtml='<img onerror="this.onerror=null;this.src=\''+placeholderImage+'\'" class="rounded" width="100%" style="width:70px;height:70px;" src="'+val.photo+'" alt="image">';
-            } else if(val.photo!=''&&val.photos!=null) {
+            if(val.photo!=''&&val.photo!=null) {
                 imageHtml='<img onerror="this.onerror=null;this.src=\''+placeholderImage+'\'" class="rounded" width="100%" style="width:70px;height:70px;" src="'+val.photo+'" alt="image">';
             } else {
                 imageHtml='<img width="100%" style="width:70px;height:70px;" src="'+placeholderImage+'" alt="image">';
@@ -749,7 +753,10 @@
             var actionHtml='';
             actionHtml+='<span class="action-btn"><a href="'+route1+'" class="link-td"><i class="mdi mdi-lead-pencil" title="Edit"></i></a>';
             if(checkDeletePermission) {
-                actionHtml+='<a id="'+val.id+'" name="food-delete" href="javascript:void(0)" class="delete-btn"><i class="mdi mdi-delete"></i></a>';
+                console.log('🔍 Adding delete button for item:', val.id, 'Permission check:', checkDeletePermission);
+                actionHtml+='<a id="'+val.id+'" name="food-delete" href="javascript:void(0)" class="delete-btn" title="Delete Item"><i class="mdi mdi-delete"></i></a>';
+            } else {
+                console.log('⚠️ Delete permission not granted for item:', val.id, 'Permission check:', checkDeletePermission);
             }
             actionHtml+='</span>';
             html.push(actionHtml);
@@ -860,28 +867,86 @@
             return vendorName;
         }
         $(document).on("click","a[name='food-delete']",async function(e) {
+            e.preventDefault(); // Prevent default link behavior
+            console.log('🔍 Delete button clicked for item ID:', this.id);
+            
             var id=this.id;
+            
+            // Add confirmation dialog
+            if (!confirm('Are you sure you want to delete this mart item? This action cannot be undone.')) {
+                return;
+            }
+            
             try {
+                console.log('🔍 Starting deletion process for item:', id);
+                
                 // Get item name before deletion for logging
                 const itemDoc = await database.collection('mart_items').doc(id).get();
                 let itemName = 'Unknown Item';
                 if (itemDoc.exists) {
                     itemName = itemDoc.data().name || 'Unknown Item';
+                    console.log('🔍 Item found:', itemName);
+                } else {
+                    console.error('❌ Item not found in database');
+                    alert('Item not found in database.');
+                    return;
                 }
 
-                await deleteDocumentWithImage('mart_items',id,'photo','photos');
+                console.log('🔍 Calling optimized delete for mart item...');
+                await deleteMartItemWithImage(id);
+                console.log('✅ Document and images deleted successfully');
 
                 // Log activity
                 if (typeof logActivity === 'function') {
+                    console.log('🔍 Logging activity...');
                     await logActivity('mart_items', 'deleted', 'Deleted mart item: ' + itemName);
+                    console.log('✅ Activity logged successfully');
+                } else {
+                    console.warn('⚠️ logActivity function not available');
                 }
 
+                console.log('🔍 Reloading page...');
                 window.location.reload();
             } catch (error) {
-                console.error('Error deleting item:', error);
-                alert('Error deleting item. Please try again.');
+                console.error('❌ Error deleting item:', error);
+                alert('Error deleting item: ' + error.message + '. Please try again.');
             }
         });
+
+        // Optimized delete function for mart items - skips expensive reference checking
+        const deleteMartItemWithImage = async (id) => {
+            const docRef = database.collection('mart_items').doc(id);
+            try {
+                const doc = await docRef.get();
+                if (!doc.exists) {
+                    console.log("No mart item found for deletion");
+                    return;
+                }
+
+                const data = doc.data();
+                
+                // Delete the photo directly without reference checking (mart items typically don't share images)
+                if (data.photo) {
+                    console.log('🗑️ Deleting mart item image:', data.photo);
+                    try {
+                        // Direct deletion without reference checking for better performance
+                        await deleteImageFromBucket(data.photo);
+                        console.log('✅ Image deleted successfully');
+                    } catch (imageError) {
+                        console.warn('⚠️ Error deleting image (continuing with document deletion):', imageError);
+                    }
+                }
+
+                // Delete the Firestore document
+                await docRef.delete();
+                console.log("Mart item document deleted successfully.");
+                
+            } catch (error) {
+                console.error("Error deleting mart item:", error);
+                throw error;
+            }
+        };
+
         $(document.body).on('change','#selected_search',function() {
             if(jQuery(this).val()=='category') {
                 var ref_category=database.collection('mart_categories');
@@ -917,7 +982,7 @@
                             deletedItems.push(itemDoc.data().name || 'Unknown Item');
                         }
 
-                        await deleteDocumentWithImage('mart_items', id, 'photo', 'photos');
+                        await deleteMartItemWithImage(id);
                     } catch (error) {
                         console.error('Error deleting item:', error);
                     }

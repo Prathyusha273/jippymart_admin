@@ -10,7 +10,7 @@
                     <li class="breadcrumb-item"><a href="index.php">{{trans('lang.dashboard')}}</a></li>
                     <?php if(isset($_GET['eid']) && $_GET['eid'] != ''){?>
                     <li class="breadcrumb-item"><a
-                                href="{{route('marts.mart-items',$_GET['eid'])}}">{{trans('lang.mart_item_plural')}}</a>
+                            href="{{route('marts.mart-items',$_GET['eid'])}}">{{trans('lang.mart_item_plural')}}</a>
                     </li>
                     <?php }else{ ?>
                     <li class="breadcrumb-item"><a href="{!! route('mart-items') !!}">Mart Items</a></li>
@@ -41,12 +41,12 @@
                                     </div>
                                 </div>
                             </div>
-                                                    <div class="form-group row width-50">
-                            <label class="col-3 control-label">Price</label>
-                            <div class="col-7">
-                                <input type="text" class="form-control food_price" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1');" required>
+                            <div class="form-group row width-50">
+                                <label class="col-3 control-label">Price</label>
+                                <div class="col-7">
+                                    <input type="text" class="form-control food_price" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1');" required>
+                                </div>
                             </div>
-                        </div>
                             <div class="form-group row width-50">
                                 <label class="col-3 control-label">Discount Price</label>
                                 <div class="col-7">
@@ -75,9 +75,9 @@
                                     </select>
                                     <div class="form-text text-muted">
                                         {{ trans("lang.food_category_id_help") }}
-                                    </div>
-                                </div>
-                            </div> -->
+                            </div>
+                        </div>
+                    </div> -->
                             <div class="form-group row width-100">
                                 <label class="col-3 control-label">Mart Categories</label>
                                 <div class="col-7">
@@ -88,7 +88,7 @@
                                         <!-- options populated dynamically -->
                                     </select>
                                     <div class="form-text text-muted">
-                                     Select the mart categories for this item
+                                        Select the mart categories for this item
                                     </div>
                                 </div>
                             </div>
@@ -103,34 +103,27 @@
                                         <!-- options populated dynamically -->
                                     </select>
                                     <div class="form-text text-muted">
-                                     Select the mart sub-categories for this item (optional)
+                                        Select the mart sub-categories for this item (optional)
                                     </div>
-                                </div>
-                            </div>
-                            <div class="form-group row width-50">
-                                <label class="col-3 control-label">Section</label>
-                                <div class="col-7">
-                                    <input type="text" class="form-control" id="section_info" readonly>
-                                    <div class="form-text text-muted">Auto-fetched from selected subcategory</div>
                                 </div>
                             </div>
                             <div class="form-group row width-50">
                                 <label class="col-3 control-label">{{trans('lang.item_quantity')}}</label>
                                 <div class="col-7">
-                                    <input type="number" class="form-control item_quantity" value="-1" min="-1" step="1">
+                                    <input type="number" class="form-control item_quantity" value="-1">
                                     <div class="form-text text-muted">
                                         {{ trans("lang.item_quantity_help") }}
                                     </div>
                                 </div>
                             </div>
-{{--                            <div class="form-group row width-100" id="attributes_div">--}}
-{{--                                <label class="col-3 control-label">{{trans('lang.item_attribute_id')}}</label>--}}
-{{--                                <div class="col-7">--}}
-{{--                                    <select id='item_attribute' class="form-control chosen-select"--}}
-{{--                                            multiple="multiple"--}}
-{{--                                            onchange="selectAttribute();"></select>--}}
-{{--                                </div>--}}
-{{--                            </div>--}}
+                            <div class="form-group row width-100" id="attributes_div">
+                                <label class="col-3 control-label">{{trans('lang.item_attribute_id')}}</label>
+                                <div class="col-7">
+                                    <select id='item_attribute' class="form-control chosen-select" required
+                                            multiple="multiple"
+                                            onchange="selectAttribute();"></select>
+                                </div>
+                            </div>
                             <div class="form-group row width-100">
                                 <div class="item_attributes" id="item_attributes"></div>
                                 <div class="item_variants" id="item_variants"></div>
@@ -170,127 +163,127 @@
                                 <label class="col-3 control-label"
                                        for="food_take_away_option">{{trans('lang.food_take_away')}}</label>
                             </div>
-                                                    <div class="form-check width-100">
-                            <input type="checkbox" class="food_is_available" id="food_is_available">
-                            <label class="col-3 control-label" for="food_is_available">Available</label>
-                        </div>
-
-                        <!-- Enhanced Item Features -->
-                        <div class="form-group row width-100">
-                            <label class="col-3 control-label">Item Features</label>
-                            <div class="col-7">
-                                <div class="row">
-                                    <div class="col-md-3">
-                                        <div class="form-check">
-                                            <input type="checkbox" class="form-check-input" id="isSpotlight">
-                                            <label class="form-check-label" for="isSpotlight">Spotlight</label>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="form-check">
-                                            <input type="checkbox" class="form-check-input" id="isStealOfMoment">
-                                            <label class="form-check-label" for="isStealOfMoment">Steal of Moment</label>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="form-check">
-                                            <input type="checkbox" class="form-check-input" id="isFeature">
-                                            <label class="form-check-label" for="isFeature">Featured</label>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="form-check">
-                                            <input type="checkbox" class="form-check-input" id="isTrending">
-                                            <label class="form-check-label" for="isTrending">Trending</label>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row mt-2">
-                                    <div class="col-md-3">
-                                        <div class="form-check">
-                                            <input type="checkbox" class="form-check-input" id="isNew">
-                                            <label class="form-check-label" for="isNew">New Arrival</label>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="form-check">
-                                            <input type="checkbox" class="form-check-input" id="isBestSeller">
-                                            <label class="form-check-label" for="isBestSeller">Best Seller</label>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="form-check">
-                                            <input type="checkbox" class="form-check-input" id="isSeasonal">
-                                            <label class="form-check-label" for="isSeasonal">Seasonal</label>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="form-text text-muted">
-                                    Select item features for better categorization and filtering
-                                </div>
-                            </div>
-                        </div>
-                    </fieldset>
-
-                    <!-- Options Configuration -->
-                    <fieldset>
-                        <legend>Options Configuration</legend>
-
-                        <div class="form-check width-100">
-                            <input type="checkbox" class="has_options" id="has_options">
-                            <label class="col-3 control-label" for="has_options">
-                                <strong>Enable Options for this item</strong>
-                            </label>
-                            <div class="form-text text-muted">
-                                Enable this to create different variants/sizes for this item
-                            </div>
-                        </div>
-
-                        <div id="options_config" style="display:none;">
-                            <div class="alert alert-info">
-                                <i class="mdi mdi-information-outline"></i>
-                                <strong>Options will be stored as part of this item.</strong>
-                                Each option can have its own price, image, and specifications.
+                            <div class="form-check width-100">
+                                <input type="checkbox" class="food_is_available" id="food_is_available">
+                                <label class="col-3 control-label" for="food_is_available">Available</label>
                             </div>
 
-                            <div class="form-group row width-50">
-                                <label class="col-3 control-label">Default Option</label>
+                            <!-- Enhanced Item Features -->
+                            <div class="form-group row width-100">
+                                <label class="col-3 control-label">Item Features</label>
                                 <div class="col-7">
-                                    <select id="default_option" class="form-control">
-                                        <option value="">Select default option</option>
-                                    </select>
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <div class="form-check">
+                                                <input type="checkbox" class="form-check-input" id="isSpotlight">
+                                                <label class="form-check-label" for="isSpotlight">Spotlight</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-check">
+                                                <input type="checkbox" class="form-check-input" id="isStealOfMoment">
+                                                <label class="form-check-label" for="isStealOfMoment">Steal of Moment</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-check">
+                                                <input type="checkbox" class="form-check-input" id="isFeature">
+                                                <label class="form-check-label" for="isFeature">Featured</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-check">
+                                                <input type="checkbox" class="form-check-input" id="isTrending">
+                                                <label class="form-check-label" for="isTrending">Trending</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row mt-2">
+                                        <div class="col-md-3">
+                                            <div class="form-check">
+                                                <input type="checkbox" class="form-check-input" id="isNew">
+                                                <label class="form-check-label" for="isNew">New Arrival</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-check">
+                                                <input type="checkbox" class="form-check-input" id="isBestSeller">
+                                                <label class="form-check-label" for="isBestSeller">Best Seller</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-check">
+                                                <input type="checkbox" class="form-check-input" id="isSeasonal">
+                                                <label class="form-check-label" for="isSeasonal">Seasonal</label>
+                                            </div>
+                                        </div>
+                                    </div>
                                     <div class="form-text text-muted">
-                                        The default option will be automatically selected when customers view this item.
-                                        This is typically the featured option or the most popular choice.
+                                        Select item features for better categorization and filtering
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </fieldset>
+                        </fieldset>
 
-                    <!-- Options Management -->
-                    <fieldset id="options_fieldset" style="display:none;">
-                        <legend>Item Options</legend>
+                        <!-- Options Configuration -->
+                        <fieldset>
+                            <legend>Options Configuration</legend>
 
-                        <div class="options-list">
-                            <!-- Dynamic options will be added here -->
-                        </div>
-
-                        <div class="form-group row width-100">
-                            <div class="col-12 text-center">
-                                <button type="button" class="btn btn-primary" onclick="addNewOption()">
-                                    <i class="mdi mdi-plus"></i> Add Option
-                                </button>
+                            <div class="form-check width-100">
+                                <input type="checkbox" class="has_options" id="has_options">
+                                <label class="col-3 control-label" for="has_options">
+                                    <strong>Enable Options for this item</strong>
+                                </label>
+                                <div class="form-text text-muted">
+                                    Enable this to create different variants/sizes for this item
+                                </div>
                             </div>
-                        </div>
 
-                        <div class="options-summary" style="display:none;">
-                            <h5>Options Summary</h5>
-                            <div class="summary-content">
-                                <!-- Will show price range and option count -->
+                            <div id="options_config" style="display:none;">
+                                <div class="alert alert-info">
+                                    <i class="mdi mdi-information-outline"></i>
+                                    <strong>Options will be stored as part of this item.</strong>
+                                    Each option can have its own price, image, and specifications.
+                                </div>
+
+                                <div class="form-group row width-50">
+                                    <label class="col-3 control-label">Default Option</label>
+                                    <div class="col-7">
+                                        <select id="default_option" class="form-control">
+                                            <option value="">Select default option</option>
+                                        </select>
+                                        <div class="form-text text-muted">
+                                            The default option will be automatically selected when customers view this item.
+                                            This is typically the featured option or the most popular choice.
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </fieldset>
+                        </fieldset>
+
+                        <!-- Options Management -->
+                        <fieldset id="options_fieldset" style="display:none;">
+                            <legend>Item Options</legend>
+
+                            <div class="options-list">
+                                <!-- Dynamic options will be added here -->
+                            </div>
+
+                            <div class="form-group row width-100">
+                                <div class="col-12 text-center">
+                                    <button type="button" class="btn btn-primary" onclick="addNewOption()">
+                                        <i class="mdi mdi-plus"></i> Add Option
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="options-summary" style="display:none;">
+                                <h5>Options Summary</h5>
+                                <div class="summary-content">
+                                    <!-- Will show price range and option count -->
+                                </div>
+                            </div>
+                        </fieldset>
                         <!-- Hidden ingredients fieldset for now -->
                         <fieldset style="display: none">
                             <legend>{{trans('lang.ingredients')}}</legend>
@@ -400,309 +393,277 @@
                     </div>
                 </div>
                 <div class="form-group col-12 text-center btm-btn">
-                        <button type="button" class="btn btn-primary  edit-form-btn"><i class="fa fa-save"></i> {{trans('lang.save')}}</button>
+                    <button type="button" class="btn btn-primary  edit-form-btn"><i class="fa fa-save"></i> {{trans('lang.save')}}</button>
                     <?php if(isset($_GET['eid']) && $_GET['eid'] != ''){?>
-                        <a href="{{route('marts.mart-items',$_GET['eid'])}}" class="btn btn-default"><i class="fa fa-undo"></i>{{trans('lang.cancel')}}</a>
+                    <a href="{{route('marts.mart-items',$_GET['eid'])}}" class="btn btn-default"><i class="fa fa-undo"></i>{{trans('lang.cancel')}}</a>
                     <?php }else{ ?>
-                        <a href="{!! route('mart-items') !!}" class="btn btn-default"><i class="fa fa-undo"></i>{{trans('lang.cancel')}}</a>
+                    <a href="{!! route('foods') !!}" class="btn btn-default"><i class="fa fa-undo"></i>{{trans('lang.cancel')}}</a>
                     <?php } ?>
                 </div>
             </div>
         </div>
     </div>
-</div>
+    </div>
 
-<!-- Option Template (Hidden) -->
-<div id="option_template" style="display:none;">
-    <div class="option-item" data-option-id="">
-        <div class="option-header">
-            <h5>Option #<span class="option-number"></span></h5>
-            <button type="button" class="btn btn-danger btn-sm" onclick="removeOption(this)">
-                <i class="mdi mdi-delete"></i>
-            </button>
-        </div>
-
-        <div class="row">
-            <div class="col-md-6">
-                <div class="form-group">
-                    <label>Option Type</label>
-                    <select class="form-control option-type">
-                        <option value="size">Size/Weight (kg, g, mg)</option>
-                        <option value="volume">Volume (L, ml, cl)</option>
-                        <option value="quantity">Quantity (pcs, units)</option>
-                        <option value="pack">Pack (dozen, bundle)</option>
-                        <option value="bundle">Bundle (mixed items)</option>
-                        <option value="addon">Add-on (extras)</option>
-                        <option value="variant">Variant (organic, premium)</option>
-                    </select>
-                </div>
+    <!-- Option Template (Hidden) -->
+    <div id="option_template" style="display:none;">
+        <div class="option-item" data-option-id="">
+            <div class="option-header">
+                <h5>Option #<span class="option-number"></span></h5>
+                <button type="button" class="btn btn-danger btn-sm" onclick="removeOption(this)">
+                    <i class="mdi mdi-delete"></i>
+                </button>
             </div>
 
-            <div class="col-md-6">
-                <div class="form-group">
-                    <label>Option Title</label>
-                    <input type="text" class="form-control option-title" placeholder="e.g., Pack of 2">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Option Type</label>
+                        <select class="form-control option-type">
+                            <option value="size">Size/Weight (kg, g, mg)</option>
+                            <option value="volume">Volume (L, ml, cl)</option>
+                            <option value="quantity">Quantity (pcs, units)</option>
+                            <option value="pack">Pack (dozen, bundle)</option>
+                            <option value="bundle">Bundle (mixed items)</option>
+                            <option value="addon">Add-on (extras)</option>
+                            <option value="variant">Variant (organic, premium)</option>
+                        </select>
+                    </div>
                 </div>
-            </div>
-        </div>
 
-        <div class="row">
-            <div class="col-md-6">
-                <div class="form-group">
-                    <label>Option Subtitle</label>
-                    <input type="text" class="form-control option-subtitle" placeholder="e.g., 180 g X 2">
-                </div>
-            </div>
-
-            <div class="col-md-6">
-                <div class="form-group">
-                    <label>Price (₹)</label>
-                    <input type="number" class="form-control option-price" step="0.01" min="0">
-                </div>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-md-6">
-                <div class="form-group">
-                    <label>Original Price (₹)</label>
-                    <input type="number" class="form-control option-original-price" step="0.01" min="0">
-                </div>
-            </div>
-
-            <div class="col-md-6">
-                <div class="form-group">
-                    <label>Quantity</label>
-                    <input type="number" class="form-control option-quantity" min="-1" step="1" placeholder="-1 for unlimited">
-                    <small class="form-text text-muted">Use -1 for unlimited quantity</small>
-                </div>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-md-6">
-                <div class="form-group">
-                    <label>Unit</label>
-                    <select class="form-control option-quantity-unit">
-                        <option value="g">Grams (g)</option>
-                        <option value="kg">Kilograms (kg)</option>
-                        <option value="mg">Milligrams (mg)</option>
-                        <option value="L">Liters (L)</option>
-                        <option value="ml">Milliliters (ml)</option>
-                        <option value="pcs">Pieces (pcs)</option>
-                        <option value="units">Units</option>
-                        <option value="dozen">Dozen</option>
-                        <option value="custom">Custom</option>
-                    </select>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="form-group">
-                    <label>Unit Measure Base</label>
-                    <input type="number" class="form-control option-unit-measure" value="100">
-                </div>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-md-6">
-                <div class="form-group">
-                    <label>Unit Price Display</label>
-                    <input type="text" class="form-control option-unit-price-display" readonly>
-                </div>
-            </div>
-
-            <div class="col-md-6">
-                <div class="form-group">
-                    <label>Discount Amount</label>
-                    <input type="number" class="form-control option-discount" step="0.01" readonly>
-                </div>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-md-6">
-                <div class="form-group">
-                    <label>Savings Display</label>
-                    <input type="text" class="form-control option-savings-display" readonly>
-                </div>
-            </div>
-
-            <div class="col-md-6">
-                <div class="form-group">
-                    <label>Smart Suggestions</label>
-                    <div class="smart-suggestions-display">
-                        <small class="text-muted">Select option type for smart defaults</small>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Option Title</label>
+                        <input type="text" class="form-control option-title" placeholder="e.g., Pack of 2">
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="form-group">
-            <label>Option Image</label>
-            <input type="file" class="option-image-input" accept="image/*">
-            <div class="option-image-preview"></div>
-        </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Option Subtitle</label>
+                        <input type="text" class="form-control option-subtitle" placeholder="e.g., 180 g X 2">
+                    </div>
+                </div>
 
-        <div class="form-check">
-            <input type="checkbox" class="option-available" id="option_available_placeholder" checked>
-            <label class="form-check-label" for="option_available_placeholder">Available</label>
-        </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Price (₹)</label>
+                        <input type="number" class="form-control option-price" step="0.01" min="0">
+                    </div>
+                </div>
+            </div>
 
-        <div class="form-check">
-            <input type="checkbox" class="option-featured" id="option_featured_placeholder">
-            <label class="form-check-label" for="option_featured_placeholder">Featured (Show first)</label>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Original Price (₹)</label>
+                        <input type="number" class="form-control option-original-price" step="0.01" min="0">
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Quantity</label>
+                        <input type="number" class="form-control option-quantity" min="0">
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Unit</label>
+                        <select class="form-control option-quantity-unit">
+                            <option value="g">Grams (g)</option>
+                            <option value="kg">Kilograms (kg)</option>
+                            <option value="mg">Milligrams (mg)</option>
+                            <option value="L">Liters (L)</option>
+                            <option value="ml">Milliliters (ml)</option>
+                            <option value="pcs">Pieces (pcs)</option>
+                            <option value="units">Units</option>
+                            <option value="dozen">Dozen</option>
+                            <option value="custom">Custom</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Unit Measure Base</label>
+                        <input type="number" class="form-control option-unit-measure" value="100">
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Unit Price Display</label>
+                        <input type="text" class="form-control option-unit-price-display" readonly>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Discount Amount</label>
+                        <input type="number" class="form-control option-discount" step="0.01" readonly>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Savings Display</label>
+                        <input type="text" class="form-control option-savings-display" readonly>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Smart Suggestions</label>
+                        <div class="smart-suggestions-display">
+                            <small class="text-muted">Select option type for smart defaults</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Option Image</label>
+                <input type="file" class="option-image-input" accept="image/*">
+                <div class="option-image-preview"></div>
+            </div>
+
+            <div class="form-check">
+                <input type="checkbox" class="option-available" id="option_available_" checked>
+                <label class="form-check-label" for="option_available_">Available</label>
+            </div>
+
+            <div class="form-check">
+                <input type="checkbox" class="option-featured" id="option_featured_">
+                <label class="form-check-label" for="option_featured_">Featured (Show first)</label>
+            </div>
         </div>
     </div>
-</div>
 
-<style>
-.option-item {
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 20px;
-    background: #f9f9f9;
-}
+    <style>
+        .option-item {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            background: #f9f9f9;
+        }
 
-.option-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 10px;
-}
+        .option-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
 
-.option-header h5 {
-    margin: 0;
-    color: #333;
-}
+        .option-header h5 {
+            margin: 0;
+            color: #333;
+        }
 
-.option-image-preview {
-    margin-top: 10px;
-}
+        .option-image-preview {
+            margin-top: 10px;
+        }
 
-.option-image-preview img {
-    border: 1px solid #ddd;
-}
+        .option-image-preview img {
+            border: 1px solid #ddd;
+        }
 
-/* Visual feedback for option states */
-.option-enabled {
-    border-color: #28a745 !important;
-    background: #f8fff9 !important;
-}
+        /* Visual feedback for option states */
+        .option-enabled {
+            border-color: #28a745 !important;
+            background: #f8fff9 !important;
+        }
 
-.option-disabled {
-    border-color: #dc3545 !important;
-    background: #fff8f8 !important;
-    opacity: 0.7;
-}
+        .option-disabled {
+            border-color: #dc3545 !important;
+            background: #fff8f8 !important;
+            opacity: 0.7;
+        }
 
-.option-featured-highlight {
-    border-color: #ffc107 !important;
-    background: #fffdf0 !important;
-    box-shadow: 0 0 10px rgba(255, 193, 7, 0.3);
-}
+        .option-featured-highlight {
+            border-color: #ffc107 !important;
+            background: #fffdf0 !important;
+            box-shadow: 0 0 10px rgba(255, 193, 7, 0.3);
+        }
 
-/* Enhanced checkbox styling */
-.option-item .form-check {
-    margin: 15px 0;
-    padding: 10px;
-    border-radius: 4px;
-    background: #f8f9fa;
-}
+        /* Enhanced checkbox styling */
+        .option-item .form-check {
+            margin: 15px 0;
+            padding: 10px;
+            border-radius: 4px;
+            background: #f8f9fa;
+        }
 
-/* Quantity input styling */
-.option-quantity {
-    border-color: #007bff;
-}
+        .option-item .form-check input[type="checkbox"] {
+            margin-right: 8px;
+            transform: scale(1.2);
+        }
 
-.option-quantity:focus {
-    border-color: #0056b3;
-    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-}
+        .option-item .form-check label {
+            font-weight: 500;
+            cursor: pointer;
+            margin-bottom: 0;
+        }
 
-/* Image preview styling */
-.option-image-preview img {
-    border: 2px solid #dee2e6;
-    transition: border-color 0.3s ease;
-}
+        .option-item .form-check:hover {
+            background: #e9ecef;
+        }
 
-.option-image-preview img:hover {
-    border-color: #007bff;
-}
+        .options-summary {
+            background: #e8f5e8;
+            border: 1px solid #c3e6cb;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 20px;
+        }
 
-/* Validation feedback styling */
-.validation-feedback .alert-sm {
-    padding: 0.5rem;
-    font-size: 0.875rem;
-}
+        .summary-content {
+            margin: 0;
+        }
 
-.validation-feedback .alert-sm ul {
-    padding-left: 1.2rem;
-    margin-bottom: 0;
-}
+        #options_config {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 15px;
+        }
 
-.option-item .form-check input[type="checkbox"] {
-    margin-right: 8px;
-    transform: scale(1.2);
-}
+        .selected-subcategory-tag {
+            display: inline-block;
+            background: #007bff;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            margin: 2px;
+            font-size: 12px;
+            position: relative;
+        }
 
-.option-item .form-check label {
-    font-weight: 500;
-    cursor: pointer;
-    margin-bottom: 0;
-}
-
-.option-item .form-check:hover {
-    background: #e9ecef;
-}
-
-.options-summary {
-    background: #e8f5e8;
-    border: 1px solid #c3e6cb;
-    border-radius: 4px;
-    padding: 15px;
-    margin-top: 20px;
-}
-
-.summary-content {
-    margin: 0;
-}
-
-#options_config {
-    background: #f8f9fa;
-    border: 1px solid #dee2e6;
-    border-radius: 4px;
-    padding: 15px;
-    margin-top: 15px;
-}
-
-.selected-subcategory-tag {
-    display: inline-block;
-    background: #007bff;
-    color: white;
-    padding: 2px 8px;
-    border-radius: 12px;
-    margin: 2px;
-    font-size: 12px;
-    position: relative;
-}
-
-.selected-subcategory-tag .remove-tag {
-    margin-left: 5px;
-    cursor: pointer;
-    font-weight: bold;
-}
-</style>
+        .selected-subcategory-tag .remove-tag {
+            margin-left: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
 
 @endsection
 @section('scripts')
     <script>
         var id = "<?php echo $id;?>";
         var database = firebase.firestore();
-                        var ref = database.collection('mart_items').doc(id);
+        var ref = database.collection('mart_items').doc(id);
         var storageRef = firebase.storage().ref('images');
         var storage = firebase.storage();
         var photo = "";
@@ -761,9 +722,9 @@
         });
         $(document).ready(function () {
             <?php if(isset($_GET['eid']) && $_GET['eid'] != ''){?>
-                $(".food_restaurant_div").hide();
+            $(".food_restaurant_div").hide();
             <?php } else{?>
-                $(".food_restaurant_div").show();
+            $(".food_restaurant_div").show();
             <?php } ?>
             $("#attributes_div").show();
             jQuery(document).on("click", ".mdi-cloud-upload", function () {
@@ -855,33 +816,25 @@
                     })
                 });
 
-                // Load subcategories
+                // Load subcategories - handle both array and single value formats
                 await database.collection('mart_subcategories').where('publish', '==', true).get().then(async function (snapshots) {
                     snapshots.docs.forEach((listval) => {
                         var data = listval.data();
-                                    if (data.id == product.subcategoryID) {
-                $('#food_subcategory').append($("<option selected></option>")
-                    .attr("value", data.id)
-                    .attr("data-parent", data.parent_category_id)
-                    .text(data.title));
-            } else {
-                $('#food_subcategory').append($("<option></option>")
-                    .attr("value", data.id)
-                    .attr("data-parent", data.parent_category_id)
-                    .text(data.title));
-            }
-            updateSelectedSubcategoryTags();
-
-            // Load section from existing item data
-            if (product.section) {
-                $('#section_info').val(product.section);
-                console.log('✅ Loaded existing section:', product.section);
-            } else {
-                // If no section exists, try to fetch it from subcategory
-                if (product.subcategoryID) {
-                    updateSectionFromSubcategory();
-                }
-            }
+                        // Handle subcategoryID as array (matching sample document structure)
+                        var selectedSubcategories = Array.isArray(product.subcategoryID) ? product.subcategoryID : (product.subcategoryID ? [product.subcategoryID] : []);
+                        
+                        if (selectedSubcategories.includes(data.id)) {
+                            $('#food_subcategory').append($("<option selected></option>")
+                                .attr("value", data.id)
+                                .attr("data-parent", data.parent_category_id)
+                                .text(data.title));
+                        } else {
+                            $('#food_subcategory').append($("<option></option>")
+                                .attr("value", data.id)
+                                .attr("data-parent", data.parent_category_id)
+                                .text(data.title));
+                        }
+                        updateSelectedSubcategoryTags();
                     })
                 });
                 var selected_attributes = [];
@@ -986,42 +939,34 @@
                     $(".food_is_available").prop('checked', true);
                 }
 
-                // Handle item features checkboxes
-                if (product.hasOwnProperty('isSpotlight') && product.isSpotlight === true) {
+                // Load enhanced filter fields - matching sample document structure
+                if (product.hasOwnProperty('isSpotlight') && product.isSpotlight) {
                     $("#isSpotlight").prop('checked', true);
-                    console.log('✅ Spotlight checkbox checked');
                 }
-
-                if (product.hasOwnProperty('isStealOfMoment') && product.isStealOfMoment === true) {
+                if (product.hasOwnProperty('isStealOfMoment') && product.isStealOfMoment) {
                     $("#isStealOfMoment").prop('checked', true);
-                    console.log('✅ Steal of Moment checkbox checked');
                 }
-
-                if (product.hasOwnProperty('isFeature') && product.isFeature === true) {
+                if (product.hasOwnProperty('isFeature') && product.isFeature) {
                     $("#isFeature").prop('checked', true);
-                    console.log('✅ Feature checkbox checked');
                 }
-
-                if (product.hasOwnProperty('isTrending') && product.isTrending === true) {
+                if (product.hasOwnProperty('isTrending') && product.isTrending) {
                     $("#isTrending").prop('checked', true);
-                    console.log('✅ Trending checkbox checked');
                 }
-
-                if (product.hasOwnProperty('isNew') && product.isNew === true) {
+                if (product.hasOwnProperty('isNew') && product.isNew) {
                     $("#isNew").prop('checked', true);
-                    console.log('✅ New checkbox checked');
                 }
-
-                if (product.hasOwnProperty('isBestSeller') && product.isBestSeller === true) {
+                if (product.hasOwnProperty('isBestSeller') && product.isBestSeller) {
                     $("#isBestSeller").prop('checked', true);
-                    console.log('✅ Best Seller checkbox checked');
                 }
-
-                if (product.hasOwnProperty('isSeasonal') && product.isSeasonal === true) {
+                if (product.hasOwnProperty('isSeasonal') && product.isSeasonal) {
                     $("#isSeasonal").prop('checked', true);
-                    console.log('✅ Seasonal checkbox checked');
                 }
 
+                // Load existing options if any - moved here after product data is loaded
+                console.log('🔍 Checking for options in product:', product);
+                console.log('🔍 Product has_options:', product?.has_options);
+                console.log('🔍 Product options:', product?.options);
+                console.log('🔍 Options length:', product?.options?.length);
 
                 if (product && product.has_options && product.options && product.options.length > 0) {
                     console.log('✅ Loading existing options...');
@@ -1046,69 +991,20 @@
                 jQuery("#data-table_processing").hide();
             })
             $(".edit-form-btn").click( async function () {
-                var name = $(".food_name").val().trim();
-                var price = $(".food_price").val().trim();
-                var quantity = parseInt($(".item_quantity").val()) || -1;
+                var name = $(".food_name").val();
+                var price = $(".food_price").val();
+                var quantity = $(".item_quantity").val();
                 var restaurant = $("#food_restaurant option:selected").val();
                 var category = $("#food_category option:selected").val();
-                var subcategory = $("#food_subcategory").val();
-                
-                // Get category and subcategory titles
-                var categoryTitle = '';
-                var subcategoryTitle = '';
-                var vendorTitle = '';
-                
-                if (category) {
-                    categoryTitle = $("#food_category option:selected").text() || '';
-                }
-                
-                if (subcategory) {
-                    // Handle multiple subcategory selection - take the first selected subcategory
-                    if (Array.isArray(subcategory) && subcategory.length > 0) {
-                        subcategory = subcategory[0]; // Take the first selected subcategory
-                    } else if (subcategory === '') {
-                        subcategory = '';
-                    }
-                    
-                    if (subcategory) {
-                        subcategoryTitle = $("#food_subcategory option:selected").text() || '';
-                    }
-                }
-                
-                // Get vendor title from restaurant_list
-                if (restaurant) {
-                    restaurant_list.forEach((vendor) => {
-                        if (vendor.id == restaurant) {
-                            vendorTitle = vendor.title || '';
-                        }
-                    });
-                }
-                
-                var foodCalories = parseInt($(".food_calories").val()) || 0;
-                var foodGrams = parseInt($(".food_grams").val()) || 0;
-                var foodProteins = parseInt($(".food_proteins").val()) || 0;
-                var foodFats = parseInt($(".food_fats").val()) || 0;
-                var description = $("#food_description").val().trim();
+                var foodCalories = parseInt($(".food_calories").val());
+                var foodGrams = parseInt($(".food_grams").val());
+                var foodProteins = parseInt($(".food_proteins").val());
+                var foodFats = parseInt($(".food_fats").val());
+                var description = $("#food_description").val();
                 var foodPublish = $(".food_publish").is(":checked");
                 var nonveg = $(".food_nonveg").is(":checked");
                 var veg = !nonveg;
                 var foodTakeaway = $(".food_take_away_option").is(":checked");
-                var foodIsAvailable = $(".food_is_available").is(":checked");
-
-                // Get item features
-                var isSpotlight = $("#isSpotlight").is(":checked");
-                var isStealOfMoment = $("#isStealOfMoment").is(":checked");
-                var isFeature = $("#isFeature").is(":checked");
-                var isTrending = $("#isTrending").is(":checked");
-                var isNew = $("#isNew").is(":checked");
-                var isBestSeller = $("#isBestSeller").is(":checked");
-                var isSeasonal = $("#isSeasonal").is(":checked");
-
-                // Debug checkbox states
-                console.log('🔍 Checkbox states:', {
-                    isSpotlight, isStealOfMoment, isFeature, isTrending, isNew, isBestSeller, isSeasonal
-                });
-
                 var discount = $(".food_discount").val();
                 if (discount == '') {
                     discount = "0";
@@ -1155,10 +1051,14 @@
                     $(".error_top").html("");
                     $(".error_top").append("<p>{{trans('lang.price_should_not_less_then_discount_error')}}</p>");
                     window.scrollTo(0, 0);
-                } else if (quantity < -1) {
+                } else if (quantity == '' || quantity < -1) {
                     $(".error_top").show();
                     $(".error_top").html("");
-                    $(".error_top").append("<p>{{trans('lang.invalid_item_quantity_error')}}</p>");
+                    if (quantity == '') {
+                        $(".error_top").append("<p>{{trans('lang.enter_item_quantity_error')}}</p>");
+                    } else {
+                        $(".error_top").append("<p>{{trans('lang.invalid_item_quantity_error')}}</p>");
+                    }
                     window.scrollTo(0, 0);
                 } else if (description == '') {
                     $(".error_top").show();
@@ -1212,7 +1112,7 @@
                                         'variant_quantity': variant_quantity
                                     });
                                 }
-                                if (variant_quantity == '' || variant_quantity < -1) {
+                                if (variant_quantity = '' || variant_quantity < -1 || variant_quantity == 0) {
                                     quantityerror++;
                                 }
                                 if (variant_price == "" || variant_price <= 0) {
@@ -1229,7 +1129,7 @@
                     }
                     if (attributes.length > 0 && variants.length > 0) {
                         if (quantityerror > 0) {
-                            alert('Please add your variants quantity it should be -1 (unlimited) or greater than 0');
+                            alert('Please add your variants quantity it should be -1 or greater than -1');
                             return false;
                         }
                         if (priceerror > 0) {
@@ -1243,181 +1143,257 @@
                         product_specification = null;
                     }
                     jQuery("#data-table_processing").show();
-                await storeImageData().then(async (IMG) => {
-                    if (IMG.length > 0) {
-                        photo = IMG[0];
-                    }
-                    var foodIsAvailable = $(".food_is_available").is(":checked");
-                    const hasOptions = $(".has_options").is(":checked");
-                    let updateData = {
-                        'name': name || '',
-                        'price': parseFloat(price) || 0,
-                        'quantity': quantity,
-                        'disPrice': parseFloat(discount) || parseFloat(price) || 0,
-                        'vendorID': restaurant || '',
-                        'vendorTitle': vendorTitle || '', // Add vendor title
-                        'categoryID': category || '',
-                        'categoryTitle': categoryTitle || '', // Add category title
-                        'subcategoryID': subcategory || '', // Add subcategory
-                        'subcategoryTitle': subcategoryTitle || '', // Add subcategory title
-                        'section': $("#section_info").val() || 'General', // Add section
-                        'photo': photo || '',
-                        'calories': foodCalories || 0,
-                        "grams": foodGrams || 0,
-                        'proteins': foodProteins || 0,
-                        'fats': foodFats || 0,
-                        'description': description || '',
-                        'publish': foodPublish,
-                        'nonveg': nonveg,
-                        'veg': veg,
-                        'addOnsTitle': addOnesTitle || [],
-                        'addOnsPrice': addOnesPrice || [],
-                        'takeawayOption': foodTakeaway,
-                        'product_specification': product_specification || {},
-                        'item_attribute': item_attribute || null,
-                        'photos': IMG || [],
-                        'isAvailable': foodIsAvailable,
-                        'isSpotlight': isSpotlight,
-                        'isStealOfMoment': isStealOfMoment,
-                        'isFeature': isFeature,
-                        'isTrending': isTrending,
-                        'isNew': isNew,
-                        'isBestSeller': isBestSeller,
-                        'isSeasonal': isSeasonal,
-                        'reviewCount': '0', // Default review count as string
-                        'reviewSum': '0', // Default review sum as string
-                        'updated_at': firebase.firestore.FieldValue.serverTimestamp()
-                    };
+                    
+                    // Process photo data first - convert base64 to Firebase URL if needed
+                    console.log('🖼️ Processing photo data...');
+                    photo = await storeProductImageData();
+                    console.log('🖼️ Photo processed:', photo);
+                    
+                    await storeImageData().then(async (IMG) => {
+                        if (IMG.length > 0) {
+                            photo = IMG[0];
+                        }
+                        var foodIsAvailable = $(".food_is_available").is(":checked");
+                        const hasOptions = $(".has_options").is(":checked");
+                        // Get enhanced filter fields from checkboxes
+                        const isSpotlight = $('#isSpotlight').is(':checked');
+                        const isStealOfMoment = $('#isStealOfMoment').is(':checked');
+                        const isFeature = $('#isFeature').is(':checked');
+                        const isTrending = $('#isTrending').is(':checked');
+                        const isNew = $('#isNew').is(':checked');
+                        const isBestSeller = $('#isBestSeller').is(':checked');
+                        const isSeasonal = $('#isSeasonal').is(':checked');
 
-                    // Handle options
-                    if (hasOptions && optionsList.length > 0) {
-                        console.log('🔧 Processing options for save:', optionsList);
+                        // Store image data first
+                        storeImageData().then(IMG => {
+                            let updateData = {
+                                'name': name || '',
+                                'price': (price || '0').toString(), // String format to match sample
+                                'quantity': parseInt(quantity) || -1, // Number format to match sample
+                                'disPrice': (discount || '0').toString(), // String format to match sample
+                                'vendorID': restaurant || '',
+                                'categoryID': category || '',
+                                'subcategoryID': $("#food_subcategory").val() || [], // Array format to match sample
+                                'photo': IMG || '',
+                            'calories': parseInt(foodCalories) || 0, // Number format to match sample
+                            "grams": parseInt(foodGrams) || 0, // Number format to match sample
+                            'proteins': parseInt(foodProteins) || 0, // Number format to match sample
+                            'fats': parseInt(foodFats) || 0, // Number format to match sample
+                            'description': description || '',
+                            'publish': Boolean(foodPublish), // Boolean format to match sample
+                            'nonveg': Boolean(nonveg), // Boolean format to match sample
+                            'veg': Boolean(veg), // Boolean format to match sample
+                            'addOnsTitle': Array.isArray(addOnesTitle) ? addOnesTitle : [], // Array format to match sample
+                            'addOnsPrice': Array.isArray(addOnesPrice) ? addOnesPrice : [], // Array format to match sample
+                            'takeawayOption': Boolean(foodTakeaway), // Boolean format to match sample
+                            'product_specification': product_specification || {}, // Object format to match sample
+                            'item_attribute': item_attribute || null, // Null format to match sample
+                            'photos': Array.isArray(IMG) ? IMG : [], // Array format to match sample
+                            'isAvailable': Boolean(foodIsAvailable), // Boolean format to match sample
+                            
+                            // Enhanced Filter Fields - matching sample document structure
+                            'isSpotlight': Boolean(isSpotlight), // Boolean format to match sample
+                            'isStealOfMoment': Boolean(isStealOfMoment), // Boolean format to match sample
+                            'isFeature': Boolean(isFeature), // Boolean format to match sample
+                            'isTrending': Boolean(isTrending), // Boolean format to match sample
+                            'isNew': Boolean(isNew), // Boolean format to match sample
+                            'isBestSeller': Boolean(isBestSeller), // Boolean format to match sample
+                            'isSeasonal': Boolean(isSeasonal), // Boolean format to match sample
+                            
+                            // Review fields - string format to match sample
+                            'reviewCount': '0', // String format to match sample
+                            'reviewSum': '0', // String format to match sample
+                            
+                            'updated_at': firebase.firestore.FieldValue.serverTimestamp()
+                        };
 
-                        // Validate options
-                        for (let option of optionsList) {
-                            if (!option.title || !option.price || option.price <= 0) {
-                                alert('Please fill all required fields for all options.');
-                                return;
+                        // Handle options
+                        if (hasOptions && optionsList.length > 0) {
+                            // Validate options
+                            for (let option of optionsList) {
+                                if (!option.title || !option.price || option.price <= 0) {
+                                    alert('Please fill all required fields for all options.');
+                                    return;
+                                }
                             }
+
+                            // Prepare options data - matching sample document structure
+                            const optionsData = optionsList.map((option, index) => ({
+                                id: option.id || `option_${Date.now()}_${index}`,
+                                option_type: option.type || 'size',
+                                option_title: option.title || '',
+                                option_subtitle: option.subtitle || '',
+                                price: (option.price || '0').toString(), // String format to match sample
+                                original_price: parseFloat(option.original_price) || parseFloat(option.price) || 0, // Number format to match sample
+                                discount_amount: parseFloat(option.discount_amount) || 0, // Number format to match sample
+                                unit_price: parseFloat(option.unit_price) || 0, // Number format to match sample
+                                unit_measure: parseFloat(option.unit_measure) || 100, // Number format to match sample
+                                unit_measure_type: option.unit_measure_type || 'g',
+                                quantity: parseFloat(option.quantity) || 0, // Number format to match sample
+                                quantity_unit: option.quantity_unit || 'g',
+                                image: option.image || '',
+                                is_available: Boolean(option.is_available !== false), // Boolean format to match sample
+                                is_featured: Boolean(option.is_featured === true), // Boolean format to match sample
+                                sort_order: index + 1, // Number format to match sample
+                                updated_at: new Date().toISOString()
+                            }));
+
+                            // Calculate price range - matching sample document structure
+                            const prices = optionsList.map(opt => opt.price);
+                            const minPrice = Math.min(...prices);
+                            const maxPrice = Math.max(...prices);
+                            const defaultOptionId = optionsList.find(opt => opt.is_featured)?.id || optionsList[0]?.id;
+
+                            updateData = {
+                                ...updateData,
+                                has_options: Boolean(true), // Boolean format to match sample
+                                options_enabled: Boolean(true), // Boolean format to match sample
+                                options_toggle: Boolean(true), // Boolean format to match sample
+                                options_count: parseInt(optionsList.length) || 0, // Number format to match sample
+                                min_price: parseFloat(minPrice) || 0, // Number format to match sample
+                                max_price: parseFloat(maxPrice) || 0, // Number format to match sample
+                                price_range: `₹${minPrice || 0} - ₹${maxPrice || 0}`, // String format to match sample
+                                default_option_id: defaultOptionId || '', // String format to match sample
+                                best_value_option: defaultOptionId || '', // String format to match sample
+                                options: optionsData
+                            };
+                        } else {
+                            updateData = {
+                                ...updateData,
+                                has_options: Boolean(false), // Boolean format to match sample
+                                options_enabled: Boolean(false), // Boolean format to match sample
+                                options_toggle: Boolean(false), // Boolean format to match sample
+                                options_count: parseInt(0), // Number format to match sample
+                                min_price: parseFloat(0), // Number format to match sample
+                                max_price: parseFloat(0), // Number format to match sample
+                                price_range: '', // String format to match sample
+                                default_option_id: '', // String format to match sample
+                                best_value_option: '', // String format to match sample
+                                options: [] // Array format to match sample
+                            };
                         }
 
-                        // Prepare options data
-                        const optionsData = optionsList.map((option, index) => ({
-                            id: option.id || `option_${Date.now()}_${index}`,
-                            option_type: option.type || 'size',
-                            option_title: option.title || '',
-                            option_subtitle: option.subtitle || '',
-                            price: parseFloat(option.price) || 0,
-                            original_price: parseFloat(option.original_price) || parseFloat(option.price) || 0,
-                            discount_amount: parseFloat(option.discount_amount) || 0,
-                            unit_price: parseFloat(option.unit_price) || 0,
-                            unit_measure: parseFloat(option.unit_measure) || 100,
-                            unit_measure_type: option.unit_measure_type || 'g',
-                            quantity: parseFloat(option.quantity) || 0,
-                            quantity_unit: option.quantity_unit || 'g',
-                            image: option.image || '', // Stored as base64 for options
-                            is_available: option.is_available !== false,
-                            is_featured: option.is_featured === true,
-                            sort_order: index + 1,
-                            updated_at: new Date().toISOString()
-                        }));
-
-                        // Calculate price range
-                        const prices = optionsList.map(opt => opt.price);
-                        const minPrice = Math.min(...prices);
-                        const maxPrice = Math.max(...prices);
-                        const defaultOptionId = optionsList.find(opt => opt.is_featured)?.id || optionsList[0]?.id;
-
-                        updateData = {
-                            ...updateData,
-                            has_options: true,
-                            options_enabled: true,
-                            options_count: optionsList.length || 0,
-                            min_price: minPrice || 0,
-                            max_price: maxPrice || 0,
-                            price_range: `₹${minPrice || 0} - ₹${maxPrice || 0}`,
-                            default_option_id: defaultOptionId || '',
-                            options: optionsData
-                        };
-                    } else {
-                        updateData = {
-                            ...updateData,
-                            has_options: false,
-                            options_enabled: false,
-                            options_count: 0,
-                            options: []
-                        };
-                    }
-
-                    database.collection('mart_items').doc(id).update(updateData).then(async function (result) {
-                        console.log('✅ Mart item updated successfully, now logging activity...');
-                        try {
-                            if (typeof logActivity === 'function') {
-                                console.log('🔍 Calling logActivity for mart item update...');
-                                await logActivity('mart_items', 'updated', 'Updated mart item: ' + name);
-                                console.log('✅ Activity logging completed successfully');
-                            } else {
-                                console.error('❌ logActivity function is not available');
+                        database.collection('mart_items').doc(id).update(updateData).then(async function (result) {
+                            console.log('✅ Mart item updated successfully, now logging activity...');
+                            try {
+                                if (typeof logActivity === 'function') {
+                                    console.log('🔍 Calling logActivity for mart item update...');
+                                    await logActivity('mart_items', 'updated', 'Updated mart item: ' + name);
+                                    console.log('✅ Activity logging completed successfully');
+                                } else {
+                                    console.error('❌ logActivity function is not available');
+                                }
+                            } catch (error) {
+                                console.error('❌ Error calling logActivity:', error);
                             }
-                        } catch (error) {
-                            console.error('❌ Error calling logActivity:', error);
-                        }
-                        <?php if(isset($_GET['eid']) && $_GET['eid'] != ''){?>
-                            window.location.href = "{{ route('marts.mart-items',$_GET['eid']) }}";
-                        <?php }else{ ?>
-                        jQuery("#data-table_processing").hide();
+                            <?php if(isset($_GET['eid']) && $_GET['eid'] != ''){?>
+                                window.location.href = "{{ route('marts.mart-items',$_GET['eid']) }}";
+                            <?php }else{ ?>
+                            jQuery("#data-table_processing").hide();
                             window.location.href = '{{ route("mart-items")}}';
-                        <?php } ?>
+                            <?php } ?>
+                            });
+                        }).catch(err => {
+                            jQuery("#data-table_processing").hide();
+                            $(".error_top").show();
+                            $(".error_top").html("");
+                            $(".error_top").append("<p>" + err + "</p>");
+                            window.scrollTo(0, 0);
+                        });
+                    }).catch(function (error) {
+                        jQuery("#data-table_processing").hide();
+                        $(".error_top").show();
+                        $(".error_top").html("");
+                        $(".error_top").append("<p>" + error + "</p>");
+                        window.scrollTo(0, 0);
                     });
-                }).catch(err => {
-                    jQuery("#data-table_processing").hide();
-                    $(".error_top").show();
-                    $(".error_top").html("");
-                    $(".error_top").append("<p>" + err + "</p>");
-                    window.scrollTo(0, 0);
-                });
                 }
             })
         })
+        // Fallback file input handler
         function handleFileSelect(evt) {
             var f = evt.target.files[0];
             var reader = new FileReader();
-            new Compressor(f, {
-                quality: <?php echo env('IMAGE_COMPRESSOR_QUALITY', 0.8); ?>,
-                success(result) {
-                    f = result;
-                    reader.onload = (function (theFile) {
-                        return function (e) {
-                            var filePayload = e.target.result;
-                            var val = f.name;
-                            var ext = val.split('.')[1];
-                            var docName = val.split('fakepath')[1];
-                            var filename = (f.name).replace(/C:\\fakepath\\/i, '')
-                            var timestamp = Number(new Date());
-                            var filename = filename.split('.')[0] + "_" + timestamp + '.' + ext;
-                            var uploadTask = storageRef.child(filename).put(theFile);
-                            uploadTask.on('state_changed', function (snapshot) {
-                                var progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                                console.log('Upload is ' + progress + '% done');
-                                jQuery("#uploding_image").text("Image is uploading...");
-                            }, function (error) {
-                            }, function () {
-                                uploadTask.snapshot.ref.getDownloadURL().then(function (downloadURL) {
-                                    jQuery("#uploding_image").text("Upload is completed");
-                                    photo = downloadURL;
-                                    $(".item_image").empty()
-                                    $(".item_image").append('<img class="rounded" style="width:50px" src="' + photo + '" alt="image">');
-                                });
-                            });
-                        };
-                    })(f);
-                    reader.readAsDataURL(f);
-                },
-                error(err) {
-                    console.log(err.message);
-                },
-            });
+            reader.onload = (function (theFile) {
+                return function (e) {
+                    var filePayload = e.target.result;
+                    var val = $('#product_image').val().toLowerCase();
+                    var ext = val.split('.')[1];
+                    var docName = val.split('fakepath')[1];
+                    var filename = $('#product_image').val().replace(/C:\\fakepath\\/i, '')
+                    var timestamp = Number(new Date());
+                    var filename = filename.split('.')[0] + "_" + timestamp + '.' + ext;
+                    var uploadTask = storageRef.child(filename).put(theFile);
+                    uploadTask.on('state_changed', function (snapshot) {
+                        var progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                    }, function (error) {
+                    }, function () {
+                        uploadTask.snapshot.ref.getDownloadURL().then(function (downloadURL) {
+                            jQuery("#uploding_image").text("Upload is completed");
+                            photo = downloadURL;
+                            $(".product_image").empty();
+                            $(".product_image").append('<img class="rounded" style="width:50px" src="' + photo + '" alt="image">');
+                        });
+                    });
+                };
+            })(f);
+            reader.readAsDataURL(f);
         }
+        
+        // Store image data function - matching mart categories format
+        async function storeImageData() {
+            var newPhoto = '';
+            try {
+                // Delete old image if it's different from current
+                if (productImageFile != "" && photo != productImageFile) {
+                    try {
+                        var productOldImageUrlRef = await storage.refFromURL(productImageFile);
+                        var imageBucket = productOldImageUrlRef.bucket; 
+                        var envBucket = "<?php echo env('FIREBASE_STORAGE_BUCKET'); ?>";
+                        if (imageBucket == envBucket) {
+                            await productOldImageUrlRef.delete();
+                            console.log("Old file deleted!")
+                        } else {
+                            console.log('Bucket not matched');  
+                        }
+                    } catch (deleteError) {
+                        console.log("ERR File delete ===", deleteError);
+                    }
+                } 
+                
+                // Upload new image if it's different from original
+                if (photo != productImageFile) {
+                    photo = photo.replace(/^data:image\/[a-z]+;base64,/, "")
+                    var uploadTask = await storageRef.child(fileName).putString(photo, 'base64', {contentType: 'image/jpg'});
+                    var downloadURL = await uploadTask.ref.getDownloadURL();
+                    newPhoto = downloadURL;
+                    photo = downloadURL;
+                } else {
+                    newPhoto = photo;
+                }
+            } catch (error) {
+                console.log("ERR ===", error);
+            }
+            return newPhoto;
+        }
+        
+        // Upload image with compression - matching mart categories format
+        $("#product_image").resizeImg({
+            callback: function(base64str) {
+                var val = $('#product_image').val().toLowerCase();
+                var ext = val.split('.')[1];
+                var docName = val.split('fakepath')[1];
+                var filename = $('#product_image').val().replace(/C:\\fakepath\\/i, '')
+                var timestamp = Number(new Date());
+                var filename = filename.split('.')[0] + "_" + timestamp + '.' + ext;
+                photo = base64str;
+                fileName = filename;
+                $(".product_image").empty();
+                $(".product_image").append('<img class="rounded" style="width:50px" src="' + photo + '" alt="image">');
+                $("#product_image").val('');
+            }
+        });
+        
         function addOneFunction() {
             $("#add_ones_div").show();
             $(".save_add_one_btn").show();
@@ -1478,6 +1454,20 @@
             })(f);
             reader.readAsDataURL(f);
         }
+        async function storeProductImageData() {
+            if(photo && photo.startsWith('data:image')) {
+                var base64Data = photo.replace(/^data:image\/[a-z]+;base64,/, "");
+                var timestamp = Number(new Date());
+                var filename = 'product_' + timestamp + '.jpg';
+                var uploadTask = await storageRef.child(filename).putString(base64Data, 'base64', {
+                    contentType: 'image/jpg'
+                });
+                var downloadURL = await uploadTask.ref.getDownloadURL();
+                return downloadURL;
+            }
+            return photo || '';
+        }
+        
         async function storeImageData() {
             var newPhoto = [];
             if (photos.length > 0) {
@@ -1524,35 +1514,12 @@
                 $("#product_image").val('');
             }
         });
-
-        // Add direct file input handler as fallback
-        $("#product_image").on('change', function() {
-            if (this.files && this.files[0]) {
-                var file = this.files[0];
-                var reader = new FileReader();
-                reader.onload = function(e) {
-                    var base64str = e.target.result;
-                    var val = file.name.toLowerCase();
-                    var ext = val.split('.')[1];
-                    var timestamp = Number(new Date());
-                    var filename = file.name.split('.')[0] + "_" + timestamp + '.' + ext;
-
-                    productImagesCount++;
-                    photos_html = '<span class="image-item" id="photo_' + productImagesCount + '"><span class="remove-btn" data-id="' + productImagesCount + '" data-img="' + base64str + '" data-status="new"><i class="fa fa-remove"></i></span><img class="rounded" width="50px" id="" height="auto" src="' + base64str + '"></span>';
-                    $(".product_image").append(photos_html);
-                    new_added_photos.push(base64str);
-                    new_added_photos_filename.push(filename);
-                    $("#product_image").val('');
-                };
-                reader.readAsDataURL(file);
-            }
-        });
         $(document).on("click", ".remove-btn", function () {
             var id = $(this).attr('data-id');
             var photo_remove = $(this).attr('data-img');
             var status=$(this).attr('data-status');
             if(status=="old"){
-                 photosToDelete.push(firebase.storage().refFromURL(photo_remove));
+                photosToDelete.push(firebase.storage().refFromURL(photo_remove));
             }
             $("#photo_" + id).remove();
             index = photos.indexOf(photo_remove);
@@ -1623,985 +1590,851 @@
             }
             return newPhoto;
         }
-    function selectAttribute(item_attribute = '') {
-        if (item_attribute) {
-            var item_attribute = $.parseJSON(atob(item_attribute));
-        }
-        var html = '';
-        $("#item_attribute").find('option:selected').each(function () {
-            var $this = $(this);
-            var selected_options = [];
+        function selectAttribute(item_attribute = '') {
             if (item_attribute) {
-                $.each(item_attribute.attributes, function (index, attribute) {
-                    if ($this.val() == attribute.attribute_id) {
-                        selected_options.push(attribute.attribute_options);
-                    }
-                });
+                var item_attribute = $.parseJSON(atob(item_attribute));
             }
-            html += '<div class="row" id="attr_' + $this.val() + '">';
-            html += '<div class="col-md-3">';
-            html += '<label>' + $this.text() + '</label>';
-            html += '</div>';
-            html += '<div class="col-lg-9">';
-            html += '<input type="text" class="form-control" id="attribute_options_' + $this.val() + '" value="' + selected_options + '" placeholder="Add attribute values" data-role="tagsinput" onchange="variants_update(\'' + btoa(JSON.stringify(item_attribute)) + '\')">';
-            html += '</div>';
-            html += '</div>';
-        });
-        $("#item_attributes").html(html);
-        $("#item_attributes input[data-role=tagsinput]").tagsinput();
-        if ($("#item_attribute").val().length == 0) {
-            $("#attributes").val('');
-            $("#variants").val('');
-            $("#item_variants").html('');
+            var html = '';
+            $("#item_attribute").find('option:selected').each(function () {
+                var $this = $(this);
+                var selected_options = [];
+                if (item_attribute) {
+                    $.each(item_attribute.attributes, function (index, attribute) {
+                        if ($this.val() == attribute.attribute_id) {
+                            selected_options.push(attribute.attribute_options);
+                        }
+                    });
+                }
+                html += '<div class="row" id="attr_' + $this.val() + '">';
+                html += '<div class="col-md-3">';
+                html += '<label>' + $this.text() + '</label>';
+                html += '</div>';
+                html += '<div class="col-lg-9">';
+                html += '<input type="text" class="form-control" id="attribute_options_' + $this.val() + '" value="' + selected_options + '" placeholder="Add attribute values" data-role="tagsinput" onchange="variants_update(\'' + btoa(JSON.stringify(item_attribute)) + '\')">';
+                html += '</div>';
+                html += '</div>';
+            });
+            $("#item_attributes").html(html);
+            $("#item_attributes input[data-role=tagsinput]").tagsinput();
+            if ($("#item_attribute").val().length == 0) {
+                $("#attributes").val('');
+                $("#variants").val('');
+                $("#item_variants").html('');
+            }
         }
-    }
-    function variants_update(item_attributeX = '') {
-        if (item_attributeX) {
-            var item_attributeX = $.parseJSON(atob(item_attributeX));
-        }
-        var html = '';
-        var item_attribute = $("#item_attribute").map(function (idx, ele) {
+        function variants_update(item_attributeX = '') {
+            if (item_attributeX) {
+                var item_attributeX = $.parseJSON(atob(item_attributeX));
+            }
+            var html = '';
+            var item_attribute = $("#item_attribute").map(function (idx, ele) {
                 return $(ele).val();
             }).get();
-        if (item_attribute.length > 0) {
-            var attributes = [];
-            var attributeSet = [];
-            $.each(item_attribute, function (index, attribute) {
-                var attribute_options = $("#attribute_options_" + attribute).val();
-                if (attribute_options) {
-                    var attribute_options = attribute_options.split(',');
-                    attribute_options = $.map(attribute_options, function (value) {
-                        return value.replace(/[^0-9a-zA-Z a]/g, '');
-                    });
-                    attributeSet.push(attribute_options);
-                    attributes.push({'attribute_id': attribute, 'attribute_options': attribute_options});
-                }
-            });
-            $('#attributes').val(JSON.stringify(attributes));
-            var variants = getCombinations(attributeSet);
-            $('#variants').val(JSON.stringify(variants));
-
-            if (attributeSet.length > 0) {
-                html += '<table class="table table-bordered">';
-                html += '<thead class="thead-light">';
-                html += '<tr>';
-                html += '<th class="text-center"><span class="control-label">Variant</span></th>';
-                html += '<th class="text-center"><span class="control-label">Variant Price</span></th>';
-                html += '<th class="text-center"><span class="control-label">Variant Quantity</span></th>';
-                html += '<th class="text-center"><span class="control-label">Variant Image</span></th>';
-                html += '</tr>';
-                html += '</thead>';
-                html += '<tbody>';
-                $.each(variants, function (index, variant) {
-                    var variant_price = 1;
-                    var variant_qty = -1;
-                    var variant_image = variant_image_url = '';
-                    if (item_attributeX) {
-                        var variant_info = $.map(item_attributeX.variants, function (v, i) {
-                            if (v.variant_sku == variant) {
-                                return v;
-                            }
+            if (item_attribute.length > 0) {
+                var attributes = [];
+                var attributeSet = [];
+                $.each(item_attribute, function (index, attribute) {
+                    var attribute_options = $("#attribute_options_" + attribute).val();
+                    if (attribute_options) {
+                        var attribute_options = attribute_options.split(',');
+                        attribute_options = $.map(attribute_options, function (value) {
+                            return value.replace(/[^0-9a-zA-Z a]/g, '');
                         });
-                        if (variant_info[0]) {
-                            variant_price = variant_info[0].variant_price;
-                            variant_qty = variant_info[0].variant_quantity;
-                            if (variant_info[0].variant_image) {
-                                variant_image = '<img class="rounded" style="width:50px" src="' + variant_info[0].variant_image + '" alt="image"><i class="mdi mdi-delete" data-variant="' + variant + '" data-status="old"></i>';
-                                variant_image_url = variant_info[0].variant_image;
+                        attributeSet.push(attribute_options);
+                        attributes.push({'attribute_id': attribute, 'attribute_options': attribute_options});
+                    }
+                });
+                $('#attributes').val(JSON.stringify(attributes));
+                var variants = getCombinations(attributeSet);
+                $('#variants').val(JSON.stringify(variants));
+
+                if (attributeSet.length > 0) {
+                    html += '<table class="table table-bordered">';
+                    html += '<thead class="thead-light">';
+                    html += '<tr>';
+                    html += '<th class="text-center"><span class="control-label">Variant</span></th>';
+                    html += '<th class="text-center"><span class="control-label">Variant Price</span></th>';
+                    html += '<th class="text-center"><span class="control-label">Variant Quantity</span></th>';
+                    html += '<th class="text-center"><span class="control-label">Variant Image</span></th>';
+                    html += '</tr>';
+                    html += '</thead>';
+                    html += '<tbody>';
+                    $.each(variants, function (index, variant) {
+                        var variant_price = 1;
+                        var variant_qty = -1;
+                        var variant_image = variant_image_url = '';
+                        if (item_attributeX) {
+                            var variant_info = $.map(item_attributeX.variants, function (v, i) {
+                                if (v.variant_sku == variant) {
+                                    return v;
+                                }
+                            });
+                            if (variant_info[0]) {
+                                variant_price = variant_info[0].variant_price;
+                                variant_qty = variant_info[0].variant_quantity;
+                                if (variant_info[0].variant_image) {
+                                    variant_image = '<img class="rounded" style="width:50px" src="' + variant_info[0].variant_image + '" alt="image"><i class="mdi mdi-delete" data-variant="' + variant + '" data-status="old"></i>';
+                                    variant_image_url = variant_info[0].variant_image;
+                                }
                             }
                         }
-                    }
-                    html += '<tr>';
-                    html += '<td><label for="" class="control-label">' + variant + '</label></td>';
-                    html += '<td>';
-                    html += '<input type="number" id="price_' + variant + '" value="' + variant_price + '" min="0" class="form-control">';
-                    html += '</td>';
-                    html += '<td>';
-                    html += '<input type="number" id="qty_' + variant + '" value="' + variant_qty + '" min="-1" class="form-control">';
-                    html += '</td>';
-                    html += '<td>';
-                    html += '<div class="variant-image">';
-                    html += '<div class="upload">';
-                    html += '<div class="image" id="variant_' + variant + '_image">' + variant_image + '</div>';
-                    html += '<div class="icon"><i class="mdi mdi-cloud-upload" data-variant="' + variant + '" id="upload_'+variant+'"></i></div>';
-                    html += '</div>';
-                    html += '<div id="variant_' + variant + '_process"></div>';
-                    html += '<div class="input-file">';
-                    html += '<input type="file" id="file_' + variant + '" onChange="handleVariantFileSelect(event,\'' + variant + '\')" class="form-control" style="display:none;">';
-                    html += '<input type="hidden" id="variant_' + variant + '_url" value="' + variant_image_url + '">';
-                    html += '</div>';
-                    html += '</div>';
-                    html += '</td>';
-                    html += '</tr>';
-                });
-                html += '</tbody>';
-                html += '</table>';
-            }
-        }
-        $("#item_variants").html(html);
-    }
-    function getCombinations(arr) {
-        if (arr.length) {
-            if (arr.length == 1) {
-                return arr[0];
-            } else {
-                var result = [];
-                var allCasesOfRest = getCombinations(arr.slice(1));
-                for (var i = 0; i < allCasesOfRest.length; i++) {
-                    for (var j = 0; j < arr[0].length; j++) {
-                        result.push(arr[0][j] + '-' + allCasesOfRest[i]);
-                    }
+                        html += '<tr>';
+                        html += '<td><label for="" class="control-label">' + variant + '</label></td>';
+                        html += '<td>';
+                        html += '<input type="number" id="price_' + variant + '" value="' + variant_price + '" min="0" class="form-control">';
+                        html += '</td>';
+                        html += '<td>';
+                        html += '<input type="number" id="qty_' + variant + '" value="' + variant_qty + '" min="-1" class="form-control">';
+                        html += '</td>';
+                        html += '<td>';
+                        html += '<div class="variant-image">';
+                        html += '<div class="upload">';
+                        html += '<div class="image" id="variant_' + variant + '_image">' + variant_image + '</div>';
+                        html += '<div class="icon"><i class="mdi mdi-cloud-upload" data-variant="' + variant + '" id="upload_'+variant+'"></i></div>';
+                        html += '</div>';
+                        html += '<div id="variant_' + variant + '_process"></div>';
+                        html += '<div class="input-file">';
+                        html += '<input type="file" id="file_' + variant + '" onChange="handleVariantFileSelect(event,\'' + variant + '\')" class="form-control" style="display:none;">';
+                        html += '<input type="hidden" id="variant_' + variant + '_url" value="' + variant_image_url + '">';
+                        html += '</div>';
+                        html += '</div>';
+                        html += '</td>';
+                        html += '</tr>';
+                    });
+                    html += '</tbody>';
+                    html += '</table>';
                 }
-                return result;
             }
+            $("#item_variants").html(html);
         }
-    }
-    function uniqid(prefix = "", random = false) {
-        const sec = Date.now() * 1000 + Math.random() * 1000;
-        const id = sec.toString(16).replace(/\./g, "").padEnd(14, "0");
-        return `${prefix}${id}${random ? `.${Math.trunc(Math.random() * 100000000)}` : ""}`;
-    }
-    function addProductSpecificationFunction() {
-        $("#add_product_specification_div").show();
-        $(".save_product_specification_btn").show();
-    }
-    function saveProductSpecificationFunction() {
-        var optionlabel = $(".add_label").val();
-        var optionvalue = $(".add_value").val();
-        $(".add_label").val('');
-        $(".add_value").val('');
-        if (optionlabel != '' && optionvalue != '') {
-            if (product_specification == null) {
-                product_specification = {};
-            }
-            product_specification[optionlabel] = optionvalue;
-            $(".product_specification").append('<div class="row add_product_specification_iteam_' + optionlabel + '" style="margin-top:5px;" id="add_product_specification_iteam_' + optionlabel + '"><div class="col-5"><input class="form-control" type="text" value="' + optionlabel + '" disabled ></div><div class="col-5"><input class="form-control" type="text" value="' + optionvalue + '" disabled ></div><div class="col-2"><button class="btn" type="button" onclick=deleteProductSpecificationSingle("' + optionlabel + '")><span class="mdi mdi-delete"></span></button></div></div>');
-        } else {
-            alert("Please enter Label and Value");
-        }
-    }
-    function deleteProductSpecificationSingle(index) {
-        delete product_specification[index];
-        $(".add_product_specification_iteam_" + index).addClass('hide');
-        delete product_specification[index];
-        $("#add_product_specification_iteam_" + index).hide();
-    }
-    // $(function() {
-    //     // Insert search input and tag container if not present
-    //     if ($('#food_category_search').length === 0) {
-    //         $('#food_category').before('<div id="selected_food_categories" class="mb-2"></div><input type="text" id="food_category_search" class="form-control mb-2" placeholder="Search categories...">');
-    //     }
-    $(document).ready(function() {
-        // Fix quantity input to prevent number rendering issues
-        $('.item_quantity').on('input', function() {
-            var value = parseInt($(this).val()) || -1;
-            if (value < -1) {
-                $(this).val(-1);
-            }
-        });
-
-        // 1. Filter dropdown options based on search
-        $('#food_category_search').on('keyup', function() {
-            var search = $(this).val().toLowerCase();
-            $('#food_category option').each(function() {
-                if ($(this).val() === "") {
-                    $(this).show();
-                    return;
-                }
-                var text = $(this).text().toLowerCase();
-                if (text.indexOf(search) > -1) {
-                    $(this).show();
+        function getCombinations(arr) {
+            if (arr.length) {
+                if (arr.length == 1) {
+                    return arr[0];
                 } else {
-                    $(this).hide();
+                    var result = [];
+                    var allCasesOfRest = getCombinations(arr.slice(1));
+                    for (var i = 0; i < allCasesOfRest.length; i++) {
+                        for (var j = 0; j < arr[0].length; j++) {
+                            result.push(arr[0][j] + '-' + allCasesOfRest[i]);
+                        }
+                    }
+                    return result;
                 }
+            }
+        }
+        function uniqid(prefix = "", random = false) {
+            const sec = Date.now() * 1000 + Math.random() * 1000;
+            const id = sec.toString(16).replace(/\./g, "").padEnd(14, "0");
+            return `${prefix}${id}${random ? `.${Math.trunc(Math.random() * 100000000)}` : ""}`;
+        }
+        function addProductSpecificationFunction() {
+            $("#add_product_specification_div").show();
+            $(".save_product_specification_btn").show();
+        }
+        function saveProductSpecificationFunction() {
+            var optionlabel = $(".add_label").val();
+            var optionvalue = $(".add_value").val();
+            $(".add_label").val('');
+            $(".add_value").val('');
+            if (optionlabel != '' && optionvalue != '') {
+                if (product_specification == null) {
+                    product_specification = {};
+                }
+                product_specification[optionlabel] = optionvalue;
+                $(".product_specification").append('<div class="row add_product_specification_iteam_' + optionlabel + '" style="margin-top:5px;" id="add_product_specification_iteam_' + optionlabel + '"><div class="col-5"><input class="form-control" type="text" value="' + optionlabel + '" disabled ></div><div class="col-5"><input class="form-control" type="text" value="' + optionvalue + '" disabled ></div><div class="col-2"><button class="btn" type="button" onclick=deleteProductSpecificationSingle("' + optionlabel + '")><span class="mdi mdi-delete"></span></button></div></div>');
+            } else {
+                alert("Please enter Label and Value");
+            }
+        }
+        function deleteProductSpecificationSingle(index) {
+            delete product_specification[index];
+            $(".add_product_specification_iteam_" + index).addClass('hide');
+            delete product_specification[index];
+            $("#add_product_specification_iteam_" + index).hide();
+        }
+        // $(function() {
+        //     // Insert search input and tag container if not present
+        //     if ($('#food_category_search').length === 0) {
+        //         $('#food_category').before('<div id="selected_food_categories" class="mb-2"></div><input type="text" id="food_category_search" class="form-control mb-2" placeholder="Search categories...">');
+        //     }
+        $(document).ready(function() {
+            // 1. Filter dropdown options based on search
+            $('#food_category_search').on('keyup', function() {
+                var search = $(this).val().toLowerCase();
+                $('#food_category option').each(function() {
+                    if ($(this).val() === "") {
+                        $(this).show();
+                        return;
+                    }
+                    var text = $(this).text().toLowerCase();
+                    if (text.indexOf(search) > -1) {
+                        $(this).show();
+                    } else {
+                        $(this).hide();
+                    }
+                });
+            });
+            // 2. When selecting from dropdown, add tag (multi-select support)
+            $('#food_category').on('change', function() {
+                updateSelectedFoodCategoryTags();
+            });
+
+            // 3. Remove tag and unselect in dropdown
+            $('#selected_food_categories').on('click', '.remove-tag', function() {
+                var value = $(this).parent().data('value');
+                $('#food_category option[value="' + value + '"]').prop('selected', false);
+                updateSelectedFoodCategoryTags();
             });
         });
-        // 2. When selecting from dropdown, add tag (multi-select support)
-        $('#food_category').on('change', function() {
-            updateSelectedFoodCategoryTags();
-        });
-
-        // 3. Remove tag and unselect in dropdown
-        $('#selected_food_categories').on('click', '.remove-tag', function() {
-            var value = $(this).parent().data('value');
-            $('#food_category option[value="' + value + '"]').prop('selected', false);
-            updateSelectedFoodCategoryTags();
-        });
-    });
 
         // 4. Update tags display
         function updateSelectedFoodCategoryTags() {
-        var selected = $('#food_category').val() || [];
-        var html = '';
-        $('#food_category option:selected').each(function() {
-            if ($(this).val() !== "") {
-                html += '<span class="selected-category-tag" data-value="' + $(this).val() + '">' +
-                    $(this).text() +
-                    '<span class="remove-tag">&times;</span></span>';
-            }
-        });
-        $('#selected_categories').html(html);
-    }
+            var selected = $('#food_category').val() || [];
+            var html = '';
+            $('#food_category option:selected').each(function() {
+                if ($(this).val() !== "") {
+                    html += '<span class="selected-category-tag" data-value="' + $(this).val() + '">' +
+                        $(this).text() +
+                        '<span class="remove-tag">&times;</span></span>';
+                }
+            });
+            $('#selected_categories').html(html);
+        }
 
-// Subcategory search and multi-select tag functionality
-$(document).ready(function() {
-    // 1. Filter dropdown options based on search
-    $('#food_subcategory_search').on('keyup', function() {
-        var search = $(this).val().toLowerCase();
-        $('#food_subcategory option').each(function() {
-            if ($(this).val() === "") {
-                $(this).show();
-                return;
-            }
-            var text = $(this).text().toLowerCase();
-            if (text.indexOf(search) > -1) {
-                $(this).show();
-            } else {
-                $(this).hide();
-            }
-        });
-    });
-
-    // 2. When selecting from dropdown, add tag (multi-select support)
-    $('#food_subcategory').on('change', function() {
-        updateSelectedSubcategoryTags();
-
-        // Auto-fetch section from selected subcategory
-        updateSectionFromSubcategory();
-    });
-
-    // 3. Remove tag and unselect in dropdown
-    $('#selected_subcategories').on('click', '.remove-tag', function() {
-        var value = $(this).parent().data('value');
-        $('#food_subcategory option[value="' + value + '"]').prop('selected', false);
-        updateSelectedSubcategoryTags();
-    });
-});
-
-// Function to update section from selected subcategory
-function updateSectionFromSubcategory() {
-    var selectedSubcategory = $('#food_subcategory').val();
-    if (selectedSubcategory && selectedSubcategory.length > 0) {
-        // Get the first selected subcategory
-        var subcategoryId = Array.isArray(selectedSubcategory) ? selectedSubcategory[0] : selectedSubcategory;
-
-        if (subcategoryId && subcategoryId !== '') {
-            console.log('🔍 Fetching section for subcategory ID:', subcategoryId);
-
-            // Fetch the subcategory document to get its parent category info
-            database.collection('mart_subcategories').doc(subcategoryId).get().then(function(doc) {
-                if (doc.exists) {
-                    var subcategoryData = doc.data();
-                    console.log('📋 Subcategory data:', subcategoryData);
-
-                    if (subcategoryData.parent_category_id) {
-                        // Fetch the parent category to get the section
-                        database.collection('mart_categories').doc(subcategoryData.parent_category_id).get().then(function(categoryDoc) {
-                            if (categoryDoc.exists) {
-                                var categoryData = categoryDoc.data();
-                                console.log('📋 Parent category data:', categoryData);
-
-                                var section = categoryData.section || 'General';
-                                $('#section_info').val(section);
-                                console.log('✅ Section updated to:', section);
-                            } else {
-                                console.warn('⚠️ Parent category not found');
-                                $('#section_info').val('General');
-                            }
-                        }).catch(function(error) {
-                            console.error('❌ Error fetching parent category:', error);
-                            $('#section_info').val('General');
-                        });
-                    } else {
-                        console.warn('⚠️ Subcategory has no parent category');
-                        $('#section_info').val('General');
+        // Subcategory search and multi-select tag functionality
+        $(document).ready(function() {
+            // 1. Filter dropdown options based on search
+            $('#food_subcategory_search').on('keyup', function() {
+                var search = $(this).val().toLowerCase();
+                $('#food_subcategory option').each(function() {
+                    if ($(this).val() === "") {
+                        $(this).show();
+                        return;
                     }
+                    var text = $(this).text().toLowerCase();
+                    if (text.indexOf(search) > -1) {
+                        $(this).show();
+                    } else {
+                        $(this).hide();
+                    }
+                });
+            });
+
+            // 2. When selecting from dropdown, add tag (multi-select support)
+            $('#food_subcategory').on('change', function() {
+                updateSelectedSubcategoryTags();
+            });
+
+            // 3. Remove tag and unselect in dropdown
+            $('#selected_subcategories').on('click', '.remove-tag', function() {
+                var value = $(this).parent().data('value');
+                $('#food_subcategory option[value="' + value + '"]').prop('selected', false);
+                updateSelectedSubcategoryTags();
+            });
+        });
+
+        function updateSelectedSubcategoryTags() {
+            var selected = $('#food_subcategory').val() || [];
+            var html = '';
+            $('#food_subcategory option:selected').each(function() {
+                if ($(this).val() !== "") {
+                    html += '<span class="selected-subcategory-tag" data-value="' + $(this).val() + '">' +
+                        $(this).text() +
+                        '<span class="remove-tag">&times;</span></span>';
+                }
+            });
+            $('#selected_subcategories').html(html);
+        }
+
+        // Options Management Functions
+        let optionsList = [];
+        let currentOptionId = null;
+
+        // Options loading is now handled after Firebase data is loaded
+
+        // Toggle options section
+        $(document).ready(function() {
+            $('.has_options').change(function() {
+                if ($(this).is(':checked')) {
+                    $('#options_config').show();
+                    $('#options_fieldset').show();
                 } else {
-                    console.warn('⚠️ Subcategory not found');
-                    $('#section_info').val('General');
+                    $('#options_config').hide();
+                    $('#options_fieldset').hide();
+                    $('.options-list').empty();
+                    optionsList = [];
+                    updateOptionsSummary();
                 }
-            }).catch(function(error) {
-                console.error('❌ Error fetching subcategory:', error);
-                $('#section_info').val('General');
             });
-        } else {
-            $('#section_info').val('');
+        });
+
+        function loadExistingOption(optionData, optionNumber) {
+            console.log('🔧 loadExistingOption called with:', optionData, 'optionNumber:', optionNumber);
+            const optionId = optionData.id || 'option_' + Date.now();
+            const template = $('#option_template .option-item').clone();
+            console.log('🔧 Template found:', template.length > 0);
+
+            template.attr('data-option-id', optionId);
+            template.find('.option-number').text(optionNumber);
+
+            // Populate fields with existing data
+            template.find('.option-type').val(optionData.option_type || 'size');
+            template.find('.option-title').val(optionData.option_title || '');
+            template.find('.option-subtitle').val(optionData.option_subtitle || '');
+            template.find('.option-price').val(optionData.price || 0);
+            template.find('.option-original-price').val(optionData.original_price || optionData.price || 0);
+            template.find('.option-quantity').val(optionData.quantity || optionData.weight || 0);
+            template.find('.option-quantity-unit').val(optionData.quantity_unit || 'g');
+            template.find('.option-unit-measure').val(optionData.unit_measure || 100);
+            template.find('.option-unit-price-display').val(optionData.unit_price_display || '');
+            template.find('.option-unit-price').val(optionData.unit_price || 0);
+            template.find('.option-discount').val(optionData.discount_amount || 0);
+            template.find('.option-available').prop('checked', optionData.is_available !== false);
+            template.find('.option-featured').prop('checked', optionData.is_featured === true);
+
+            // Load image if exists
+            if (optionData.image) {
+                template.find('.option-image-preview').html(
+                    `<img src="${optionData.image}" style="max-width: 100px; max-height: 100px; border-radius: 4px;">`
+                );
+            }
+
+            $('.options-list').append(template);
+            template.show();
+            console.log('🔧 Option template appended and shown. Total options in DOM:', $('.option-item').length);
+
+            // Add to options list
+            optionsList.push({
+                id: optionId,
+                type: optionData.option_type || 'size',
+                title: optionData.option_title || '',
+                subtitle: optionData.option_subtitle || '',
+                price: (optionData.price || '0').toString(), // String format to match sample
+                original_price: parseFloat(optionData.original_price) || parseFloat(optionData.price) || 0, // Number format to match sample
+                quantity: parseFloat(optionData.quantity) || parseFloat(optionData.weight) || 0,
+                quantity_unit: optionData.quantity_unit || 'g',
+                unit_measure: parseFloat(optionData.unit_measure) || 100,
+                unit_price: parseFloat(optionData.unit_price) || 0,
+                unit_price_display: optionData.unit_price_display || '',
+                discount_amount: parseFloat(optionData.discount_amount) || 0,
+                image: optionData.image || '',
+                is_available: optionData.is_available !== false,
+                is_featured: optionData.is_featured === true
+            });
+
+            console.log('🔧 Option added to optionsList. Total options:', optionsList.length);
+            attachOptionEventListeners(optionId);
         }
-    } else {
-        $('#section_info').val('');
-    }
-}
 
-function updateSelectedSubcategoryTags() {
-    var selected = $('#food_subcategory').val() || [];
-    var html = '';
-    $('#food_subcategory option:selected').each(function() {
-        if ($(this).val() !== "") {
-            html += '<span class="selected-subcategory-tag" data-value="' + $(this).val() + '">' +
-                $(this).text() +
-                '<span class="remove-tag">&times;</span></span>';
-        }
-    });
-    $('#selected_subcategories').html(html);
+        function addNewOption() {
+            const optionId = 'option_' + Date.now();
+            const template = $('#option_template .option-item').clone();
 
-    // Update section when subcategory tags change
-    updateSectionFromSubcategory();
-}
+            template.attr('data-option-id', optionId);
+            template.find('.option-number').text(optionsList.length + 1);
 
-// Options Management Functions
-let optionsList = [];
-let currentOptionId = null;
+            $('.options-list').append(template);
+            template.show();
 
-// Options loading is now handled after Firebase data is loaded
+            optionsList.push({
+                id: optionId,
+                type: 'size',
+                title: '',
+                subtitle: '',
+                price: 0,
+                original_price: 0,
+                quantity: 0,
+                quantity_unit: 'g',
+                unit_measure: 100,
+                unit_measure_type: 'g',
+                unit_price: 0,
+                unit_price_display: '',
+                discount_amount: 0,
+                image: '',
+                is_available: true,
+                is_featured: false
+            });
 
-// Toggle options section
-$(document).ready(function() {
-    $('.has_options').change(function() {
-        if ($(this).is(':checked')) {
-            $('#options_config').show();
-            $('#options_fieldset').show();
-        } else {
-            $('#options_config').hide();
-            $('#options_fieldset').hide();
-            $('.options-list').empty();
-            optionsList = [];
+            attachOptionEventListeners(optionId);
             updateOptionsSummary();
-        }
-    });
-});
-
-function loadExistingOption(optionData, optionNumber) {
-    console.log('🔧 loadExistingOption called with:', optionData, 'optionNumber:', optionNumber);
-    const optionId = optionData.id || 'option_' + Date.now();
-    const template = $('#option_template .option-item').clone();
-    console.log('🔧 Template found:', template.length > 0);
-
-    template.attr('data-option-id', optionId);
-    template.find('.option-number').text(optionNumber);
-
-    // Populate fields with existing data
-    template.find('.option-type').val(optionData.option_type || 'size');
-    template.find('.option-title').val(optionData.option_title || '');
-    template.find('.option-subtitle').val(optionData.option_subtitle || '');
-    template.find('.option-price').val(optionData.price || 0);
-    template.find('.option-original-price').val(optionData.original_price || optionData.price || 0);
-    template.find('.option-quantity').val(optionData.quantity || optionData.weight || 0);
-    template.find('.option-quantity-unit').val(optionData.quantity_unit || 'g');
-    template.find('.option-unit-measure').val(optionData.unit_measure || 100);
-    template.find('.option-unit-price-display').val(optionData.unit_price_display || '');
-    template.find('.option-unit-price').val(optionData.unit_price || 0);
-    template.find('.option-discount').val(optionData.discount_amount || 0);
-    template.find('.option-available').prop('checked', optionData.is_available !== false);
-    template.find('.option-featured').prop('checked', optionData.is_featured === true);
-
-    // Load image if exists
-    if (optionData.image) {
-        // Check if image is base64 or Firebase URL
-        if (optionData.image.startsWith('data:image/')) {
-            // Base64 image - display directly
-            template.find('.option-image-preview').html(
-                `<img src="${optionData.image}" style="max-width: 100px; max-height: 100px; border-radius: 4px;">`
-            );
-        } else {
-            // Firebase URL - check if it's accessible
-            template.find('.option-image-preview').html(
-                `<img src="${optionData.image}" style="max-width: 100px; max-height: 100px; border-radius: 4px;" onerror="this.onerror=null;this.src='${placeholderImage}';this.style.display='none';this.nextElementSibling.style.display='block';"><div style="display:none;color:#999;font-size:12px;">Image not accessible</div>`
-            );
-        }
-    }
-
-    $('.options-list').append(template);
-    template.show();
-    console.log('🔧 Option template appended and shown. Total options in DOM:', $('.option-item').length);
-
-    // Add to options list
-    optionsList.push({
-        id: optionId,
-        type: optionData.option_type || 'size',
-        title: optionData.option_title || '',
-        subtitle: optionData.option_subtitle || '',
-        price: parseFloat(optionData.price) || 0,
-        original_price: parseFloat(optionData.original_price) || parseFloat(optionData.price) || 0,
-        quantity: parseFloat(optionData.quantity) || parseFloat(optionData.weight) || 0,
-        quantity_unit: optionData.quantity_unit || 'g',
-        unit_measure: parseFloat(optionData.unit_measure) || 100,
-        unit_price: parseFloat(optionData.unit_price) || 0,
-        unit_price_display: optionData.unit_price_display || '',
-        discount_amount: parseFloat(optionData.discount_amount) || 0,
-        image: optionData.image || '',
-        is_available: optionData.is_available !== false,
-        is_featured: optionData.is_featured === true
-    });
-
-    console.log('🔧 Option added to optionsList. Total options:', optionsList.length);
-    attachOptionEventListeners(optionId);
-}
-
-function addNewOption() {
-    const optionId = 'option_' + Date.now();
-    const template = $('#option_template .option-item').clone();
-
-    template.attr('data-option-id', optionId);
-    template.find('.option-number').text(optionsList.length + 1);
-
-    $('.options-list').append(template);
-    template.show();
-
-    optionsList.push({
-        id: optionId,
-        type: 'size',
-        title: '',
-        subtitle: '',
-        price: 0,
-        original_price: 0,
-        quantity: 0,
-        quantity_unit: 'g',
-        unit_measure: 100,
-        unit_measure_type: 'g',
-        unit_price: 0,
-        unit_price_display: '',
-        discount_amount: 0,
-        image: '',
-        is_available: true,
-        is_featured: false
-    });
-
-    attachOptionEventListeners(optionId);
-    updateOptionsSummary();
-    updateDefaultOptionSelect();
-}
-
-function removeOption(button) {
-    const optionItem = $(button).closest('.option-item');
-    const optionId = optionItem.data('option-id');
-
-    // Remove from array
-    optionsList = optionsList.filter(opt => opt.id !== optionId);
-
-    // Remove from DOM
-    optionItem.remove();
-
-    updateOptionNumbers();
-    updateOptionsSummary();
-    updateDefaultOptionSelect();
-}
-
-function attachOptionEventListeners(optionId) {
-    const optionItem = $(`[data-option-id="${optionId}"]`);
-
-    // Make checkbox IDs unique for this option
-    const availableCheckbox = optionItem.find('.option-available');
-    const featuredCheckbox = optionItem.find('.option-featured');
-
-    // Update IDs to be unique
-    availableCheckbox.attr('id', `option_available_${optionId}`);
-    featuredCheckbox.attr('id', `option_featured_${optionId}`);
-
-    // Update labels to match new IDs
-    optionItem.find('label[for="option_available_placeholder"]').attr('for', `option_available_${optionId}`);
-    optionItem.find('label[for="option_featured_placeholder"]').attr('for', `option_featured_${optionId}`);
-
-    // Initialize checkbox states
-    const optionData = optionsList.find(opt => opt.id === optionId);
-    if (optionData) {
-        availableCheckbox.prop('checked', optionData.is_available !== false);
-        featuredCheckbox.prop('checked', optionData.is_featured === true);
-
-        // Apply initial visual states
-        if (optionData.is_available !== false) {
-            optionItem.addClass('option-enabled');
-        } else {
-            optionItem.addClass('option-disabled');
+            updateDefaultOptionSelect();
         }
 
-        if (optionData.is_featured === true) {
-            optionItem.addClass('option-featured-highlight');
-        }
-    }
+        function removeOption(button) {
+            const optionItem = $(button).closest('.option-item');
+            const optionId = optionItem.data('option-id');
 
-    // Update optionsList when form fields change
-    optionItem.find('.option-type').on('change', function() {
-        updateOptionInList(optionId, 'type', $(this).val());
-    });
+            // Remove from array
+            optionsList = optionsList.filter(opt => opt.id !== optionId);
 
-    optionItem.find('.option-title').on('input', function() {
-        updateOptionInList(optionId, 'title', $(this).val());
-        updateOptionsSummary();
-        updateDefaultOptionSelect();
-    });
+            // Remove from DOM
+            optionItem.remove();
 
-    optionItem.find('.option-subtitle').on('input', function() {
-        updateOptionInList(optionId, 'subtitle', $(this).val());
-    });
-
-    optionItem.find('.option-price').on('input', function() {
-        const price = parseFloat($(this).val()) || 0;
-        updateOptionInList(optionId, 'price', price);
-        calculateOptionCalculations(optionId);
-        updateOptionsSummary();
-    });
-
-    optionItem.find('.option-original-price').on('input', function() {
-        const originalPrice = parseFloat($(this).val()) || 0;
-        updateOptionInList(optionId, 'original_price', originalPrice);
-        calculateOptionCalculations(optionId);
-    });
-
-    optionItem.find('.option-quantity').on('input', function() {
-        let quantity = parseInt($(this).val()) || 0;
-
-        // Allow -1 for unlimited quantity
-        if (quantity < -1) {
-            quantity = -1;
-            $(this).val(-1);
+            updateOptionNumbers();
+            updateOptionsSummary();
+            updateDefaultOptionSelect();
         }
 
-        updateOptionInList(optionId, 'quantity', quantity);
-        calculateOptionCalculations(optionId);
-    });
-
-    optionItem.find('.option-quantity-unit').on('change', function() {
-        const unit = $(this).val();
-        updateOptionInList(optionId, 'quantity_unit', unit);
-        updateOptionInList(optionId, 'unit_measure_type', unit);
-        calculateOptionCalculations(optionId);
-    });
-
-    optionItem.find('.option-unit-measure').on('input', function() {
-        const unitMeasure = parseFloat($(this).val()) || 100;
-        updateOptionInList(optionId, 'unit_measure', unitMeasure);
-        calculateOptionCalculations(optionId);
-    });
-
-    optionItem.find('.option-available').on('change', function() {
-        const isChecked = $(this).is(':checked');
-        console.log('🔍 Option Available changed for', optionId, ':', isChecked);
-        updateOptionInList(optionId, 'is_available', isChecked);
-
-        // Visual feedback
-        if (isChecked) {
-            $(this).closest('.option-item').removeClass('option-disabled').addClass('option-enabled');
-        } else {
-            $(this).closest('.option-item').removeClass('option-enabled').addClass('option-disabled');
-        }
-    });
-
-    optionItem.find('.option-featured').on('change', function() {
-        const isFeatured = $(this).is(':checked');
-        console.log('🔍 Option Featured changed for', optionId, ':', isFeatured);
-        updateOptionInList(optionId, 'is_featured', isFeatured);
-
-        if (isFeatured) {
-            // Uncheck other featured options
-            $('.option-featured').not(this).prop('checked', false);
-            optionsList.forEach(opt => {
-                if (opt.id !== optionId) {
-                    opt.is_featured = false;
-                }
-            });
-
-            // Visual feedback
-            $('.option-item').removeClass('option-featured-highlight');
-            $(this).closest('.option-item').addClass('option-featured-highlight');
-        } else {
-            $(this).closest('.option-item').removeClass('option-featured-highlight');
-        }
-
-        updateOptionsSummary();
-        updateDefaultOptionSelect();
-    });
-
-    // Image upload
-    optionItem.find('.option-image-input').change(function() {
-        handleOptionImageUpload(this, optionId);
-    });
-}
-
-function updateOptionInList(optionId, field, value) {
-    const optionIndex = optionsList.findIndex(opt => opt.id === optionId);
-    if (optionIndex !== -1) {
-        optionsList[optionIndex][field] = value;
-    }
-}
-
-// Smart Auto-generation Functions
-function autoGenerateTitle(optionData) {
-    const { quantity, quantity_unit, option_type, unit_measure } = optionData;
-
-    switch(option_type) {
-        case 'pack':
-            return `Pack of ${quantity} (${unit_measure}${quantity_unit} each)`;
-        case 'bundle':
-            return `Bundle - ${quantity} ${quantity_unit}`;
-        case 'size':
-        case 'volume':
-            return `${quantity}${quantity_unit} Pack`;
-        case 'quantity':
-            return `${quantity} ${quantity_unit}`;
-        case 'addon':
-            return `Add-on: ${quantity} ${quantity_unit}`;
-        case 'variant':
-            return `Variant: ${quantity} ${quantity_unit}`;
-        default:
-            return `${quantity} ${quantity_unit}`;
-    }
-}
-
-function autoGenerateSubtitle(optionData) {
-    const { quantity, quantity_unit, option_type, unit_measure } = optionData;
-
-    switch(option_type) {
-        case 'pack':
-            const totalQuantity = quantity * unit_measure;
-            return `${unit_measure}${quantity_unit} × ${quantity} = ${totalQuantity}${quantity_unit} total`;
-        case 'bundle':
-            return `Mixed items bundle - ${quantity} pieces`;
-        case 'size':
-        case 'volume':
-            return `Single unit: ${quantity}${quantity_unit}`;
-        case 'quantity':
-            return `Individual pieces`;
-        case 'addon':
-            return `Extra item`;
-        case 'variant':
-            return `Special variant`;
-        default:
-            return `${quantity}${quantity_unit}`;
-    }
-}
-
-// Smart Validation System
-function validateAndEnhanceOption(optionData) {
-    const errors = [];
-    const warnings = [];
-    const autoCorrections = {};
-
-    // Price validation
-    if (optionData.price > optionData.original_price) {
-        errors.push('Price cannot be greater than Original Price');
-    }
-
-    // Quantity validation
-    if (optionData.quantity < -1) {
-        errors.push('Quantity cannot be less than -1 (unlimited)');
-        autoCorrections.quantity = -1;
-    }
-
-    // Auto-disable when quantity is 0
-    if (optionData.quantity === 0) {
-        autoCorrections.is_available = false;
-        warnings.push('Option automatically disabled due to zero quantity');
-    }
-
-    // Low stock warning (only for positive quantities)
-    if (optionData.quantity > 0 && optionData.quantity < 10) {
-        warnings.push('Low stock warning: Only ' + optionData.quantity + ' units remaining');
-    }
-
-    // Unlimited quantity info
-    if (optionData.quantity === -1) {
-        warnings.push('Unlimited quantity enabled (-1)');
-    }
-
-    // Unit compatibility check
-    const compatibleUnits = getCompatibleUnits(optionData.option_type);
-    if (!compatibleUnits.includes(optionData.quantity_unit)) {
-        warnings.push(`Unit "${optionData.quantity_unit}" may not be ideal for "${optionData.option_type}" type`);
-    }
-
-    return { errors, warnings, autoCorrections };
-}
-
-function getCompatibleUnits(optionType) {
-    const unitMap = {
-        'size': ['g', 'kg', 'mg'],
-        'volume': ['L', 'ml', 'cl'],
-        'quantity': ['pcs', 'units'],
-        'pack': ['pcs', 'units', 'dozen'],
-        'bundle': ['pcs', 'units', 'custom'],
-        'addon': ['pcs', 'units', 'custom'],
-        'variant': ['pcs', 'units', 'custom']
-    };
-    return unitMap[optionType] || ['pcs', 'units'];
-}
-
-// Smart Defaults System
-function getSmartUnitMeasureBase(quantity_unit) {
-    const smartDefaults = {
-        'g': { base: 100, description: 'per 100g' },
-        'kg': { base: 1, description: 'per kg' },
-        'mg': { base: 1000, description: 'per 1000mg' },
-        'L': { base: 1, description: 'per liter' },
-        'ml': { base: 100, description: 'per 100ml' },
-        'cl': { base: 10, description: 'per 10cl' },
-        'pcs': { base: 1, description: 'per piece' },
-        'units': { base: 1, description: 'per unit' },
-        'dozen': { base: 12, description: 'per dozen' },
-        'custom': { base: 100, description: 'per 100 units' }
-    };
-
-    return smartDefaults[quantity_unit] || { base: 100, description: 'per 100 units' };
-}
-
-function getOptionTypeDefaults(optionType) {
-    const defaults = {
-        'size': {
-            suggested_units: ['g', 'kg'],
-            default_unit: 'g',
-            unit_measure: 100,
-            description: 'Weight-based options'
-        },
-        'volume': {
-            suggested_units: ['L', 'ml'],
-            default_unit: 'ml',
-            unit_measure: 100,
-            description: 'Volume-based options'
-        },
-        'quantity': {
-            suggested_units: ['pcs', 'units'],
-            default_unit: 'pcs',
-            unit_measure: 1,
-            description: 'Count-based options'
-        },
-        'pack': {
-            suggested_units: ['pcs', 'dozen'],
-            default_unit: 'pcs',
-            unit_measure: 1,
-            description: 'Packaged options'
-        },
-        'bundle': {
-            suggested_units: ['pcs', 'custom'],
-            default_unit: 'pcs',
-            unit_measure: 1,
-            description: 'Mixed item bundles'
-        },
-        'addon': {
-            suggested_units: ['pcs', 'units'],
-            default_unit: 'pcs',
-            unit_measure: 1,
-            description: 'Additional items'
-        },
-        'variant': {
-            suggested_units: ['pcs', 'units'],
-            default_unit: 'pcs',
-            unit_measure: 1,
-            description: 'Product variants'
-        }
-    };
-
-    return defaults[optionType] || defaults['quantity'];
-}
-
-// Enhanced Calculation Engine
-function calculateOptionCalculations(optionId) {
-    const optionItem = $(`[data-option-id="${optionId}"]`);
-    const price = parseFloat(optionItem.find('.option-price').val()) || 0;
-    const quantity = parseFloat(optionItem.find('.option-quantity').val()) || 0;
-    const originalPrice = parseFloat(optionItem.find('.option-original-price').val()) || 0;
-    const unitMeasure = parseFloat(optionItem.find('.option-unit-measure').val()) || 100;
-    const quantityUnit = optionItem.find('.option-quantity-unit').val() || 'g';
-    const optionType = optionItem.find('.option-type').val();
-
-    // Enhanced unit price calculation
-    let unitPrice = 0;
-    let unitPriceDisplay = '';
-    let savingsPercentage = 0;
-    let savingsAmount = 0;
-
-    if (quantity > 0) {
-        switch(optionType) {
-            case 'size':
-            case 'volume':
-                // For size/volume, calculate per unit first
-                unitPrice = price / quantity;
-                // Show per unit price with unit measure base for display only
-                unitPriceDisplay = `₹${unitPrice.toFixed(2)}/${unitMeasure}${quantityUnit}`;
-                break;
-            case 'quantity':
-            case 'pack':
-            case 'bundle':
-                unitPrice = price / quantity;
-                const unitLabel = quantityUnit === 'pcs' ? 'piece' : quantityUnit;
-                unitPriceDisplay = `₹${unitPrice.toFixed(2)}/${unitLabel}`;
-                break;
-            default:
-                unitPrice = price / quantity;
-                unitPriceDisplay = `₹${unitPrice.toFixed(2)}/${quantityUnit}`;
-        }
-
-        optionItem.find('.option-unit-price-display').val(unitPriceDisplay);
-    }
-
-    // Enhanced discount calculation
-    if (originalPrice > 0 && originalPrice > price) {
-        savingsAmount = originalPrice - price;
-        savingsPercentage = ((savingsAmount / originalPrice) * 100);
-
-        optionItem.find('.option-discount').val(savingsAmount.toFixed(2));
-
-        // Add savings percentage display
-        const savingsDisplay = `Save ₹${savingsAmount.toFixed(2)} (${savingsPercentage.toFixed(1)}%)`;
-        if (optionItem.find('.option-savings-display').length) {
-            optionItem.find('.option-savings-display').val(savingsDisplay);
-        }
-    }
-
-    // Update in optionsList
-    updateOptionInList(optionId, 'unit_price', unitPrice);
-    updateOptionInList(optionId, 'discount_amount', savingsAmount);
-    updateOptionInList(optionId, 'savings_percentage', savingsPercentage);
-
-    // Auto-generate title and subtitle
-    const optionData = {
-        quantity: quantity,
-        quantity_unit: quantityUnit,
-        option_type: optionType,
-        unit_measure: unitMeasure
-    };
-
-    const autoTitle = autoGenerateTitle(optionData);
-    const autoSubtitle = autoGenerateSubtitle(optionData);
-
-    // Only auto-fill if fields are empty
-    if (!optionItem.find('.option-title').val()) {
-        optionItem.find('.option-title').val(autoTitle);
-        updateOptionInList(optionId, 'title', autoTitle);
-    }
-
-    if (!optionItem.find('.option-subtitle').val()) {
-        optionItem.find('.option-subtitle').val(autoSubtitle);
-        updateOptionInList(optionId, 'subtitle', autoSubtitle);
-    }
-
-    // Show validation feedback
-    showValidationFeedback(optionId, optionData);
-}
-
-// Validation Feedback Display
-function showValidationFeedback(optionId, optionData) {
-    const optionItem = $(`[data-option-id="${optionId}"]`);
-    const validation = validateAndEnhanceOption(optionData);
-
-    // Clear previous feedback
-    optionItem.find('.validation-feedback').remove();
-
-    // Create feedback container
-    let feedbackHtml = '<div class="validation-feedback mt-2">';
-
-    // Show errors
-    if (validation.errors.length > 0) {
-        feedbackHtml += '<div class="alert alert-danger alert-sm">';
-        feedbackHtml += '<i class="mdi mdi-alert-circle"></i> <strong>Errors:</strong><ul class="mb-0">';
-        validation.errors.forEach(error => {
-            feedbackHtml += `<li>${error}</li>`;
-        });
-        feedbackHtml += '</ul></div>';
-    }
-
-    // Show warnings
-    if (validation.warnings.length > 0) {
-        feedbackHtml += '<div class="alert alert-warning alert-sm">';
-        feedbackHtml += '<i class="mdi mdi-alert"></i> <strong>Warnings:</strong><ul class="mb-0">';
-        validation.warnings.forEach(warning => {
-            feedbackHtml += `<li>${warning}</li>`;
-        });
-        feedbackHtml += '</ul></div>';
-    }
-
-    // Show smart suggestions
-    const optionType = optionData.option_type;
-    if (optionType) {
-        const defaults = getOptionTypeDefaults(optionType);
-        feedbackHtml += '<div class="alert alert-info alert-sm">';
-        feedbackHtml += '<i class="mdi mdi-lightbulb-outline"></i> <strong>Smart Suggestions:</strong>';
-        feedbackHtml += `<div>${defaults.description}</div>`;
-        feedbackHtml += `<div>Suggested units: ${defaults.suggested_units.join(', ')}</div>`;
-        feedbackHtml += '</div>';
-    }
-
-    feedbackHtml += '</div>';
-
-    // Append feedback after the option item
-    optionItem.append(feedbackHtml);
-
-    // Apply auto-corrections
-    Object.keys(validation.autoCorrections).forEach(field => {
-        const value = validation.autoCorrections[field];
-        if (field === 'is_available') {
-            optionItem.find('.option-available').prop('checked', value);
-        } else {
-            optionItem.find(`.option-${field}`).val(value);
-        }
-    });
-}
-
-function handleOptionImageUpload(input, optionId) {
-    const file = input.files[0];
-    if (file) {
-        // Validate file type
-        if (!file.type.startsWith('image/')) {
-            alert('Please select a valid image file');
-            return;
-        }
-
-        // Validate file size (max 5MB)
-        if (file.size > 5 * 1024 * 1024) {
-            alert('Image size should be less than 5MB');
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = function(e) {
+        function attachOptionEventListeners(optionId) {
             const optionItem = $(`[data-option-id="${optionId}"]`);
 
-            // Create image element with error handling
-            const img = document.createElement('img');
-            img.src = e.target.result;
-            img.style.cssText = 'max-width: 100px; max-height: 100px; border-radius: 4px;';
-            img.onerror = function() {
-                this.style.display = 'none';
-                const errorDiv = this.nextElementSibling;
-                if (errorDiv) errorDiv.style.display = 'block';
-            };
+            // Initialize checkbox states
+            const optionData = optionsList.find(opt => opt.id === optionId);
+            if (optionData) {
+                optionItem.find('.option-available').prop('checked', optionData.is_available !== false);
+                optionItem.find('.option-featured').prop('checked', optionData.is_featured === true);
 
-            // Create error message div
-            const errorDiv = document.createElement('div');
-            errorDiv.style.cssText = 'display:none; color:#999; font-size:12px; margin-top:5px;';
-            errorDiv.textContent = 'Image not accessible';
+                // Apply initial visual states
+                if (optionData.is_available !== false) {
+                    optionItem.addClass('option-enabled');
+                } else {
+                    optionItem.addClass('option-disabled');
+                }
 
-            // Clear previous content and add new
-            optionItem.find('.option-image-preview').empty().append(img).append(errorDiv);
+                if (optionData.is_featured === true) {
+                    optionItem.addClass('option-featured-highlight');
+                }
+            }
 
-            // Store image data as base64
+            // Update optionsList when form fields change
+            optionItem.find('.option-type').on('change', function() {
+                updateOptionInList(optionId, 'type', $(this).val());
+            });
+
+            optionItem.find('.option-title').on('input', function() {
+                updateOptionInList(optionId, 'title', $(this).val());
+                updateOptionsSummary();
+                updateDefaultOptionSelect();
+            });
+
+            optionItem.find('.option-subtitle').on('input', function() {
+                updateOptionInList(optionId, 'subtitle', $(this).val());
+            });
+
+            optionItem.find('.option-price').on('input', function() {
+                const price = parseFloat($(this).val()) || 0;
+                updateOptionInList(optionId, 'price', price);
+                calculateOptionCalculations(optionId);
+                updateOptionsSummary();
+            });
+
+            optionItem.find('.option-original-price').on('input', function() {
+                const originalPrice = parseFloat($(this).val()) || 0;
+                updateOptionInList(optionId, 'original_price', originalPrice);
+                calculateOptionCalculations(optionId);
+            });
+
+            optionItem.find('.option-quantity').on('input', function() {
+                const quantity = parseFloat($(this).val()) || 0;
+                updateOptionInList(optionId, 'quantity', quantity);
+                calculateOptionCalculations(optionId);
+            });
+
+            optionItem.find('.option-quantity-unit').on('change', function() {
+                const unit = $(this).val();
+                updateOptionInList(optionId, 'quantity_unit', unit);
+                updateOptionInList(optionId, 'unit_measure_type', unit);
+                calculateOptionCalculations(optionId);
+            });
+
+            optionItem.find('.option-unit-measure').on('input', function() {
+                const unitMeasure = parseFloat($(this).val()) || 100;
+                updateOptionInList(optionId, 'unit_measure', unitMeasure);
+                calculateOptionCalculations(optionId);
+            });
+
+            optionItem.find('.option-available').on('change', function() {
+                const isChecked = $(this).is(':checked');
+                console.log('🔍 Option Available changed for', optionId, ':', isChecked);
+                updateOptionInList(optionId, 'is_available', isChecked);
+
+                // Visual feedback
+                if (isChecked) {
+                    $(this).closest('.option-item').removeClass('option-disabled').addClass('option-enabled');
+                } else {
+                    $(this).closest('.option-item').removeClass('option-enabled').addClass('option-disabled');
+                }
+            });
+
+            optionItem.find('.option-featured').on('change', function() {
+                const isFeatured = $(this).is(':checked');
+                console.log('🔍 Option Featured changed for', optionId, ':', isFeatured);
+                updateOptionInList(optionId, 'is_featured', isFeatured);
+
+                if (isFeatured) {
+                    // Uncheck other featured options
+                    $('.option-featured').not(this).prop('checked', false);
+                    optionsList.forEach(opt => {
+                        if (opt.id !== optionId) {
+                            opt.is_featured = false;
+                        }
+                    });
+
+                    // Visual feedback
+                    $('.option-item').removeClass('option-featured-highlight');
+                    $(this).closest('.option-item').addClass('option-featured-highlight');
+                } else {
+                    $(this).closest('.option-item').removeClass('option-featured-highlight');
+                }
+
+                updateOptionsSummary();
+                updateDefaultOptionSelect();
+            });
+
+            // Image upload
+            optionItem.find('.option-image-input').change(function() {
+                handleOptionImageUpload(this, optionId);
+            });
+        }
+
+        function updateOptionInList(optionId, field, value) {
             const optionIndex = optionsList.findIndex(opt => opt.id === optionId);
             if (optionIndex !== -1) {
-                optionsList[optionIndex].image = e.target.result;
-                console.log('✅ Option image stored as base64 for option:', optionId);
+                optionsList[optionIndex][field] = value;
             }
-        };
+        }
 
-        reader.onerror = function() {
-            alert('Error reading image file. Please try again.');
-        };
+        // Smart Auto-generation Functions
+        function autoGenerateTitle(optionData) {
+            const { quantity, quantity_unit, option_type, unit_measure } = optionData;
 
-        reader.readAsDataURL(file);
-    }
-}
+            switch(option_type) {
+                case 'pack':
+                    return `Pack of ${quantity} (${unit_measure}${quantity_unit} each)`;
+                case 'bundle':
+                    return `Bundle - ${quantity} ${quantity_unit}`;
+                case 'size':
+                case 'volume':
+                    return `${quantity}${quantity_unit} Pack`;
+                case 'quantity':
+                    return `${quantity} ${quantity_unit}`;
+                case 'addon':
+                    return `Add-on: ${quantity} ${quantity_unit}`;
+                case 'variant':
+                    return `Variant: ${quantity} ${quantity_unit}`;
+                default:
+                    return `${quantity} ${quantity_unit}`;
+            }
+        }
 
-function updateOptionNumbers() {
-    $('.option-item').each(function(index) {
-        $(this).find('.option-number').text(index + 1);
-    });
-}
+        function autoGenerateSubtitle(optionData) {
+            const { quantity, quantity_unit, option_type, unit_measure } = optionData;
 
-function updateOptionsSummary() {
-    if (optionsList.length > 0) {
-        const prices = optionsList.map(opt => opt.price).filter(p => p > 0);
-        const minPrice = Math.min(...prices);
-        const maxPrice = Math.max(...prices);
+            switch(option_type) {
+                case 'pack':
+                    const totalQuantity = quantity * unit_measure;
+                    return `${unit_measure}${quantity_unit} × ${quantity} = ${totalQuantity}${quantity_unit} total`;
+                case 'bundle':
+                    return `Mixed items bundle - ${quantity} pieces`;
+                case 'size':
+                case 'volume':
+                    return `Single unit: ${quantity}${quantity_unit}`;
+                case 'quantity':
+                    return `Individual pieces`;
+                case 'addon':
+                    return `Extra item`;
+                case 'variant':
+                    return `Special variant`;
+                default:
+                    return `${quantity}${quantity_unit}`;
+            }
+        }
 
-        $('.options-summary').show();
-        $('.summary-content').html(`
+        // Smart Validation System
+        function validateAndEnhanceOption(optionData) {
+            const errors = [];
+            const warnings = [];
+            const autoCorrections = {};
+
+            // Price validation
+            if (optionData.price > optionData.original_price) {
+                errors.push('Price cannot be greater than Original Price');
+            }
+
+            // Quantity validation
+            if (optionData.quantity < 0) {
+                errors.push('Quantity cannot be negative');
+                autoCorrections.quantity = 0;
+            }
+
+            // Auto-disable when quantity is 0
+            if (optionData.quantity === 0) {
+                autoCorrections.is_available = false;
+                warnings.push('Option automatically disabled due to zero quantity');
+            }
+
+            // Low stock warning
+            if (optionData.quantity > 0 && optionData.quantity < 10) {
+                warnings.push('Low stock warning: Only ' + optionData.quantity + ' units remaining');
+            }
+
+            // Unit compatibility check
+            const compatibleUnits = getCompatibleUnits(optionData.option_type);
+            if (!compatibleUnits.includes(optionData.quantity_unit)) {
+                warnings.push(`Unit "${optionData.quantity_unit}" may not be ideal for "${optionData.option_type}" type`);
+            }
+
+            return { errors, warnings, autoCorrections };
+        }
+
+        function getCompatibleUnits(optionType) {
+            const unitMap = {
+                'size': ['g', 'kg', 'mg'],
+                'volume': ['L', 'ml', 'cl'],
+                'quantity': ['pcs', 'units'],
+                'pack': ['pcs', 'units', 'dozen'],
+                'bundle': ['pcs', 'units', 'custom'],
+                'addon': ['pcs', 'units', 'custom'],
+                'variant': ['pcs', 'units', 'custom']
+            };
+            return unitMap[optionType] || ['pcs', 'units'];
+        }
+
+        // Smart Defaults System
+        function getSmartUnitMeasureBase(quantity_unit) {
+            const smartDefaults = {
+                'g': { base: 100, description: 'per 100g' },
+                'kg': { base: 1, description: 'per kg' },
+                'mg': { base: 1000, description: 'per 1000mg' },
+                'L': { base: 1, description: 'per liter' },
+                'ml': { base: 100, description: 'per 100ml' },
+                'cl': { base: 10, description: 'per 10cl' },
+                'pcs': { base: 1, description: 'per piece' },
+                'units': { base: 1, description: 'per unit' },
+                'dozen': { base: 12, description: 'per dozen' },
+                'custom': { base: 100, description: 'per 100 units' }
+            };
+
+            return smartDefaults[quantity_unit] || { base: 100, description: 'per 100 units' };
+        }
+
+        function getOptionTypeDefaults(optionType) {
+            const defaults = {
+                'size': {
+                    suggested_units: ['g', 'kg'],
+                    default_unit: 'g',
+                    unit_measure: 100,
+                    description: 'Weight-based options'
+                },
+                'volume': {
+                    suggested_units: ['L', 'ml'],
+                    default_unit: 'ml',
+                    unit_measure: 100,
+                    description: 'Volume-based options'
+                },
+                'quantity': {
+                    suggested_units: ['pcs', 'units'],
+                    default_unit: 'pcs',
+                    unit_measure: 1,
+                    description: 'Count-based options'
+                },
+                'pack': {
+                    suggested_units: ['pcs', 'dozen'],
+                    default_unit: 'pcs',
+                    unit_measure: 1,
+                    description: 'Packaged options'
+                },
+                'bundle': {
+                    suggested_units: ['pcs', 'custom'],
+                    default_unit: 'pcs',
+                    unit_measure: 1,
+                    description: 'Mixed item bundles'
+                },
+                'addon': {
+                    suggested_units: ['pcs', 'units'],
+                    default_unit: 'pcs',
+                    unit_measure: 1,
+                    description: 'Additional items'
+                },
+                'variant': {
+                    suggested_units: ['pcs', 'units'],
+                    default_unit: 'pcs',
+                    unit_measure: 1,
+                    description: 'Product variants'
+                }
+            };
+
+            return defaults[optionType] || defaults['quantity'];
+        }
+
+        // Enhanced Calculation Engine
+        function calculateOptionCalculations(optionId) {
+            const optionItem = $(`[data-option-id="${optionId}"]`);
+            const price = parseFloat(optionItem.find('.option-price').val()) || 0;
+            const quantity = parseFloat(optionItem.find('.option-quantity').val()) || 0;
+            const originalPrice = parseFloat(optionItem.find('.option-original-price').val()) || 0;
+            const unitMeasure = parseFloat(optionItem.find('.option-unit-measure').val()) || 100;
+            const quantityUnit = optionItem.find('.option-quantity-unit').val() || 'g';
+            const optionType = optionItem.find('.option-type').val();
+
+            // Enhanced unit price calculation
+            let unitPrice = 0;
+            let unitPriceDisplay = '';
+            let savingsPercentage = 0;
+            let savingsAmount = 0;
+
+            if (quantity > 0) {
+                switch(optionType) {
+                    case 'size':
+                    case 'volume':
+                        // For size/volume, calculate per unit first
+                        unitPrice = price / quantity;
+                        // Show per unit price with unit measure base for display only
+                        unitPriceDisplay = `₹${unitPrice.toFixed(2)}/${unitMeasure}${quantityUnit}`;
+                        break;
+                    case 'quantity':
+                    case 'pack':
+                    case 'bundle':
+                        unitPrice = price / quantity;
+                        const unitLabel = quantityUnit === 'pcs' ? 'piece' : quantityUnit;
+                        unitPriceDisplay = `₹${unitPrice.toFixed(2)}/${unitLabel}`;
+                        break;
+                    default:
+                        unitPrice = price / quantity;
+                        unitPriceDisplay = `₹${unitPrice.toFixed(2)}/${quantityUnit}`;
+                }
+
+                optionItem.find('.option-unit-price-display').val(unitPriceDisplay);
+            }
+
+            // Enhanced discount calculation
+            if (originalPrice > 0 && originalPrice > price) {
+                savingsAmount = originalPrice - price;
+                savingsPercentage = ((savingsAmount / originalPrice) * 100);
+
+                optionItem.find('.option-discount').val(savingsAmount.toFixed(2));
+
+                // Add savings percentage display
+                const savingsDisplay = `Save ₹${savingsAmount.toFixed(2)} (${savingsPercentage.toFixed(1)}%)`;
+                if (optionItem.find('.option-savings-display').length) {
+                    optionItem.find('.option-savings-display').val(savingsDisplay);
+                }
+            }
+
+            // Update in optionsList
+            updateOptionInList(optionId, 'unit_price', unitPrice);
+            updateOptionInList(optionId, 'discount_amount', savingsAmount);
+            updateOptionInList(optionId, 'savings_percentage', savingsPercentage);
+
+            // Auto-generate title and subtitle
+            const optionData = {
+                quantity: quantity,
+                quantity_unit: quantityUnit,
+                option_type: optionType,
+                unit_measure: unitMeasure
+            };
+
+            const autoTitle = autoGenerateTitle(optionData);
+            const autoSubtitle = autoGenerateSubtitle(optionData);
+
+            // Only auto-fill if fields are empty
+            if (!optionItem.find('.option-title').val()) {
+                optionItem.find('.option-title').val(autoTitle);
+                updateOptionInList(optionId, 'title', autoTitle);
+            }
+
+            if (!optionItem.find('.option-subtitle').val()) {
+                optionItem.find('.option-subtitle').val(autoSubtitle);
+                updateOptionInList(optionId, 'subtitle', autoSubtitle);
+            }
+
+            // Show validation feedback
+            showValidationFeedback(optionId, optionData);
+        }
+
+        // Validation Feedback Display
+        function showValidationFeedback(optionId, optionData) {
+            const optionItem = $(`[data-option-id="${optionId}"]`);
+            const validation = validateAndEnhanceOption(optionData);
+
+            // Clear previous feedback
+            optionItem.find('.validation-feedback').remove();
+
+            // Create feedback container
+            let feedbackHtml = '<div class="validation-feedback mt-2">';
+
+            // Show errors
+            if (validation.errors.length > 0) {
+                feedbackHtml += '<div class="alert alert-danger alert-sm">';
+                feedbackHtml += '<i class="mdi mdi-alert-circle"></i> <strong>Errors:</strong><ul class="mb-0">';
+                validation.errors.forEach(error => {
+                    feedbackHtml += `<li>${error}</li>`;
+                });
+                feedbackHtml += '</ul></div>';
+            }
+
+            // Show warnings
+            if (validation.warnings.length > 0) {
+                feedbackHtml += '<div class="alert alert-warning alert-sm">';
+                feedbackHtml += '<i class="mdi mdi-alert"></i> <strong>Warnings:</strong><ul class="mb-0">';
+                validation.warnings.forEach(warning => {
+                    feedbackHtml += `<li>${warning}</li>`;
+                });
+                feedbackHtml += '</ul></div>';
+            }
+
+            // Show smart suggestions
+            const optionType = optionData.option_type;
+            if (optionType) {
+                const defaults = getOptionTypeDefaults(optionType);
+                feedbackHtml += '<div class="alert alert-info alert-sm">';
+                feedbackHtml += '<i class="mdi mdi-lightbulb-outline"></i> <strong>Smart Suggestions:</strong>';
+                feedbackHtml += `<div>${defaults.description}</div>`;
+                feedbackHtml += `<div>Suggested units: ${defaults.suggested_units.join(', ')}</div>`;
+                feedbackHtml += '</div>';
+            }
+
+            feedbackHtml += '</div>';
+
+            // Append feedback after the option item
+            optionItem.append(feedbackHtml);
+
+            // Apply auto-corrections
+            Object.keys(validation.autoCorrections).forEach(field => {
+                const value = validation.autoCorrections[field];
+                if (field === 'is_available') {
+                    optionItem.find('.option-available').prop('checked', value);
+                } else {
+                    optionItem.find(`.option-${field}`).val(value);
+                }
+            });
+        }
+
+        function handleOptionImageUpload(input, optionId) {
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const optionItem = $(`[data-option-id="${optionId}"]`);
+                    optionItem.find('.option-image-preview').html(
+                        `<img src="${e.target.result}" style="max-width: 100px; max-height: 100px; border-radius: 4px;">`
+                    );
+
+                    // Store image data
+                    const optionIndex = optionsList.findIndex(opt => opt.id === optionId);
+                    if (optionIndex !== -1) {
+                        optionsList[optionIndex].image = e.target.result;
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function updateOptionNumbers() {
+            $('.option-item').each(function(index) {
+                $(this).find('.option-number').text(index + 1);
+            });
+        }
+
+        function updateOptionsSummary() {
+            if (optionsList.length > 0) {
+                const prices = optionsList.map(opt => opt.price).filter(p => p > 0);
+                const minPrice = Math.min(...prices);
+                const maxPrice = Math.max(...prices);
+
+                $('.options-summary').show();
+                $('.summary-content').html(`
             <div class="row">
                 <div class="col-md-4">
                     <strong>Price Range:</strong> ₹${minPrice} - ₹${maxPrice}
@@ -2614,69 +2447,19 @@ function updateOptionsSummary() {
                 </div>
             </div>
         `);
-    } else {
-        $('.options-summary').hide();
-    }
-}
-
-function updateDefaultOptionSelect() {
-    const select = $('#default_option');
-    select.empty();
-    select.append('<option value="">Select default option</option>');
-
-    optionsList.forEach(option => {
-        select.append(`<option value="${option.id}">${option.title}</option>`);
-    });
-}
-
-// Filter subcategories based on selected categories
-function filterSubcategoriesByCategories() {
-    var selectedCategories = $('#food_category').val() || [];
-    console.log('🔍 Filtering subcategories for selected categories:', selectedCategories);
-
-    if (selectedCategories.length === 0) {
-        $('#food_subcategory option').show();
-        return;
-    }
-
-    $('#food_subcategory option').each(function() {
-        var $option = $(this);
-        var parentCategoryId = $option.attr('data-parent');
-
-        if ($option.val() === "") {
-            $option.show();
-        } else if (parentCategoryId && selectedCategories.includes(parentCategoryId)) {
-            $option.show();
-            console.log('✅ Showing subcategory:', $option.text(), 'for parent:', parentCategoryId);
-        } else {
-            $option.hide();
-            console.log('❌ Hiding subcategory:', $option.text(), 'for parent:', parentCategoryId);
+            } else {
+                $('.options-summary').hide();
+            }
         }
-    });
 
-    $('#food_subcategory option:selected').each(function() {
-        if (!$(this).is(':visible') && $(this).val() !== "") {
-            $(this).prop('selected', false);
-            console.log('🗑️ Deselected hidden subcategory:', $(this).text());
+        function updateDefaultOptionSelect() {
+            const select = $('#default_option');
+            select.empty();
+            select.append('<option value="">Select default option</option>');
+
+            optionsList.forEach(option => {
+                select.append(`<option value="${option.id}">${option.title}</option>`);
+            });
         }
-    });
-
-    updateSelectedSubcategoryTags();
-}
-
-// Add event listeners for category changes
-$(document).ready(function() {
-    $('#food_category').on('change', function() {
-        updateSelectedFoodCategoryTags();
-        filterSubcategoriesByCategories();
-    });
-
-    $('#selected_food_categories').on('click', '.remove-tag', function() {
-        var value = $(this).parent().data('value');
-        $('#food_category option[value="' + value + '"]').prop('selected', false);
-        updateSelectedFoodCategoryTags();
-        filterSubcategoriesByCategories();
-    });
-});
     </script>
 @endsection
