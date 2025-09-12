@@ -290,8 +290,9 @@ $(document).ready(function () {
         return;
     }
     
-    // Validate restaurant/vendor selection
-    if (!resturant_id || resturant_id === '') {
+    // Validate restaurant/vendor selection - get current selected value
+    var currentRestaurantId = $("#vendor_restaurant_select option:selected").val();
+    if (!currentRestaurantId || currentRestaurantId === '') {
         $(".error_top").show();
         $(".error_top").html("");
         $(".error_top").append("<p>Please select a restaurant/vendor or choose 'All " + couponType + "s'.</p>");
@@ -338,7 +339,7 @@ $(document).ready(function () {
                         'id': id,
                         'discountType': discountType,
                         'image': IMG,
-                        'resturant_id': resturant_id,
+                        'resturant_id': currentRestaurantId,
                         'cType': couponType,
                         'isPublic': isPublic,
                         'item_value': item_value,

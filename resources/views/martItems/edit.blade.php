@@ -1019,6 +1019,18 @@
 
                 jQuery("#data-table_processing").hide();
             })
+            
+            // Random review generation functions
+            function generateRandomReviewCount() {
+                // Generate random number between 70 and 130
+                return Math.floor(Math.random() * (130 - 70 + 1)) + 70;
+            }
+            
+            function generateRandomReviewSum() {
+                // Generate random number between 4.8 and 5.0 with 1 decimal place
+                return (Math.random() * (5.0 - 4.8) + 4.8).toFixed(1);
+            }
+            
             $(".edit-form-btn").click( async function () {
                 var name = $(".food_name").val();
                 var price = $(".food_price").val();
@@ -1259,9 +1271,9 @@
                             // 'photos': [], // REMOVED: Not needed for mobile app compatibility
                             'isAvailable': Boolean(foodIsAvailable), // Boolean format to match sample
                             
-                            // Review fields - string format to match create.blade.php
-                            'reviewCount': '0', // String format to match create.blade.php
-                            'reviewSum': '0', // String format to match create.blade.php
+                            // Review fields - Generate random realistic values
+                            'reviewCount': generateRandomReviewCount().toString(), // Random review count (70-130)
+                            'reviewSum': generateRandomReviewSum().toString(), // Random review sum (4.8-5.0)
                             
                             // Enhanced Filter Fields - matching create.blade.php
                             'isSpotlight': Boolean(isSpotlight), // Boolean format to match create.blade.php

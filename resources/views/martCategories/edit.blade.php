@@ -164,9 +164,44 @@ $(document).ready(function () {
             category_order: category.category_order || 1
         });
         
+        // Function to fix invalid Firebase photo URLs
+        function fixCategoryPhotoUrl(photoUrl) {
+            if (!photoUrl || photoUrl === '' || photoUrl === null) {
+                return null;
+            }
+            
+            // Check if URL contains the problematic /media/ path (with or without extension)
+            if (photoUrl.includes('/media%2Fmedia_') || photoUrl.includes('/media/media_')) {
+                console.log('🔧 Fixing invalid photo URL:', photoUrl);
+                
+                // Extract the filename from the URL
+                const urlParts = photoUrl.split('/o/');
+                if (urlParts.length > 1) {
+                    const pathAndParams = urlParts[1];
+                    const pathPart = pathAndParams.split('?')[0];
+                    const decodedPath = decodeURIComponent(pathPart);
+                    
+                    // Replace /media/ with /images/ and add .jpg extension
+                    let fixedPath = decodedPath.replace('/media/', '/images/');
+                    if (!fixedPath.endsWith('.jpg') && !fixedPath.endsWith('.png') && !fixedPath.endsWith('.jpeg')) {
+                        fixedPath += '.jpg';
+                    }
+                    
+                    // Reconstruct the URL
+                    const encodedPath = encodeURIComponent(fixedPath);
+                    const newUrl = urlParts[0] + '/o/' + encodedPath + '?' + pathAndParams.split('?')[1];
+                    
+                    console.log('✅ Fixed photo URL:', newUrl);
+                    return newUrl;
+                }
+            }
+            
+            return photoUrl; // Return original URL if no fix needed
+        }
+
         if (category.photo != '' && category.photo != null) {
-            photo = category.photo;
-            catImageFile = category.photo;
+            photo = fixCategoryPhotoUrl(category.photo);
+            catImageFile = photo;
             $(".cat_image").append('<img onerror="this.onerror=null;this.src=\'' + placeholderImage + '\'" class="rounded" style="width:50px" src="' + photo + '" alt="image">');
             console.log('🖼️ Category image loaded:', photo);
         } else {

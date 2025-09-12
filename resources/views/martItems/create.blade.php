@@ -633,6 +633,18 @@
         });
 
         jQuery("#data-table_processing").hide();
+        
+        // Random review generation functions
+        function generateRandomReviewCount() {
+            // Generate random number between 70 and 130
+            return Math.floor(Math.random() * (130 - 70 + 1)) + 70;
+        }
+        
+        function generateRandomReviewSum() {
+            // Generate random number between 4.8 and 5.0 with 1 decimal place
+            return (Math.random() * (5.0 - 4.8) + 4.8).toFixed(1);
+        }
+        
         $(".save-form-btn").click(async function() {
             console.log('🔍 Save button clicked - starting validation...');
 
@@ -942,9 +954,9 @@
                     veg: veg,
                     takeawayOption: foodTakeaway,
 
-                    // Review fields
-                    reviewCount: '0', // Default review count as string
-                    reviewSum: '0', // Default review sum as string
+                    // Review fields - Generate random realistic values
+                    reviewCount: generateRandomReviewCount().toString(), // Random review count (70-130)
+                    reviewSum: generateRandomReviewSum().toString(), // Random review sum (4.8-5.0)
 
                     // Enhanced Filter Fields
                     isSpotlight: isSpotlight,

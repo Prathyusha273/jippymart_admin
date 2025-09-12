@@ -88,7 +88,7 @@ function slugify(text) {
 }
 
 var database = firebase.firestore();
-var storageRef = firebase.storage().ref('media');
+var storageRef = firebase.storage().ref('images');
 var photo = "";
 var imageName = "";
 var imagePath = "";

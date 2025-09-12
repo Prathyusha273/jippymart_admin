@@ -253,8 +253,20 @@ class MartCategoryController extends Controller
         }
 
         try {
-            // If input is already a full image_path URL, return it directly
+            // If input is already a full image_path URL, validate and normalize path
             if (filter_var($imageInput, FILTER_VALIDATE_URL) && strpos($imageInput, 'firebasestorage.googleapis.com') !== false) {
+                // Fix /media/ paths to /images/ paths
+                if (strpos($imageInput, '/media/') !== false) {
+                    $imageInput = str_replace('/media/', '/images/', $imageInput);
+                    \Log::info('Fixed media path in bulk import: ' . $imageInput);
+                }
+                
+                // Add .jpg extension if missing
+                if (!preg_match('/\.(jpg|jpeg|png|gif)$/i', $imageInput)) {
+                    $imageInput .= '.jpg';
+                    \Log::info('Added .jpg extension to URL: ' . $imageInput);
+                }
+                
                 return $imageInput;
             }
 
@@ -289,7 +301,18 @@ class MartCategoryController extends Controller
             \Log::warning('Media lookup failed for: ' . $imageInput . ' - ' . $e->getMessage());
         }
 
-        // If no media found, return the input as-is (might be a placeholder or direct URL)
+        // If no media found, normalize the input path before returning
+        if (strpos($imageInput, '/media/') !== false) {
+            $imageInput = str_replace('/media/', '/images/', $imageInput);
+            \Log::info('Fixed media path in fallback: ' . $imageInput);
+        }
+        
+        // Add .jpg extension if missing and it looks like a filename
+        if (!preg_match('/\.(jpg|jpeg|png|gif)$/i', $imageInput) && !filter_var($imageInput, FILTER_VALIDATE_URL)) {
+            $imageInput .= '.jpg';
+            \Log::info('Added .jpg extension to filename: ' . $imageInput);
+        }
+        
         return $imageInput;
     }
 

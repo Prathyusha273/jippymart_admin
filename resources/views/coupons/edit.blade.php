@@ -317,7 +317,7 @@ $(document).ready(function () {
         var isPublic = $(".coupon_public").is(":checked");
         var discountType = $("#coupon_discount_type").val();
         var couponType = $("#coupon_type").val();
-        var resturant_id = $("#vendor_restaurant_select option:selected").val();
+        var currentRestaurantId = $("#vendor_restaurant_select option:selected").val();
         var couponId = "<?php echo $id; ?>";
         if (discountType === 'Percentage' && (discount < 0 || discount > 100)) {
             $(".error_top").show();
@@ -377,7 +377,7 @@ $(document).ready(function () {
                         'id': couponId,
                         'discountType': discountType,
                         'image': IMG,
-                        'resturant_id': resturant_id,
+                        'resturant_id': currentRestaurantId,
                         'cType': couponType,
                         'isPublic': isPublic,
                         'item_value': item_value,

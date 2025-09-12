@@ -90,7 +90,7 @@ function slugify(text) {
 var id = "{{ $id ?? '' }}";
 var database = firebase.firestore();
 var ref = database.collection('media').doc(id);
-var storageRef = firebase.storage().ref('media');
+var storageRef = firebase.storage().ref('images');
 var photo = "";
 var imageName = "";
 var imagePath = "";

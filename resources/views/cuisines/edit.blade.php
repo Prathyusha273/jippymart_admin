@@ -110,12 +110,24 @@ var placeholderImage = '';
 var placeholder = database.collection('settings').doc('placeHolderImage');
 var ref_review_attributes = database.collection('review_attributes');
 var cuisines = '';
-var storageRef = firebase.storage().ref('images');
-var storage = firebase.storage();
-placeholder.get().then(async function (snapshotsimage) {
-    var placeholderImageData = snapshotsimage.data();
-    placeholderImage = placeholderImageData.image;
-})
+    var storageRef = firebase.storage().ref('images');
+    var storage = firebase.storage();
+    
+    // Random review generation functions
+    function generateRandomReviewCount() {
+        // Generate random number between 70 and 130
+        return Math.floor(Math.random() * (130 - 70 + 1)) + 70;
+    }
+    
+    function generateRandomReviewSum() {
+        // Generate random number between 4.8 and 5.0 with 1 decimal place
+        return (Math.random() * (5.0 - 4.8) + 4.8).toFixed(1);
+    }
+    
+    placeholder.get().then(async function (snapshotsimage) {
+        var placeholderImageData = snapshotsimage.data();
+        placeholderImage = placeholderImageData.image;
+    })
 $(document).ready(function () {
     jQuery("#data-table_processing").show();
     ref.get().then(async function (doc) {
@@ -193,6 +205,9 @@ $(document).ready(function () {
                 'review_attributes': review_attributes,
                 'publish': item_publish,
                 'show_in_homepage': show_in_homepage,
+                // Review fields - Generate random realistic values
+                'reviewCount': generateRandomReviewCount().toString(), // Random review count (70-130)
+                'reviewSum': generateRandomReviewSum().toString(), // Random review sum (4.8-5.0)
                             }).then(async function (result) {
                     console.log('✅ Cuisine updated successfully, now logging activity...');
                     

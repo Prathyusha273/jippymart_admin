@@ -156,6 +156,41 @@
     if ($.inArray('mart-categories.delete', user_permissions) >= 0) {
         checkDeletePermission = true;
     }
+    // Function to fix invalid Firebase photo URLs
+    function fixCategoryPhotoUrl(photoUrl) {
+        if (!photoUrl || photoUrl === '' || photoUrl === null) {
+            return null;
+        }
+        
+        // Check if URL contains the problematic /media/ path (with or without extension)
+        if (photoUrl.includes('/media%2Fmedia_') || photoUrl.includes('/media/media_')) {
+            console.log('🔧 Fixing invalid photo URL:', photoUrl);
+            
+            // Extract the filename from the URL
+            const urlParts = photoUrl.split('/o/');
+            if (urlParts.length > 1) {
+                const pathAndParams = urlParts[1];
+                const pathPart = pathAndParams.split('?')[0];
+                const decodedPath = decodeURIComponent(pathPart);
+                
+                // Replace /media/ with /images/ and add .jpg extension
+                let fixedPath = decodedPath.replace('/media/', '/images/');
+                if (!fixedPath.endsWith('.jpg') && !fixedPath.endsWith('.png') && !fixedPath.endsWith('.jpeg')) {
+                    fixedPath += '.jpg';
+                }
+                
+                // Reconstruct the URL
+                const encodedPath = encodeURIComponent(fixedPath);
+                const newUrl = urlParts[0] + '/o/' + encodedPath + '?' + pathAndParams.split('?')[1];
+                
+                console.log('✅ Fixed photo URL:', newUrl);
+                return newUrl;
+            }
+        }
+        
+        return photoUrl; // Return original URL if no fix needed
+    }
+
     $(document).ready(function () {
         jQuery("#data-table_processing").show();
         var placeholder = database.collection('settings').doc('placeHolderImage');
@@ -245,7 +280,9 @@
                         route1 = route1.replace(':id', id);
                         var url = '{{url("mart-items?categoryID=id")}}';
                         url = url.replace("id", id);
-                        var ImageHtml=childData.photo == '' || childData.photo == null ? '<img alt="" width="100%" style="width:70px;height:70px;" src="' + placeholderImage + '" alt="image">' : '<img onerror="this.onerror=null;this.src=\'' + placeholderImage + '\'" alt="" width="100%" style="width:70px;height:70px;" src="' + childData.photo + '" alt="image">'
+                        // Fix photo URL if needed
+                        var fixedPhotoUrl = fixCategoryPhotoUrl(childData.photo);
+                        var ImageHtml=childData.photo == '' || childData.photo == null ? '<img alt="" width="100%" style="width:70px;height:70px;" src="' + placeholderImage + '" alt="image">' : '<img onerror="this.onerror=null;this.src=\'' + placeholderImage + '\'" alt="" width="100%" style="width:70px;height:70px;" src="' + fixedPhotoUrl + '" alt="image">'
                         var subcategoryLink = '{{ route("mart-subcategories.index", ["category_id" => ":category_id"]) }}'.replace(':category_id', childData.id);
                         var subcategoryCount = childData.subcategories_count || 0;
                         var hasSubcategories = childData.has_subcategories || false;
