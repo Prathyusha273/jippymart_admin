@@ -591,6 +591,10 @@ return [
 
     'deliveryCharge' => "Delivery Charge",
 
+    'mart_delivery_charge' => "Mart Delivery Charge",
+
+    'martdeliveryCharge' => "Mart Delivery Charge",
+
     'documentVerification' => "Document Verification",
 
     'document-verify' => "Document Verify",

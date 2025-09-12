@@ -11,11 +11,9 @@
                 <li class="breadcrumb-item active">{{trans('lang.brands')}}</li>
             </ol>
         </div>
-        <div>
-        </div>
     </div>
     <div class="container-fluid">
-       <div class="admin-top-section"> 
+       <div class="admin-top-section">
         <div class="row">
             <div class="col-12">
                 <div class="d-flex top-title-section pb-4 justify-content-between">
@@ -30,10 +28,9 @@
                     </div>
                 </div>
             </div>
-        </div> 
-      
+        </div>
        </div>
-       @if(session('success'))
+        @if(session('success'))
     <div class="alert alert-success">{{ session('success') }}</div>
 @endif
 @if($errors->any())
@@ -45,7 +42,6 @@
         </ul>
     </div>
 @endif
-
 <div class="row mb-4">
     <div class="col-12">
         <div class="card border">
@@ -97,10 +93,10 @@
                     <p class="mb-0 text-dark-2">{{trans('lang.brands_table_text')}}</p>
                    </div>
                    <div class="card-header-right d-flex align-items-center">
-                    <div class="card-header-btn mr-3"> 
+                    <div class="card-header-btn mr-3">
                         <a class="btn-primary btn rounded-full" href="{!! route('brands.create') !!}"><i class="mdi mdi-plus mr-2"></i>{{trans('lang.add_brand')}}</a>
                      </div>
-                   </div>                
+                   </div>
                  </div>
                  <div class="card-body">
                          <div class="table-responsive m-t-10">
@@ -165,7 +161,7 @@
                 }
                 ref.get().then(async function (querySnapshot) {
                     if (querySnapshot.empty) {
-                        $('.brand_count').text(0);    
+                        $('.brand_count').text(0);
                         console.error("No data found in Firestore.");
                         $('#data-table_processing').hide(); // Hide loader
                         callback({
@@ -177,7 +173,7 @@
                         return;
                     }
                     let records = [];
-                    let filteredRecords = [];    
+                    let filteredRecords = [];
                     await Promise.all(querySnapshot.docs.map(async (doc) => {
                         let childData = doc.data();
                         childData.id = doc.id; // Ensure the document ID is included in the data
@@ -199,7 +195,7 @@
                         if (orderByField === 'status') {
                             aValue = a[orderByField] ? 1 : 0;
                             bValue = b[orderByField] ? 1 : 0;
-                        }                        
+                        }
                         if (orderDirection === 'asc') {
                             return (aValue > bValue) ? 1 : -1;
                         } else {
@@ -207,7 +203,7 @@
                         }
                     });
                     const totalRecords = filteredRecords.length;
-                    $('.brand_count').text(totalRecords);    
+                    $('.brand_count').text(totalRecords);
                     filteredRecords.slice(start, start + length).forEach(function (childData) {
                         var id = childData.id;
                         var route1 = '{{route("brands.edit",":id")}}';
@@ -220,7 +216,7 @@
                             ImageHtml,
                             childData.description || '-',
                             childData.status ? '<label class="switch"><input type="checkbox" checked id="' + childData.id + '" name="isSwitch"><span class="slider round"></span></label>' : '<label class="switch"><input type="checkbox" id="' + childData.id + '" name="isSwitch"><span class="slider round"></span></label>',
-                            '<span class="action-btn"><a href="' + route1 + '"><i class="mdi mdi-lead-pencil" title="Edit"></i></a>' + (checkDeletePermission ? ' <a id="' + childData.id + '" name="brand-delete" class="delete-btn" href="javascript:void(0)"><i class="mdi mdi-delete"></i></a>' : '') + '</span>'                           
+                            '<span class="action-btn"><a href="' + route1 + '"><i class="mdi mdi-lead-pencil" title="Edit"></i></a>' + (checkDeletePermission ? ' <a id="' + childData.id + '" name="brand-delete" class="delete-btn" href="javascript:void(0)"><i class="mdi mdi-delete"></i></a>' : '') + '</span>'
                         ]);
                     });
                     $('#data-table_processing').hide(); // Hide loader
@@ -240,7 +236,7 @@
                         data: [] // No data due to error
                     });
                 });
-            },           
+            },
             order: (checkDeletePermission) ? [1, 'asc'] : [0,'asc'],
             columnDefs: [
                 { orderable: false, targets: (checkDeletePermission) ? [0,2,6] : [2, 5] },
@@ -275,7 +271,7 @@
         var id = this.id;
         var brandTitle = '';
         var logoUrl = '';
-        
+
         try {
             var doc = await database.collection('brands').doc(id).get();
             if (doc.exists) {
@@ -286,10 +282,10 @@
         } catch (error) {
             console.error('Error getting brand data:', error);
         }
-        
+
         if (confirm("{{trans('lang.are_you_sure')}}")) {
             jQuery("#data-table_processing").show();
-            
+
             try {
                 // Delete logo from storage if exists
                 if (logoUrl && logoUrl !== '') {
@@ -301,11 +297,11 @@
                         console.log('⚠️ Could not delete logo from storage:', storageError);
                     }
                 }
-                
+
                 // Delete document from Firestore
                 await database.collection('brands').doc(id).delete();
                 console.log('✅ Brand deleted from Firestore');
-                
+
                 // Log activity
                 try {
                     if (typeof logActivity === 'function') {
@@ -315,11 +311,11 @@
                 } catch (error) {
                     console.error('❌ Error logging activity:', error);
                 }
-                
+
                 // Reload table data instead of full page reload
                 $('#brandsTable').DataTable().ajax.reload();
                 jQuery("#data-table_processing").hide();
-                
+
             } catch (error) {
                 console.error('❌ Error deleting brand:', error);
                 alert('Error deleting brand. Please try again.');
@@ -336,7 +332,7 @@
                 jQuery("#data-table_processing").show();
                 var selectedBrands = [];
                 var selectedIds = [];
-                
+
                 // Collect brand data
                 for (let i = 0; i < $('#brandsTable .is_open:checked').length; i++) {
                     var dataId = $('#brandsTable .is_open:checked').eq(i).attr('dataId');
@@ -350,7 +346,7 @@
                         console.error('Error getting brand title:', error);
                     }
                 }
-                
+
                 try {
                     // Delete all brands in parallel for better performance
                     var deletePromises = selectedIds.map(async (dataId) => {
@@ -361,7 +357,7 @@
                             if (doc.exists) {
                                 logoUrl = doc.data().logo_url || '';
                             }
-                            
+
                             // Delete logo from storage if exists
                             if (logoUrl && logoUrl !== '') {
                                 try {
@@ -371,7 +367,7 @@
                                     console.log('⚠️ Could not delete logo from storage for brand:', dataId);
                                 }
                             }
-                            
+
                             // Delete document from Firestore
                             await database.collection('brands').doc(dataId).delete();
                             return true;
@@ -380,11 +376,11 @@
                             return false;
                         }
                     });
-                    
+
                     // Wait for all deletions to complete
                     await Promise.all(deletePromises);
                     console.log('✅ Bulk brand deletion completed');
-                    
+
                     // Log activity
                     try {
                         if (typeof logActivity === 'function') {
@@ -394,11 +390,11 @@
                     } catch (error) {
                         console.error('❌ Error logging activity:', error);
                     }
-                    
+
                     // Reload table data instead of full page reload
                     $('#brandsTable').DataTable().ajax.reload();
                     jQuery("#data-table_processing").hide();
-                    
+
                 } catch (error) {
                     console.error('❌ Bulk deletion failed:', error);
                     alert('Some brands could not be deleted. Please try again.');

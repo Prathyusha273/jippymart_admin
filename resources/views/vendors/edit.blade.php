@@ -112,7 +112,7 @@
                                             class="col-7">
                                         <div id="uploding_image_owner"></div>
                                         <div class="uploaded_image_owner" style="display:none;">
-                                            
+
                                         </div>
                                     </div>
                                 </fieldset>
@@ -202,7 +202,7 @@
                 <div class="form-group col-12 text-center btm-btn">
                     <button type="button" class="btn btn-primary edit-form-btn"><i class="fa fa-save"></i>
                         {{ trans('lang.save') }}</button>
-                    <a href="{!! route('restaurants') !!}" class="btn btn-default"><i
+                    <a href="{!! route('vendors') !!}" class="btn btn-default"><i
                             class="fa fa-undo"></i>{{ trans('lang.cancel') }}</a>
                 </div>
             </div>
@@ -223,7 +223,7 @@
                 rest_id = data.vendorID;
             }
         });
-    
+
         var placeholderImage = '';
         var placeholder = database.collection('settings').doc('placeHolderImage');
         var database = firebase.firestore();
@@ -445,7 +445,7 @@
                                                 'subscriptionExpiryDate': subscriptionPlanExpiryDate,
                                             });
                                         }
-                                        
+
                                         console.log('✅ Vendor updated successfully, now logging activity...');
                                         try {
                                             if (typeof logActivity === 'function') {
@@ -458,9 +458,12 @@
                                         } catch (error) {
                                             console.error('❌ Error calling logActivity:', error);
                                         }
-                                        
+
                                         jQuery("#data-table_processing").hide();
                                         Swal.fire('Update Complete!',`User updated.`,'success');
+
+                                        // Redirect to index page after saving
+                                        window.location.href = "{{ route('vendors') }}"
                                     });
                             });
                     }).catch(err => {

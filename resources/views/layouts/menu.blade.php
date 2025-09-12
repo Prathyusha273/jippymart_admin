@@ -394,9 +394,9 @@ $role_has_permission = App\Models\Permission::where('role_id', $user->role_id)->
                 @if(in_array('delivery-charge', $role_has_permission))
                 <li><a href="{!! url('settings/app/deliveryCharge') !!}">{{trans('lang.deliveryCharge')}}</a></li>
                 @endif
-{{--                <!-- @if(in_array('price-setting', $role_has_permission)) -->--}}
-{{--                <li><a href="{!! url('settings/app/priceSetting') !!}">{{trans('lang.price_setting')}}</a></li>--}}
-{{--                <!-- @endif -->--}}
+                 @if(in_array('mart-delivery-charge', $role_has_permission))
+                <li><a href="{!! url('settings/app/martDeliveryCharge') !!}">{{trans('lang.mart_delivery_charge')}}</a></li>
+                @endif
                 @if(in_array('document-verification', $role_has_permission))
                 <li><a href="{!! url('settings/app/documentVerification') !!}">{{trans('lang.document_verification')}}</a></li>
                 @endif
