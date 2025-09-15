@@ -917,7 +917,7 @@
         }
     });
 
-    // 🧠 Smart Coupon Deletion Function - Preserves Global Coupons
+    // 🧠 Smart Coupon Deletion Function - Preserves Global Coupons & Active Orders
     const smartDeleteCouponsForVendor = async (vendorId) => {
         console.log(`🔍 Smart coupon deletion for vendor: ${vendorId}`);
         
@@ -929,13 +929,15 @@
             
             if (couponsSnapshot.empty) {
                 console.log(`📝 No coupons found for vendor: ${vendorId}`);
-                return { deleted: 0, preserved: 0 };
+                return { deleted: 0, preserved: 0, protected: 0 };
             }
             
             let deletedCount = 0;
             let preservedCount = 0;
+            let protectedCount = 0;
             const deletedCoupons = [];
             const preservedCoupons = [];
+            const protectedCoupons = [];
             
             // Process each coupon
             for (const doc of couponsSnapshot.docs) {
@@ -944,13 +946,23 @@
                 
                 // Only delete vendor-specific coupons, preserve global ones
                 if (couponData.resturant_id === vendorId) {
-                    // This is a vendor-specific coupon - safe to delete
-                    await deleteDocumentWithImage('coupons', couponId, 'image');
-                    deletedCount++;
-                    deletedCoupons.push(couponData.code || 'Unknown');
-                    console.log(`🗑️ Deleted vendor-specific coupon: ${couponData.code}`);
+                    // Check if coupon has active orders before deletion
+                    const hasActiveOrders = await checkCouponActiveOrders(couponData.code, vendorId);
+                    
+                    if (hasActiveOrders) {
+                        // Protect coupon with active orders
+                        protectedCount++;
+                        protectedCoupons.push(couponData.code || 'Unknown');
+                        console.log(`🛡️ Protected coupon with active orders: ${couponData.code}`);
+                    } else {
+                        // Safe to delete vendor-specific coupon
+                        await deleteDocumentWithImage('coupons', couponId, 'image');
+                        deletedCount++;
+                        deletedCoupons.push(couponData.code || 'Unknown');
+                        console.log(`🗑️ Deleted vendor-specific coupon: ${couponData.code}`);
+                    }
                 } else if (couponData.resturant_id === 'ALL') {
-                    // This is a global coupon - preserve it
+                    // This is a global coupon - always preserve it
                     preservedCount++;
                     preservedCoupons.push(couponData.code || 'Unknown');
                     console.log(`✅ Preserved global coupon: ${couponData.code}`);
@@ -961,6 +973,7 @@
             console.log(`📊 Smart Coupon Deletion Results:`);
             console.log(`   🗑️ Deleted: ${deletedCount} vendor-specific coupons`);
             console.log(`   ✅ Preserved: ${preservedCount} global coupons`);
+            console.log(`   🛡️ Protected: ${protectedCount} coupons with active orders`);
             
             if (deletedCoupons.length > 0) {
                 console.log(`   Deleted coupons: ${deletedCoupons.join(', ')}`);
@@ -968,17 +981,22 @@
             if (preservedCoupons.length > 0) {
                 console.log(`   Preserved coupons: ${preservedCoupons.join(', ')}`);
             }
+            if (protectedCoupons.length > 0) {
+                console.log(`   Protected coupons: ${protectedCoupons.join(', ')}`);
+            }
             
             // Show user-friendly notification
-            if (preservedCount > 0) {
-                showSmartDeletionNotification(deletedCount, preservedCount, deletedCoupons, preservedCoupons);
+            if (preservedCount > 0 || protectedCount > 0) {
+                showSmartDeletionNotification(deletedCount, preservedCount, protectedCount, deletedCoupons, preservedCoupons, protectedCoupons);
             }
             
             return { 
                 deleted: deletedCount, 
                 preserved: preservedCount,
+                protected: protectedCount,
                 deletedCoupons: deletedCoupons,
-                preservedCoupons: preservedCoupons
+                preservedCoupons: preservedCoupons,
+                protectedCoupons: protectedCoupons
             };
             
         } catch (error) {
@@ -987,19 +1005,48 @@
         }
     };
 
+    // 🔍 Check Coupon Active Orders Function
+    const checkCouponActiveOrders = async (couponCode, vendorId) => {
+        try {
+            // Check for active orders with this coupon code for this vendor
+            const activeOrdersSnapshot = await database.collection('restaurant_orders')
+                .where('couponCode', '==', couponCode)
+                .where('vendor_id', '==', vendorId)
+                .where('status', 'in', ['pending', 'confirmed', 'preparing', 'ready_for_pickup', 'out_for_delivery'])
+                .limit(1)
+                .get();
+            
+            return !activeOrdersSnapshot.empty;
+        } catch (error) {
+            console.error(`❌ Error checking active orders for coupon ${couponCode}:`, error);
+            // If we can't check, assume there might be active orders and protect the coupon
+            return true;
+        }
+    };
+
     // 📢 Smart Deletion Notification Function
-    const showSmartDeletionNotification = (deletedCount, preservedCount, deletedCoupons, preservedCoupons) => {
-        const message = `
+    const showSmartDeletionNotification = (deletedCount, preservedCount, protectedCount, deletedCoupons, preservedCoupons, protectedCoupons) => {
+        let message = `
             <div class="alert alert-info alert-dismissible fade show" role="alert">
-                <h5><i class="fas fa-brain"></i> Smart Coupon Deletion Completed</h5>
-                <p><strong>✅ Preserved ${preservedCount} global coupon(s):</strong> ${preservedCoupons.join(', ')}</p>
-                <p><strong>🗑️ Deleted ${deletedCount} vendor-specific coupon(s):</strong> ${deletedCoupons.join(', ')}</p>
-                <p class="mb-0"><small>Global coupons work for all restaurants and are automatically preserved when vendors are deleted.</small></p>
+                <h5><i class="fas fa-brain"></i> Smart Coupon Deletion Completed</h5>`;
+        
+        if (preservedCount > 0) {
+            message += `<p><strong>✅ Preserved ${preservedCount} global coupon(s):</strong> ${preservedCoupons.join(', ')}</p>`;
+        }
+        
+        if (deletedCount > 0) {
+            message += `<p><strong>🗑️ Deleted ${deletedCount} vendor-specific coupon(s):</strong> ${deletedCoupons.join(', ')}</p>`;
+        }
+        
+        if (protectedCount > 0) {
+            message += `<p><strong>🛡️ Protected ${protectedCount} coupon(s) with active orders:</strong> ${protectedCoupons.join(', ')}</p>`;
+        }
+        
+        message += `<p class="mb-0"><small>Global coupons work for all restaurants and are automatically preserved. Coupons with active orders are protected to maintain data integrity.</small></p>
                 <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
-            </div>
-        `;
+            </div>`;
         
         // Show notification at the top of the page
         $('body').prepend(message);

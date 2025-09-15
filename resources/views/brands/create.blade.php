@@ -122,21 +122,45 @@
             var description = $("#brand_description").val();
             var status = $(".brand_status").is(":checked");
 
+            // Enhanced validation
             if (name == '') {
                 $(".error_top").show();
                 $(".error_top").html("");
                 $(".error_top").append("<p>{{trans('lang.enter_brand_name_error')}}</p>");
                 window.scrollTo(0, 0);
+                return;
             } else if (description == '') {
                 $(".error_top").show();
                 $(".error_top").html("");
                 $(".error_top").append("<p>{{trans('lang.enter_brand_description_error')}}</p>");
                 window.scrollTo(0, 0);
+                return;
+            } else if (name.length > 255) {
+                $(".error_top").show();
+                $(".error_top").html("");
+                $(".error_top").append("<p>Brand name must be 255 characters or less.</p>");
+                window.scrollTo(0, 0);
+                return;
             } else {
                 $(".error_top").hide();
+                
+                // Check for duplicate brand names
+                jQuery("#data-table_processing").show();
+                const existingBrands = await database.collection('brands')
+                    .where('name', '==', name.trim())
+                    .get();
+                
+                if (!existingBrands.empty) {
+                    jQuery("#data-table_processing").hide();
+                    $(".error_top").show();
+                    $(".error_top").html("");
+                    $(".error_top").append("<p>A brand with this name already exists. Please choose a different name.</p>");
+                    window.scrollTo(0, 0);
+                    return;
+                }
+                
                 var id = database.collection("tmp").doc().id;
                 
-                jQuery("#data-table_processing").show();
                 await storeLogoData().then(async (logo) => {
                     if (logo) {
                         logo_url = logo;
@@ -183,7 +207,24 @@
     async function storeLogoData() {
         var logo = '';
         if (logo_url && logo_url != '') {
-            logo = logo_url;
+            try {
+                // Upload base64 image to Firebase Storage
+                var filename = 'brand_logo_' + Date.now() + '.jpg';
+                var storageRef = firebase.storage().ref('images/brands/' + filename);
+                
+                // Convert base64 to blob
+                var base64Data = logo_url.replace(/^data:image\/[a-z]+;base64,/, "");
+                var uploadTask = await storageRef.putString(base64Data, 'base64', {
+                    contentType: 'image/jpeg'
+                });
+                
+                // Get download URL
+                logo = await uploadTask.ref.getDownloadURL();
+                console.log('✅ Logo uploaded to Firebase Storage:', logo);
+            } catch (error) {
+                console.error('❌ Error uploading logo:', error);
+                logo = logo_url; // Fallback to base64
+            }
         }
         return logo;
     }

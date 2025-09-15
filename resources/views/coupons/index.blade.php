@@ -817,13 +817,30 @@
 
         // Get coupon code before deletion for logging
         var couponCode = '';
+        var couponData = null;
         try {
             var doc = await database.collection('coupons').doc(id).get();
             if (doc.exists) {
-                couponCode = doc.data().code || 'Unknown';
+                couponData = doc.data();
+                couponCode = couponData.code || 'Unknown';
             }
         } catch (error) {
             console.error('Error getting coupon code:', error);
+        }
+
+        // Check if coupon has active orders before deletion
+        if (couponCode && couponData) {
+            const hasActiveOrders = await checkCouponActiveOrders(couponCode, couponData.resturant_id);
+            
+            if (hasActiveOrders) {
+                alert(`🛡️ Cannot delete coupon "${couponCode}" because it has active orders. Please wait for orders to complete or cancel them first.`);
+                return;
+            }
+        }
+
+        // Confirm deletion
+        if (!confirm(`Are you sure you want to delete coupon "${couponCode}"? This action cannot be undone.`)) {
+            return;
         }
 
         await deleteDocumentWithImage('coupons',id,'image');
@@ -845,6 +862,25 @@
 
         window.location.reload();
     });
+
+    // 🔍 Check Coupon Active Orders Function
+    async function checkCouponActiveOrders(couponCode, vendorId) {
+        try {
+            // Check for active orders with this coupon code for this vendor
+            const activeOrdersSnapshot = await database.collection('restaurant_orders')
+                .where('couponCode', '==', couponCode)
+                .where('vendor_id', '==', vendorId)
+                .where('status', 'in', ['pending', 'confirmed', 'preparing', 'ready_for_pickup', 'out_for_delivery'])
+                .limit(1)
+                .get();
+            
+            return !activeOrdersSnapshot.empty;
+        } catch (error) {
+            console.error(`❌ Error checking active orders for coupon ${couponCode}:`, error);
+            // If we can't check, assume there might be active orders and protect the coupon
+            return true;
+        }
+    }
 </script>
 @endsection
 

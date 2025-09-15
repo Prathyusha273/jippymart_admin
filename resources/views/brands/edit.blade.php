@@ -147,20 +147,50 @@
                 var description = $("#brand_description").val();
                 var status = $(".brand_status").is(":checked");
 
+                // Enhanced validation
                 if (name == '') {
                     $(".error_top").show();
                     $(".error_top").html("");
                     $(".error_top").append("<p>{{trans('lang.enter_brand_name_error')}}</p>");
                     window.scrollTo(0, 0);
+                    return;
                 } else if (description == '') {
                     $(".error_top").show();
                     $(".error_top").html("");
                     $(".error_top").append("<p>{{trans('lang.enter_brand_description_error')}}</p>");
                     window.scrollTo(0, 0);
+                    return;
+                } else if (name.length > 255) {
+                    $(".error_top").show();
+                    $(".error_top").html("");
+                    $(".error_top").append("<p>Brand name must be 255 characters or less.</p>");
+                    window.scrollTo(0, 0);
+                    return;
                 } else {
                     $(".error_top").hide();
                     
+                    // Check for duplicate brand names (excluding current brand)
                     jQuery("#data-table_processing").show();
+                    const existingBrands = await database.collection('brands')
+                        .where('name', '==', name.trim())
+                        .get();
+                    
+                    let duplicateFound = false;
+                    existingBrands.forEach(doc => {
+                        if (doc.id !== id) { // Exclude current brand
+                            duplicateFound = true;
+                        }
+                    });
+                    
+                    if (duplicateFound) {
+                        jQuery("#data-table_processing").hide();
+                        $(".error_top").show();
+                        $(".error_top").html("");
+                        $(".error_top").append("<p>A brand with this name already exists. Please choose a different name.</p>");
+                        window.scrollTo(0, 0);
+                        return;
+                    }
+                    
                     await storeLogoData().then(async (logo) => {
                         if (logo) {
                             new_logo_url = logo;
@@ -203,26 +233,59 @@
 
         async function storeLogoData() {
             var logo = '';
-            if (new_logo_url && new_logo_url != '') {
-                logo = new_logo_url;
-            } else if (logo_url && logo_url != '') {
-                logo = logo_url;
-            }
             
+            // Delete old logos if marked for deletion
             if (logoToDelete.length > 0) {
                 await Promise.all(logoToDelete.map(async (delImage) => {
-                    imageBucket = delImage.bucket;
-                    var envBucket = "<?php echo env('FIREBASE_STORAGE_BUCKET'); ?>";
-                    if (imageBucket == envBucket) {
-                        await delImage.delete().then(() => {
-                            console.log("Old logo deleted!")
-                        }).catch((error) => {
-                            console.log("ERR Logo delete ===", error);
-                        });
-                    } else {
-                        console.log('Bucket not matched');
+                    try {
+                        imageBucket = delImage.bucket;
+                        var envBucket = "<?php echo env('FIREBASE_STORAGE_BUCKET'); ?>";
+                        if (imageBucket == envBucket) {
+                            await delImage.delete().then(() => {
+                                console.log("✅ Old logo deleted successfully!")
+                            }).catch((error) => {
+                                console.log("⚠️ Error deleting old logo:", error);
+                            });
+                        } else {
+                            console.log('⚠️ Bucket not matched, skipping delete');
+                        }
+                    } catch (error) {
+                        console.error('❌ Error in logo deletion:', error);
                     }
                 }));
+            }
+            
+            // Handle new logo upload
+            if (new_logo_url && new_logo_url != '') {
+                try {
+                    // Check if it's a base64 string (new upload) or already a URL
+                    if (new_logo_url.startsWith('data:image/')) {
+                        // Upload new base64 image to Firebase Storage
+                        var filename = 'brand_logo_' + Date.now() + '.jpg';
+                        var storageRef = firebase.storage().ref('images/brands/' + filename);
+                        
+                        // Convert base64 to blob
+                        var base64Data = new_logo_url.replace(/^data:image\/[a-z]+;base64,/, "");
+                        var uploadTask = await storageRef.putString(base64Data, 'base64', {
+                            contentType: 'image/jpeg'
+                        });
+                        
+                        // Get download URL
+                        logo = await uploadTask.ref.getDownloadURL();
+                        console.log('✅ New logo uploaded to Firebase Storage:', logo);
+                    } else {
+                        // Already a URL, use as-is
+                        logo = new_logo_url;
+                        console.log('ℹ️ Using existing logo URL:', logo);
+                    }
+                } catch (error) {
+                    console.error('❌ Error uploading new logo:', error);
+                    logo = new_logo_url; // Fallback
+                }
+            } else if (logo_url && logo_url != '') {
+                // Use existing logo
+                logo = logo_url;
+                console.log('ℹ️ Using existing logo:', logo);
             }
             
             return logo;
