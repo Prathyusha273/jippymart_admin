@@ -34,7 +34,7 @@
                             </div>
                             <div class="form-group row width-50">
                                 <label class="col-3 control-label">{{trans('lang.coupon_discount_type')}}</label>
-                                <div class="col-7">
+                                <div class="col-7">x
                                     <select id="coupon_discount_type" class="form-control">
                                         <option value="Fix Price" selected>{{trans('lang.coupon_fixed')}}</option>
                                         <option value="Percentage">{{trans('lang.coupon_percent')}}</option>
@@ -154,13 +154,14 @@ var photo_coupon = "";
 var fileName="";
 var restaurantOwnerId = "";
 var restaurantOwnerOnline = false;
-$(document).ready(function () {
-    jQuery("#data-table_processing").show();
+    $(document).ready(function () {
+        console.log('🚀 Coupon create form - document ready');
+        jQuery("#data-table_processing").show();
     // Function to load vendors based on coupon type
     function loadVendorsByType(couponType) {
         console.log('🚀 loadVendorsByType called with:', couponType);
         $('#vendor_restaurant_select').empty();
-        
+
         // If no coupon type is selected, show only the placeholder
         if (!couponType || couponType === '') {
             console.log('📋 No coupon type selected - showing placeholder only');
@@ -169,31 +170,31 @@ $(document).ready(function () {
                 .text('{{trans("lang.select_restaurant")}}'));
             return;
         }
-        
+
         // Add "All [Type]" option when coupon type is selected
         $('#vendor_restaurant_select').append($('<option></option>')
             .attr('value', 'ALL')
             .text('All ' + couponType + 's'));
-        
+
         var vendorQuery = database.collection('vendors');
-        
+
         // Filter by vendor type since coupon type is specified
         console.log('🔍 Filtering vendors by vType:', couponType);
         vendorQuery = vendorQuery.where('vType', '==', couponType);
-        
+
         vendorQuery.get().then(async function (snapshots) {
             console.log('📊 Found', snapshots.docs.length, 'vendors');
-            
+
             // Sort vendors by title on client side
             var vendors = [];
             snapshots.docs.forEach((listval) => {
                 var data = listval.data();
                 vendors.push({id: listval.id, data: data});
             });
-            
+
             // Sort by title
             vendors.sort((a, b) => a.data.title.localeCompare(b.data.title));
-            
+
             // Add sorted vendors to dropdown
             vendors.forEach((vendor) => {
                 console.log('🏪 Vendor:', vendor.data.title, 'vType:', vendor.data.vType);
@@ -205,10 +206,10 @@ $(document).ready(function () {
             console.error('❌ Error loading vendors:', error);
         });
     }
-    
+
     // Load all vendors initially
     loadVendorsByType('');
-    
+
     // Debug: Check what vendors exist in the database
     console.log('🔍 Checking all vendors in database...');
     database.collection('vendors').get().then(function(snapshots) {
@@ -218,13 +219,13 @@ $(document).ready(function () {
             console.log('🏪 Vendor:', data.title, 'vType:', data.vType, 'ID:', doc.id);
         });
     });
-    
+
     $(function () {
         $('#datetimepicker1 .date_picker').datepicker({
             dateFormat: 'mm/dd/yyyy',
             startDate: new Date(),
         });
-        
+
         // Add event handler for coupon type change after DOM is ready
         $('#coupon_type').on('change', function() {
             var selectedCouponType = $(this).val();
@@ -232,7 +233,7 @@ $(document).ready(function () {
             console.log('🔄 Reloading vendors with type:', selectedCouponType);
             loadVendorsByType(selectedCouponType);
         });
-        
+
         // Debug: Check if element exists
         console.log('🔍 Coupon type element found:', $('#coupon_type').length);
     });
@@ -280,7 +281,7 @@ $(document).ready(function () {
         window.scrollTo(0, 0);
         return;
     }
-    
+
     // Validate coupon type is selected
     if (!couponType || couponType === '') {
         $(".error_top").show();
@@ -289,7 +290,7 @@ $(document).ready(function () {
         window.scrollTo(0, 0);
         return;
     }
-    
+
     // Validate restaurant/vendor selection - get current selected value
     var currentRestaurantId = $("#vendor_restaurant_select option:selected").val();
     if (!currentRestaurantId || currentRestaurantId === '') {

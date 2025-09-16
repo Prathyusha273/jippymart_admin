@@ -161,14 +161,17 @@ placeholder.get().then(async function (snapshotsimage) {
     var placeholderImageData = snapshotsimage.data();
     placeholderImage = placeholderImageData.image;
 })
-$(document).ready(function () {
-    $(function () {
-        $('#datetimepicker1 .date_picker').datepicker({
-            dateFormat: 'mm/dd/yyyy',
-            startDate: new Date(),
+    $(document).ready(function () {
+        console.log('🚀 Coupon edit form - document ready');
+        
+        $(function () {
+            $('#datetimepicker1 .date_picker').datepicker({
+                dateFormat: 'mm/dd/yyyy',
+                startDate: new Date(),
+            });
         });
-    });
-    jQuery("#data-table_processing").show();
+        
+        jQuery("#data-table_processing").show();
     ref.get().then(async function (snapshots) {
         var coupon = snapshots.docs[0].data();
         // Function to load vendors based on coupon type
