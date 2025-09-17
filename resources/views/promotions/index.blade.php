@@ -190,10 +190,15 @@ function renderTable(promotions) {
         var expiredText = isExpiredPromo ? '<br><span class="badge badge-danger">EXPIRED</span>' : '';
 
         var rowClass = isExpiredPromo ? 'table-danger' : '';
+        
+        // Use stored titles if available, otherwise fall back to mapping
+        var restaurantName = promo.restaurant_title || vendorsMap[promo.restaurant_id] || promo.restaurant_id || '-';
+        var productName = promo.product_title || productsMap[promo.product_id] || promo.product_id || '-';
+        
         tbody += '<tr class="' + rowClass + '">' +
             '<td class="delete-all"><input type="checkbox" id="is_open_' + promo.id + '" class="is_open" dataId="' + promo.id + '"><label class="col-3 control-label" for="is_open_' + promo.id + '" ></label></td>' +
-            '<td>' + (vendorsMap[promo.restaurant_id] || promo.restaurant_id || '-') + '</td>' +
-            '<td>' + (productsMap[promo.product_id] || promo.product_id || '-') + '</td>' +
+            '<td>' + restaurantName + '</td>' +
+            '<td>' + productName + '</td>' +
             '<td>' + (promo.special_price !== undefined ? '₹' + promo.special_price : '-') + '</td>' +
             '<td>' + (promo.item_limit !== undefined ? promo.item_limit : '2') + '</td>' +
             '<td>' + (promo.extra_km_charge !== undefined ? promo.extra_km_charge : '-') + '</td>' +
@@ -288,7 +293,9 @@ $(document).ready(function() {
                         const promoDoc = await promotionsRef.doc(dataId).get();
                         if (promoDoc.exists) {
                             const promoData = promoDoc.data();
-                            selectedPromotions.push('Special price: ₹' + (promoData.special_price || 0));
+                            var restaurantName = promoData.restaurant_title || 'Unknown Restaurant';
+                            var productName = promoData.product_title || 'Unknown Product';
+                            selectedPromotions.push(restaurantName + ' - ' + productName + ' (₹' + (promoData.special_price || 0) + ')');
                         }
                     } catch (error) {
                         console.error('Error getting promotion info:', error);
@@ -324,7 +331,9 @@ $(document).ready(function() {
             const promoDoc = await promotionsRef.doc(id).get();
             if (promoDoc.exists) {
                 const promoData = promoDoc.data();
-                promotionInfo = 'Special price: ₹' + (promoData.special_price || 0);
+                var restaurantName = promoData.restaurant_title || 'Unknown Restaurant';
+                var productName = promoData.product_title || 'Unknown Product';
+                promotionInfo = restaurantName + ' - ' + productName + ' (₹' + (promoData.special_price || 0) + ')';
             }
         } catch (error) {
             console.error('Error getting promotion info:', error);
@@ -357,7 +366,9 @@ $(document).ready(function() {
             const promoDoc = await database.collection('promotions').doc(id).get();
             if (promoDoc.exists) {
                 const promoData = promoDoc.data();
-                promotionInfo = 'Special price: ₹' + (promoData.special_price || 0);
+                var restaurantName = promoData.restaurant_title || 'Unknown Restaurant';
+                var productName = promoData.product_title || 'Unknown Product';
+                promotionInfo = restaurantName + ' - ' + productName + ' (₹' + (promoData.special_price || 0) + ')';
             }
         } catch (error) {
             console.error('Error getting promotion info:', error);

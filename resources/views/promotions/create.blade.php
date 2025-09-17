@@ -201,6 +201,15 @@ $(document).ready(function () {
             return;
         }
 
+        // Get restaurant and product titles
+        var restaurant_title = restaurantSelect.find('option:selected').text();
+        var product_title = productSelect.find('option:selected').text();
+        
+        // Create formatted document name: restaurantTitle-productTitle
+        var documentName = restaurant_title + '-' + product_title;
+        // Clean the document name to be Firestore-compatible (remove special characters, spaces, etc.)
+        documentName = documentName.replace(/[^a-zA-Z0-9-_]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+
         // Check if end time is expired
         var endDateTime = new Date(end_time);
         var currentDateTime = new Date();
@@ -210,9 +219,23 @@ $(document).ready(function () {
 
         $('.error_top').hide();
         jQuery('#data-table_processing').show();
-        await database.collection('promotions').add({
+        
+        // Check if document with this name already exists
+        var docRef = database.collection('promotions').doc(documentName);
+        var docExists = await docRef.get().then(function(doc) {
+            return doc.exists;
+        });
+
+        if (docExists) {
+            // If document exists, append timestamp to make it unique
+            documentName = documentName + '-' + Date.now();
+        }
+
+        await database.collection('promotions').doc(documentName).set({
             restaurant_id,
+            restaurant_title,
             product_id,
+            product_title,
             special_price,
             item_limit,
             extra_km_charge,
@@ -222,11 +245,11 @@ $(document).ready(function () {
             payment_mode,
             isAvailable
         }).then(async function () {
-            console.log('✅ Promotion saved successfully, now logging activity...');
+            console.log('✅ Promotion saved successfully with document name:', documentName);
             try {
                 if (typeof logActivity === 'function') {
                     console.log('🔍 Calling logActivity for promotion creation...');
-                    await logActivity('promotions', 'created', 'Created new promotion with special price: ₹' + special_price);
+                    await logActivity('promotions', 'created', 'Created new promotion: ' + restaurant_title + ' - ' + product_title + ' (Special price: ₹' + special_price + ')');
                     console.log('✅ Activity logging completed successfully');
                 } else {
                     console.error('❌ logActivity function is not available');

@@ -305,6 +305,15 @@ $(document).ready(function () {
             return;
         }
 
+        // Get restaurant and product titles
+        var restaurant_title = restaurantSelect.find('option:selected').text();
+        var product_title = productSelect.find('option:selected').text();
+        
+        // Create formatted document name: restaurantTitle-productTitle
+        var newDocumentName = restaurant_title + '-' + product_title;
+        // Clean the document name to be Firestore-compatible (remove special characters, spaces, etc.)
+        newDocumentName = newDocumentName.replace(/[^a-zA-Z0-9-_]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+
         // Check if end time is expired
         var endDateTime = new Date(end_time);
         var currentDateTime = new Date();
@@ -314,37 +323,93 @@ $(document).ready(function () {
 
         $('.error_top').hide();
         jQuery('#data-table_processing').show();
-        await database.collection('promotions').doc(promotionId).update({
-            restaurant_id,
-            product_id,
-            special_price,
-            item_limit,
-            extra_km_charge,
-            free_delivery_km,
-            start_time: new Date(start_time),
-            end_time: new Date(end_time),
-            payment_mode,
-            isAvailable
-        }).then(async function () {
-            console.log('✅ Promotion updated successfully, now logging activity...');
-            try {
-                if (typeof logActivity === 'function') {
-                    console.log('🔍 Calling logActivity for promotion update...');
-                    await logActivity('promotions', 'updated', 'Updated promotion with special price: ₹' + special_price);
-                    console.log('✅ Activity logging completed successfully');
-                } else {
-                    console.error('❌ logActivity function is not available');
-                }
-            } catch (error) {
-                console.error('❌ Error calling logActivity:', error);
+        
+        // If document name has changed, we need to create a new document and delete the old one
+        if (newDocumentName !== promotionId) {
+            // Check if new document name already exists
+            var newDocRef = database.collection('promotions').doc(newDocumentName);
+            var newDocExists = await newDocRef.get().then(function(doc) {
+                return doc.exists;
+            });
+
+            if (newDocExists) {
+                // If document exists, append timestamp to make it unique
+                newDocumentName = newDocumentName + '-' + Date.now();
             }
-            jQuery('#data-table_processing').hide();
-            window.location.href = '{!! route('promotions') !!}';
-        }).catch(function (error) {
-            jQuery('#data-table_processing').hide();
-            $('.error_top').show().html('<p>' + error + '</p>');
-            window.scrollTo(0, 0);
-        });
+
+            // Create new document with updated data
+            await database.collection('promotions').doc(newDocumentName).set({
+                restaurant_id,
+                restaurant_title,
+                product_id,
+                product_title,
+                special_price,
+                item_limit,
+                extra_km_charge,
+                free_delivery_km,
+                start_time: new Date(start_time),
+                end_time: new Date(end_time),
+                payment_mode,
+                isAvailable
+            }).then(async function () {
+                // Delete old document
+                await database.collection('promotions').doc(promotionId).delete();
+                
+                console.log('✅ Promotion updated successfully with new document name:', newDocumentName);
+                try {
+                    if (typeof logActivity === 'function') {
+                        console.log('🔍 Calling logActivity for promotion update...');
+                        await logActivity('promotions', 'updated', 'Updated promotion: ' + restaurant_title + ' - ' + product_title + ' (Special price: ₹' + special_price + ')');
+                        console.log('✅ Activity logging completed successfully');
+                    } else {
+                        console.error('❌ logActivity function is not available');
+                    }
+                } catch (error) {
+                    console.error('❌ Error calling logActivity:', error);
+                }
+                jQuery('#data-table_processing').hide();
+                window.location.href = '{!! route('promotions') !!}';
+            }).catch(function (error) {
+                jQuery('#data-table_processing').hide();
+                $('.error_top').show().html('<p>' + error + '</p>');
+                window.scrollTo(0, 0);
+            });
+        } else {
+            // Document name hasn't changed, just update the existing document
+            await database.collection('promotions').doc(promotionId).update({
+                restaurant_id,
+                restaurant_title,
+                product_id,
+                product_title,
+                special_price,
+                item_limit,
+                extra_km_charge,
+                free_delivery_km,
+                start_time: new Date(start_time),
+                end_time: new Date(end_time),
+                payment_mode,
+                isAvailable
+            }).then(async function () {
+                console.log('✅ Promotion updated successfully');
+                try {
+                    if (typeof logActivity === 'function') {
+                        console.log('🔍 Calling logActivity for promotion update...');
+                        await logActivity('promotions', 'updated', 'Updated promotion: ' + restaurant_title + ' - ' + product_title + ' (Special price: ₹' + special_price + ')');
+                        console.log('✅ Activity logging completed successfully');
+                    } else {
+                        console.error('❌ logActivity function is not available');
+                    }
+                } catch (error) {
+                    console.error('❌ Error calling logActivity:', error);
+                }
+                jQuery('#data-table_processing').hide();
+                window.location.href = '{!! route('promotions') !!}';
+            }).catch(function (error) {
+                jQuery('#data-table_processing').hide();
+                $('.error_top').show().html('<p>' + error + '</p>');
+                window.scrollTo(0, 0);
+            });
+        }
     });
 });
 </script>
