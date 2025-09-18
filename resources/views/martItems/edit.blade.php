@@ -93,6 +93,19 @@
                                 </div>
                             </div>
 
+                            <div class="form-group row width-50">
+                                <label class="col-3 control-label">Brand</label>
+                                <div class="col-7">
+                                    <select id='brand_select' class="form-control">
+                                        <option value="">Select Brand (Optional)</option>
+                                        <!-- options populated dynamically -->
+                                    </select>
+                                    <div class="form-text text-muted">
+                                        Select the brand for this item (optional)
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="form-group row width-100">
                                 <label class="col-3 control-label">Mart Sub-Categories</label>
                                 <div class="col-7">
@@ -863,6 +876,22 @@
                         updateSelectedSubcategoryTags();
                     })
                 });
+
+                // Load brands
+                await database.collection('brands').where('status', '==', true).get().then(async function (snapshots) {
+                    snapshots.docs.forEach((listval) => {
+                        var data = listval.data();
+                        if (product.brandID && product.brandID === data.id) {
+                            $('#brand_select').append($("<option selected></option>")
+                                .attr("value", data.id)
+                                .text(data.name));
+                        } else {
+                            $('#brand_select').append($("<option></option>")
+                                .attr("value", data.id)
+                                .text(data.name));
+                        }
+                    })
+                });
                 var selected_attributes = [];
                 if (product.item_attribute != null) {
                     $("#attributes_div").show();
@@ -1038,6 +1067,7 @@
                 var restaurant = $("#food_restaurant option:selected").val();
             var category = $("#food_category option:selected").val();
             var subcategory = $("#food_subcategory").val();
+            var brand = $("#brand_select").val();
             
             // Handle multiple subcategory selection - take the first selected subcategory (matching create.blade.php)
             if (Array.isArray(subcategory) && subcategory.length > 0) {
@@ -1051,10 +1081,11 @@
             var foodFats = parseInt($(".food_fats").val());
             var description = $("#food_description").val();
             
-            // Get category and subcategory titles - matching create.blade.php
+            // Get category, subcategory, and brand titles - matching create.blade.php
             var categoryTitle = '';
             var subcategoryTitle = '';
             var vendorTitle = '';
+            var brandTitle = '';
             
             if (category) {
                 categoryTitle = $("#food_category option:selected").text() || '';
@@ -1064,6 +1095,10 @@
                 // Get the title of the first selected subcategory (matching create.blade.php)
                 var selectedSubcategoryOption = $("#food_subcategory option[value='" + subcategory + "']");
                 subcategoryTitle = selectedSubcategoryOption.text() || '';
+            }
+            
+            if (brand) {
+                brandTitle = $("#brand_select option:selected").text() || '';
             }
             
             // Get vendor title from restaurant_list - matching create.blade.php
@@ -1253,6 +1288,8 @@
                                 'categoryTitle': categoryTitle || '', // Add category title to match create.blade.php
                                 'subcategoryID': subcategory || '', // String format to match create.blade.php
                                 'subcategoryTitle': subcategoryTitle || '', // Add subcategory title to match create.blade.php
+                                'brandID': brand || '', // Add brand ID to match create.blade.php
+                                'brandTitle': brandTitle || '', // Add brand title to match create.blade.php
                                 'section': $('#section_info').val() || 'General', // Add section to match create.blade.php
                                 'photo': photo || '', // Using single photo field
                             'calories': parseInt(foodCalories) || 0, // Number format to match sample

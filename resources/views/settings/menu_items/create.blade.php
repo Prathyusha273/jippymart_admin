@@ -52,6 +52,15 @@
                             </select>
                         </div>
                     </div>
+                    <div class="form-group row width-50">
+                        <label class="col-3 control-label">Zone</label>
+                        <div class="col-7">
+                            <select name="zoneId" id="zoneId" class="form-control">
+                                <option value="">Select Zone</option>
+                            </select>
+                            <div class="form-text text-muted">Select the zone for this banner item.</div>
+                        </div>
+                    </div>
                     <div class="form-group row width-100 radio-form-row d-flex" id="redirect_type_div">
                         <div class="radio-form col-md-2">
                             <input type="radio" class="redirect_type" value="store" name="redirect_type" id="store">
@@ -91,7 +100,9 @@
         </div>
     </div>
     <div class="form-group col-12 text-center">
+        <?php if (in_array('banners.create', json_decode(@session('user_permissions'), true))) { ?>
         <button type="button" class="btn btn-primary  save-setting-btn"><i class="fa fa-save"></i> {{trans('lang.save')}}</button>
+        <?php } ?>
         <a href="{!! route('setting.banners') !!}" class="btn btn-default"><i class="fa fa-undo"></i>{{trans('lang.cancel')}}</a>
     </div>
 </div>
@@ -102,6 +113,25 @@
     var photo = "";
     var fileName = '';
     var storageRef = firebase.storage().ref('images');
+    
+    // Load zones on page load
+    $(document).ready(function() {
+        loadZones();
+    });
+    
+    function loadZones() {
+        $('#zoneId').html('<option value="">Select Zone</option>');
+        database.collection('zone').where('publish', '==', true).orderBy('name', 'asc').get().then(function(snapshots) {
+            snapshots.docs.forEach(function(doc) {
+                var data = doc.data();
+                $('#zoneId').append($("<option></option>")
+                    .attr("value", doc.id)
+                    .text(data.name));
+            });
+        }).catch(function(error) {
+            console.error('Error loading zones:', error);
+        });
+    }
     $("input[name='redirect_type']:radio").change(function() {
         var redirect_type = $(this).val();
         if (redirect_type == "store") {
@@ -161,6 +191,8 @@
     var banner_img = $("#banner_img").val();
     var is_publish = false;
     var redirect_type = "";
+    var zoneId = $("#zoneId").val();
+    var zoneTitle = $("#zoneId option:selected").text();
     if ($(".redirect_type").is(":visible")) {
         redirect_type = $(".redirect_type:checked").val() || "";
     }
@@ -205,6 +237,11 @@
         $(".error_top").html("");
         $(".error_top").append("<p>{{trans('lang.set_order_error')}}</p>");
         window.scrollTo(0, 0);
+    } else if (zoneId == '') {
+        $(".error_top").show();
+        $(".error_top").html("");
+        $(".error_top").append("<p>Please select a zone.</p>");
+        window.scrollTo(0, 0);
     }
     else if(storeId == '' && store_rd == true) {
         $(".error_top").show();
@@ -248,10 +285,12 @@
                 'is_publish': is_publish,
                 'position': position,
                 'redirect_type': redirect_type,
-                'redirect_id': redirect_id
+                'redirect_id': redirect_id,
+                'zoneId': zoneId,
+                'zoneTitle': zoneTitle
             }).then(async function(result) {
                 // Log activity for banner item creation
-                await logActivity('banner_items', 'created', 'Created new banner item: ' + title);
+                await logActivity('banner_items', 'created', 'Created new banner item: ' + title + ' (Zone: ' + zoneTitle + ')');
                 window.location.href = '{{ route("setting.banners")}}';
             }).catch(function(error) {
                 $(".error_top").show();

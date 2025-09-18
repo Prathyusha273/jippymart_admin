@@ -162,6 +162,7 @@
                                             <?php } ?>
                                             <th>{{trans('lang.vendor_info')}}</th>
                                             <th>{{trans('lang.email')}}</th>
+                                            <th>{{trans('lang.phone_number')}}</th>
                                             <th>{{trans('lang.zone')}}</th>
                                             <th>{{trans('lang.vendor_type')}}</th>
                                             <th>{{trans('lang.current_plan')}}</th>
@@ -279,6 +280,7 @@
             columns: [
                 { key: 'fullName', header: "{{trans('lang.vendor_info')}}" },
                 { key: 'email', header: "{{trans('lang.email')}}" },
+                { key: 'phoneNumber', header: "{{trans('lang.phone_number')}}" },
                 { key: 'activePlanName', header: "{{trans('lang.active_subscription_plan')}}" },
                 { key: 'subscriptionExpiryDate', header: "{{trans('lang.plan_expire_at')}}" },
                 { key: 'createdAt', header: "{{trans('lang.created_at')}}" },
@@ -309,8 +311,8 @@
                 
                 // Define orderable columns based on whether delete permission exists
                 const orderableColumns = (checkDeletePermission) 
-                    ? ['','vendorInfo','email','zone','vType','currentPlan','expiryDate','date','documents','active','actions']
-                    : ['vendorInfo','email','zone','vType','currentPlan','expiryDate','date','documents','active','actions'];
+                    ? ['','vendorInfo','email','phoneNumber','zone','vType','currentPlan','expiryDate','date','documents','active','actions']
+                    : ['vendorInfo','email','phoneNumber','zone','vType','currentPlan','expiryDate','date','documents','active','actions'];
                 
                 // Safely get the order field, handling cases where column index might be out of bounds
                 const orderByField = (orderColumnIndex >= 0 && orderColumnIndex < orderableColumns.length) 
@@ -470,10 +472,10 @@
                         var getData=await buildHTML(childData);
                         console.log('🔍 Data returned for vendor:', childData.firstName + ' ' + childData.lastName);
                         console.log('🔍 Data length:', getData.length);
-                        console.log('🔍 Expected columns:', checkDeletePermission ? 11 : 10);
+                        console.log('🔍 Expected columns:', checkDeletePermission ? 12 : 11);
                         
                         // Ensure the data array has the correct length
-                        const expectedColumns = checkDeletePermission ? 11 : 10;
+                        const expectedColumns = checkDeletePermission ? 12 : 11;
                         if (getData.length !== expectedColumns) {
                             console.error('❌ Column mismatch for vendor:', childData.firstName + ' ' + childData.lastName);
                             console.error('❌ Expected:', expectedColumns, 'Got:', getData.length);
@@ -731,14 +733,22 @@
             html.push("");
         }
 
-        // Column 3: Zone
+        // Column 3: Phone Number
+        if(val.phoneNumber!=""&&val.phoneNumber!=null) {
+            html.push(val.phoneNumber);
+        }
+        else {
+            html.push("");
+        }
+
+        // Column 4: Zone
         if(val.hasOwnProperty('zoneId') && val.zoneId && window.zoneIdToName && window.zoneIdToName[val.zoneId]) {
             html.push(window.zoneIdToName[val.zoneId]);
         } else {
             html.push('<span class="text-muted">No Zone</span>');
         }
 
-        // Column 4: Vendor Type
+        // Column 5: Vendor Type
         if(val.hasOwnProperty('vendorType') && val.vendorType) {
             html.push(val.vendorType.charAt(0).toUpperCase() + val.vendorType.slice(1));
         } else if(val.hasOwnProperty('vType') && val.vType) {
@@ -748,21 +758,21 @@
             html.push('<span class="text-primary">Restaurant</span>');
         }
 
-        // Column 5: Current Plan
+        // Column 6: Current Plan
         if(val.hasOwnProperty('subscription_plan') && val.subscription_plan && val.subscription_plan.name) {
             html.push(val.subscription_plan.name);
         } else {
             html.push('');
         }
 
-        // Column 6: Expiry Date
+        // Column 7: Expiry Date
         if(val.hasOwnProperty('subscriptionExpiryDate')) {
             html.push(val.expiryDate);
         } else {
             html.push('');
         }
 
-        // Column 7: Date
+        // Column 8: Date
         var date='';
         var time='';
         if(val.hasOwnProperty("createdAt")) {
@@ -776,19 +786,19 @@
             html.push('');
         }
 
-        // Column 8: Documents
+        // Column 9: Documents
         document_list_view="{{route('vendors.document', ':id')}}";
         document_list_view=document_list_view.replace(':id',val.id);
         html.push('<a href="'+document_list_view+'"><i class="fa fa-file"></i></a>');
 
-        // Column 9: Active
+        // Column 10: Active
         if(val.active) {
             html.push('<label class="switch"><input type="checkbox" checked id="'+val.id+'" name="isActive"><span class="slider round"></span></label>');
         } else {
             html.push('<label class="switch"><input type="checkbox" id="'+val.id+'" name="isActive"><span class="slider round"></span></label>');
         }
 
-        // Column 10: Actions
+        // Column 11: Actions
         var action='<span class="action-btn">';
         var planRoute="{{route('vendor.subscriptionPlanHistory',':id')}}";
         planRoute=planRoute.replace(':id',val.id);
@@ -803,7 +813,7 @@
         html.push(action);
 
         // Ensure we always return exactly the right number of columns
-        const expectedColumns = checkDeletePermission ? 11 : 10;
+        const expectedColumns = checkDeletePermission ? 12 : 11;
         if (html.length !== expectedColumns) {
             console.error('❌ Column count mismatch! Expected:', expectedColumns, 'Got:', html.length);
             // Pad with empty columns if needed

@@ -79,7 +79,9 @@
                         </div>
                     </div>
                     <div class="form-group col-12 text-center btm-btn">
+                        <?php if (in_array('brands.create', json_decode(@session('user_permissions'), true))) { ?>
                         <button type="button" class="btn btn-primary save-form-btn"><i class="fa fa-save"></i> {{trans('lang.save')}}</button>
+                        <?php } ?>
                         <a href="{!! route('brands') !!}" class="btn btn-default"><i class="fa fa-undo"></i>{{trans('lang.cancel')}}</a>
                     </div>
                 </div>

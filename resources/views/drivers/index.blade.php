@@ -87,6 +87,7 @@
                                             <?php } ?>
                                             <th>{{trans('lang.user_name')}}</th>
                                             <th>{{trans('lang.email')}}</th>
+                                            <th>{{trans('lang.phone_number')}}</th>
                                             <th>{{trans('lang.date')}}</th>
                                             <th>{{trans('lang.document_plural')}}</th>
                                             <th>{{trans('lang.driver_active')}}</th>
@@ -202,6 +203,7 @@
             columns: [
                 { key: 'fullName', header: "{{trans('lang.user_name')}}" },
                 { key: 'email', header: "{{trans('lang.email')}}" },
+                { key: 'phoneNumber', header: "{{trans('lang.phone_number')}}" },
                 { key: 'active', header: "{{trans('lang.driver_active')}}" },
                 { key: 'createdAt', header: "{{trans('lang.created_at')}}" },
             ],
@@ -218,7 +220,7 @@
                 const searchValue=data.search.value.toLowerCase();
                 const orderColumnIndex=data.order[0].column;
                 const orderDirection=data.order[0].dir;
-                const orderableColumns=(checkDeletePermission)? ['','fullName','email','createdAt','','','','','','']:['fullName','email','createdAt','','','','','',''];
+                const orderableColumns=(checkDeletePermission)? ['','fullName','email','phoneNumber','createdAt','','','','','','']:['fullName','email','phoneNumber','createdAt','','','','','',''];
                 const orderByField=orderableColumns[orderColumnIndex]; // Adjust the index to match your table
                 if(searchValue.length>=3||searchValue.length===0) {
                     $('#data-table_processing').show();
@@ -316,6 +318,7 @@
                             checkDeletePermission? '<td class="delete-all"><input type="checkbox" id="is_open_'+childData.id+'" class="is_open" dataId="'+childData.id+'"><label class="col-3 control-label"\n'+'for="is_open_'+childData.id+'" ></label></td>':'',
                             driverImage+'<a href="'+driverView+'" class="redirecttopage">'+childData.fullName+'</a>',
                             childData.email? childData.email:' ',
+                            childData.phoneNumber? childData.phoneNumber:' ',
                             date+' '+time,
                             '<a href="'+document_list_view+'"><i class="fa fa-file"></i></a>',
                             childData.active? '<label class="switch"><input type="checkbox" checked id="'+childData.id+'" name="isActive"><span class="slider round"></span></label>':'<label class="switch"><input type="checkbox" id="'+childData.id+'" name="isActive"><span class="slider round"></span></label>',
@@ -345,16 +348,16 @@
                     });
                 });
             },
-            order: (checkDeletePermission)? [3,'desc'] : [2,'desc'],
+            order: (checkDeletePermission)? [4,'desc'] : [3,'desc'],
             columnDefs: [
                 {
-                    targets: (checkDeletePermission)? 3:2,
+                    targets: (checkDeletePermission)? 4:3,
                     type: 'date',
                     render: function(data) {
                         return data;
                     }
                 },
-                {orderable: false,targets: (checkDeletePermission)? [0,4,5,6,7,8,9]:[3,4,5,6,7,8]},
+                {orderable: false,targets: (checkDeletePermission)? [0,5,6,7,8,9,10]:[4,5,6,7,8,9]},
             ],
             "language": {
                 "zeroRecords": "{{trans("lang.no_record_found")}}",

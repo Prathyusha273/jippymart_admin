@@ -255,34 +255,63 @@ class BrandController extends Controller
     public function import(Request $request)
     {
         $request->validate([
-            'file' => 'required|mimes:xlsx,xls',
+            'file' => 'required|mimes:xlsx,xls,csv',
         ]);
 
-        $spreadsheet = IOFactory::load($request->file('file'));
-        $rows = $spreadsheet->getActiveSheet()->toArray();
+        $file = $request->file('file');
+        $extension = $file->getClientOriginalExtension();
+        
+        if ($extension === 'csv') {
+            // Handle CSV files
+            $rows = [];
+            if (($handle = fopen($file->getPathname(), 'r')) !== FALSE) {
+                while (($data = fgetcsv($handle, 1000, ',')) !== FALSE) {
+                    $rows[] = $data;
+                }
+                fclose($handle);
+            }
+        } else {
+            // Handle Excel files (prioritized)
+            try {
+                $spreadsheet = IOFactory::load($file);
+                $rows = $spreadsheet->getActiveSheet()->toArray();
+            } catch (\Exception $e) {
+                if (strpos($e->getMessage(), 'ZipArchive') !== false) {
+                    return back()->withErrors(['file' => 'Excel import requires ZipArchive extension. Please use CSV format or enable ZipArchive in your PHP configuration.']);
+                }
+                return back()->withErrors(['file' => 'Error reading Excel file: ' . $e->getMessage()]);
+            }
+        }
 
         if (empty($rows) || count($rows) < 2) {
             return back()->withErrors(['file' => 'The uploaded file is empty or missing data.']);
         }
 
         $headers = array_map('trim', array_shift($rows));
+        
+        // Validate headers
+        $requiredHeaders = ['name'];
+        $missingHeaders = array_diff($requiredHeaders, $headers);
+        
+        if (!empty($missingHeaders)) {
+            return back()->withErrors(['file' => 'Missing required columns: ' . implode(', ', $missingHeaders) . 
+                '. Please use the template provided by the "Download Template" button.']);
+        }
 
-        // Initialize Firestore client
-        $firestore = new FirestoreClient([
-            'projectId' => config('firestore.project_id'),
-            'keyFilePath' => config('firestore.credentials'),
-        ]);
+        // Initialize Firestore client using helper function (uses REST transport)
+        $firestore = firestore();
 
         $collection = $firestore->collection('brands');
         $imported = 0;
+        $updated = 0;
         $errors = [];
 
         foreach ($rows as $index => $row) {
             $rowNumber = $index + 2; // +2 because we removed header and arrays are 0-indexed
             $data = array_combine($headers, $row);
 
-            // Skip empty rows
-            if (empty($data['name'])) {
+            // Skip completely empty rows
+            if ($this->isEmptyRow($row)) {
                 continue;
             }
 
@@ -310,31 +339,74 @@ class BrandController extends Controller
                     'updated_at' => new \Google\Cloud\Core\Timestamp(new \DateTime()),
                 ];
 
-                // Create document with auto-generated ID
-                $docRef = $collection->add($brandData);
-
-                // Set the internal 'id' field to match the Firestore document ID
-                $docRef->set(['id' => $docRef->id()], ['merge' => true]);
-
-                $imported++;
+                // Check if brand already exists by name
+                $existingBrands = $collection->where('name', '=', trim($data['name']))->documents();
+                $action = 'created';
+                
+                if (!$existingBrands->isEmpty()) {
+                    // Update existing brand
+                    $existingDoc = $existingBrands->rows()[0];
+                    $existingDoc->reference()->set($brandData, ['merge' => true]);
+                    $updated++;
+                } else {
+                    // Create new brand
+                    $docRef = $collection->add($brandData);
+                    // Set the internal 'id' field to match the Firestore document ID
+                    $docRef->set(['id' => $docRef->id()], ['merge' => true]);
+                    $imported++;
+                }
             } catch (\Exception $e) {
                 $errors[] = "Row $rowNumber: " . $e->getMessage();
             }
         }
 
-        if ($imported === 0) {
+        if ($imported === 0 && $updated === 0) {
             return back()->withErrors(['file' => 'No valid rows were found to import.']);
         }
 
-        $message = "Brands imported successfully! ($imported rows)";
+        $message = "Brands processed successfully! Created: $imported, Updated: $updated";
         if (!empty($errors)) {
-            $message .= " Errors: " . implode('; ', $errors);
+            $message .= " Errors: " . count($errors) . " rows failed.";
         }
 
         return back()->with('success', $message);
     }
 
-    public function downloadTemplate()
+    public function downloadTemplate(Request $request)
+    {
+        $format = $request->get('format', 'excel'); // Default to Excel format
+        
+        if ($format === 'csv') {
+            return $this->downloadCsvTemplate();
+        } else {
+            return $this->downloadExcelTemplate();
+        }
+    }
+    
+    private function downloadCsvTemplate()
+    {
+        $filePath = storage_path('app/templates/brands_import_template.csv');
+        $templateDir = dirname($filePath);
+        
+        // Create template directory if it doesn't exist
+        if (!is_dir($templateDir)) {
+            mkdir($templateDir, 0755, true);
+        }
+        
+        // Generate CSV template
+        $csvContent = "name,slug,description,status,logo_url\n";
+        $csvContent .= "Nike,nike,Sportswear and footwear brand,true,https://example.com/nike-logo.png\n";
+        $csvContent .= "Adidas,adidas,German sportswear brand,true,https://example.com/adidas-logo.png\n";
+        
+        file_put_contents($filePath, $csvContent);
+
+        return response()->download($filePath, 'brands_import_template.csv', [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="brands_import_template.csv"'
+        ]);
+    }
+    
+    private function downloadExcelTemplate()
     {
         $filePath = storage_path('app/templates/brands_import_template.xlsx');
         $templateDir = dirname($filePath);
@@ -364,7 +436,7 @@ class BrandController extends Controller
             $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
             $sheet = $spreadsheet->getActiveSheet();
             
-            // Set headers
+            // Set headers with proper styling
             $headers = [
                 'A1' => 'name',
                 'B1' => 'slug', 
@@ -373,27 +445,62 @@ class BrandController extends Controller
                 'E1' => 'logo_url'
             ];
             
+            // Set header values and styling
             foreach ($headers as $cell => $value) {
                 $sheet->setCellValue($cell, $value);
+                $sheet->getStyle($cell)->getFont()->setBold(true);
+                $sheet->getStyle($cell)->getFill()
+                    ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                    ->getStartColor()->setARGB('FFE0E0E0');
             }
             
-            // Add sample data
+            // Add sample data with multiple examples
             $sampleData = [
-                'A2' => 'Nike',
-                'B2' => 'nike',
-                'C2' => 'Sportswear and footwear brand',
-                'D2' => 'true',
-                'E2' => 'https://example.com/nike-logo.png'
+                ['Nike', 'nike', 'Sportswear and footwear brand', 'true', 'https://example.com/nike-logo.png'],
+                ['Adidas', 'adidas', 'German sportswear brand', 'true', 'https://example.com/adidas-logo.png'],
+                ['Puma', 'puma', 'Sports and lifestyle brand', 'false', 'https://example.com/puma-logo.png']
             ];
             
-            foreach ($sampleData as $cell => $value) {
-                $sheet->setCellValue($cell, $value);
+            $row = 2;
+            foreach ($sampleData as $data) {
+                $col = 'A';
+                foreach ($data as $value) {
+                    $sheet->setCellValue($col . $row, $value);
+                    $col++;
+                }
+                $row++;
+            }
+            
+            // Add instructions in a separate section
+            $instructionRow = $row + 2;
+            $sheet->setCellValue('A' . $instructionRow, 'Instructions:');
+            $sheet->getStyle('A' . $instructionRow)->getFont()->setBold(true);
+            
+            $instructions = [
+                'name' => 'Required: Brand name (e.g., Nike, Adidas)',
+                'slug' => 'Optional: URL-friendly version (auto-generated if empty)',
+                'description' => 'Optional: Brand description',
+                'status' => 'Required: true/false (active/inactive)',
+                'logo_url' => 'Optional: Full URL to brand logo image'
+            ];
+            
+            $row = $instructionRow + 1;
+            foreach ($instructions as $field => $instruction) {
+                $sheet->setCellValue('A' . $row, $field . ': ' . $instruction);
+                $row++;
             }
             
             // Auto-size columns
             foreach (range('A', 'E') as $column) {
                 $sheet->getColumnDimension($column)->setAutoSize(true);
             }
+            
+            // Set column widths for better readability
+            $sheet->getColumnDimension('A')->setWidth(20); // name
+            $sheet->getColumnDimension('B')->setWidth(15); // slug
+            $sheet->getColumnDimension('C')->setWidth(40); // description
+            $sheet->getColumnDimension('D')->setWidth(10); // status
+            $sheet->getColumnDimension('E')->setWidth(50); // logo_url
             
             // Save the file
             $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
@@ -421,5 +528,15 @@ class BrandController extends Controller
         } catch (\Exception $e) {
             throw new \Exception('Failed to upload logo: ' . $e->getMessage());
         }
+    }
+    
+    /**
+     * Check if a row is completely empty
+     */
+    private function isEmptyRow($row)
+    {
+        return empty(array_filter($row, function($value) {
+            return !is_null($value) && $value !== '';
+        }));
     }
 }

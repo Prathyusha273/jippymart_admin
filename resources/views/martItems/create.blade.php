@@ -160,6 +160,19 @@
                             </div>
                         </div>
 
+                        <div class="form-group row width-50">
+                            <label class="col-3 control-label">Brand</label>
+                            <div class="col-7">
+                                <select id='brand_select' class="form-control">
+                                    <option value="">Select Brand (Optional)</option>
+                                    <!-- options populated dynamically -->
+                                </select>
+                                <div class="form-text text-muted">
+                                    Select the brand for this item (optional)
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="form-group row width-100">
                             <label class="col-3 control-label">Mart Sub-Categories</label>
                             <div class="col-7">
@@ -613,6 +626,20 @@
             console.error('❌ Create page - Error fetching subcategories:', error);
         });
 
+        // Fetch brands
+        database.collection('brands').where('status','==',true).get().then(async function(snapshots) {
+            console.log('🔍 Create page - Found ' + snapshots.docs.length + ' brands');
+            snapshots.docs.forEach((listval) => {
+                var data = listval.data();
+                console.log('📋 Create page - Brand:', data.name, 'ID:', data.id, 'Status:', data.status);
+                $('#brand_select').append($("<option></option>")
+                    .attr("value", data.id)
+                    .text(data.name));
+            });
+        }).catch(function(error) {
+            console.error('❌ Create page - Error fetching brands:', error);
+        });
+
         // Fetch vendor attributes
         var attributes = database.collection('vendor_attributes');
         attributes.get().then(async function(snapshots) {
@@ -663,6 +690,7 @@
 
             var category = $("#food_category").val();
             var subcategory = $("#food_subcategory").val();
+            var brand = $("#brand_select").val();
 
             // Handle multiple category selection - take the first selected category
             if (Array.isArray(category) && category.length > 0) {
@@ -678,10 +706,11 @@
                 subcategory = '';
             }
 
-            // Get category and subcategory titles
+            // Get category, subcategory, and brand titles
             var categoryTitle = '';
             var subcategoryTitle = '';
             var vendorTitle = '';
+            var brandTitle = '';
             
             if (category) {
                 categoryTitle = $("#food_category option:selected").text() || '';
@@ -689,6 +718,10 @@
             
             if (subcategory) {
                 subcategoryTitle = $("#food_subcategory option:selected").text() || '';
+            }
+            
+            if (brand) {
+                brandTitle = $("#brand_select option:selected").text() || '';
             }
             
             // Get vendor title from restaurant_list
@@ -722,7 +755,7 @@
             });
 
             console.log('📝 Form values:', {
-                name, price, discount, description, quantity, restaurant, vendorTitle, category, categoryTitle, subcategory, subcategoryTitle,
+                name, price, discount, description, quantity, restaurant, vendorTitle, category, categoryTitle, subcategory, subcategoryTitle, brand, brandTitle,
                 foodPublish, foodIsAvailable, nonveg, veg, foodTakeaway,
                 isSpotlight, isStealOfMoment, isFeature, isTrending, isNew, isBestSeller, isSeasonal
             });
@@ -865,6 +898,8 @@
                     categoryTitle: categoryTitle, // Add category title
                     subcategoryID: subcategory || '', // Add subcategory
                     subcategoryTitle: subcategoryTitle || '', // Add subcategory title
+                    brandID: brand || '', // Add brand ID
+                    brandTitle: brandTitle || '', // Add brand title
                     section: $('#section_info').val() || 'General', // Add section
                     photo: photo || '',
                     description: description,
@@ -945,6 +980,8 @@
                     categoryTitle: categoryTitle, // Add category title
                     subcategoryID: subcategory || '', // Add subcategory
                     subcategoryTitle: subcategoryTitle || '', // Add subcategory title
+                    brandID: brand || '', // Add brand ID
+                    brandTitle: brandTitle || '', // Add brand title
                     section: $('#section_info').val() || 'General', // Add section
                     photo: photo || '',
                     description: description,

@@ -48,14 +48,21 @@
             <div class="card-header d-flex justify-content-between align-items-center border-0">
                 <div class="card-header-title">
                     <h3 class="text-dark-2 mb-2 h4">Bulk Import Brands</h3>
-                    <p class="mb-0 text-dark-2">Upload Excel file to import multiple brands at once</p>
+                    <p class="mb-0 text-dark-2">Upload Excel or CSV file to import multiple brands at once</p>
                 </div>
                 <div class="card-header-right d-flex align-items-center">
+                    <?php if (in_array('brands.create', json_decode(@session('user_permissions'), true))) { ?>
                     <div class="card-header-btn mr-3">
-                        <a href="{{ route('brands.download-template') }}" class="btn btn-outline-primary rounded-full">
-                            <i class="mdi mdi-download mr-2"></i>Download Template
-                        </a>
+                        <div class="btn-group" role="group">
+                            <a href="{{ route('brands.download-template', ['format' => 'excel']) }}" class="btn btn-outline-success rounded-full">
+                                <i class="mdi mdi-download mr-2"></i>Excel Template
+                            </a>
+                            <a href="{{ route('brands.download-template', ['format' => 'csv']) }}" class="btn btn-outline-primary rounded-full">
+                                <i class="mdi mdi-download mr-2"></i>CSV Template
+                            </a>
+                        </div>
                     </div>
+                    <?php } ?>
                 </div>
             </div>
             <div class="card-body">
@@ -64,18 +71,22 @@
                     <div class="row">
                         <div class="col-md-8">
                             <div class="form-group">
-                                <label for="importFile" class="control-label">Select Excel File (.xls/.xlsx)</label>
-                                <input type="file" name="file" id="importFile" accept=".xls,.xlsx" class="form-control" required>
+                                <label for="importFile" class="control-label">Select File (.csv/.xls/.xlsx)</label>
+                                <input type="file" name="file" id="importFile" accept=".csv,.xls,.xlsx" class="form-control" required>
                                 <div class="form-text text-muted">
                                     <i class="mdi mdi-information-outline mr-1"></i>
                                     File should contain: name, slug, description, status, logo_url
+                                    <br><strong>Recommended:</strong> Use Excel format for better formatting and instructions.
+                                    <br><strong>Note:</strong> Use CSV format if you encounter ZipArchive errors with Excel files.
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-4 d-flex align-items-end">
+                            <?php if (in_array('brands.create', json_decode(@session('user_permissions'), true))) { ?>
                             <button type="submit" class="btn btn-primary rounded-full">
                                 <i class="mdi mdi-upload mr-2"></i>Import Brands
                             </button>
+                            <?php } ?>
                         </div>
                     </div>
                 </form>
@@ -94,7 +105,9 @@
                    </div>
                    <div class="card-header-right d-flex align-items-center">
                     <div class="card-header-btn mr-3">
+                        <?php if (in_array('brands.create', json_decode(@session('user_permissions'), true))) { ?>
                         <a class="btn-primary btn rounded-full" href="{!! route('brands.create') !!}"><i class="mdi mdi-plus mr-2"></i>{{trans('lang.add_brand')}}</a>
+                        <?php } ?>
                      </div>
                    </div>
                  </div>
@@ -216,7 +229,7 @@
                             ImageHtml,
                             childData.description || '-',
                             childData.status ? '<label class="switch"><input type="checkbox" checked id="' + childData.id + '" name="isSwitch"><span class="slider round"></span></label>' : '<label class="switch"><input type="checkbox" id="' + childData.id + '" name="isSwitch"><span class="slider round"></span></label>',
-                            '<span class="action-btn"><a href="' + route1 + '"><i class="mdi mdi-lead-pencil" title="Edit"></i></a>' + (checkDeletePermission ? ' <a id="' + childData.id + '" name="brand-delete" class="delete-btn" href="javascript:void(0)"><i class="mdi mdi-delete"></i></a>' : '') + '</span>'
+                            '<span class="action-btn"><?php if (in_array('brands.edit', json_decode(@session('user_permissions'), true))) { ?><a href="' + route1 + '"><i class="mdi mdi-lead-pencil" title="Edit"></i></a><?php } ?><?php if (in_array('brands.delete', json_decode(@session('user_permissions'), true))) { ?> <a id="' + childData.id + '" name="brand-delete" class="delete-btn" href="javascript:void(0)"><i class="mdi mdi-delete"></i></a><?php } ?></span>'
                         ]);
                     });
                     $('#data-table_processing').hide(); // Hide loader

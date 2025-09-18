@@ -35,6 +35,11 @@ class DatabaseSeeder extends Seeder
             MartBannerPermissionsSeeder::class,
         ]);
 
+        // Add banners permissions to super admin
+        $this->call([
+            BannerPermissionsSeeder::class,
+        ]);
+
         // Add mart permissions to super admin
         $this->call([
             MartPermissionsSeeder::class,
@@ -46,3 +51,13 @@ class DatabaseSeeder extends Seeder
         ]);
     }
 }
+
+//Generic command
+//php artisan db:seed --class=MartPermissionsSeeder
+//php artisan db:seed --class=BrandsPermissionsSeeder
+//php artisan db:seed --class=MartItemsPermissionsSeeder
+//php artisan db:seed --class=MartBannerPermissionsSeeder
+//php artisan db:seed --class=BannerPermissionsSeeder
+//php artisan db:seed --class=MartPermissionsSeeder
+//php artisan db:seed --class=BrandsPermissionsSeeder
+//php artisan db:seed --class=MartItemsPermissionsSeeder

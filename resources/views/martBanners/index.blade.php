@@ -68,6 +68,7 @@
                                         <th>Description</th>
                                         <th>Text</th>
                                         <th>Position</th>
+                                        <th>Zone</th>
                                         <th>Order</th>
                                         <th>Publish</th>
                                         <th>Actions</th>
@@ -97,6 +98,14 @@
         var placeholderImageData = snapshotsimage.data();
         placeholderImage = placeholderImageData.image;
     })
+    
+    var zoneNames = {};
+    // Load zones for display
+    database.collection('zone').where('publish', '==', true).get().then(async function(snapshots) {
+        snapshots.docs.forEach(doc => {
+            zoneNames[doc.id] = doc.data().name;
+        });
+    });
     var user_permissions = '<?php echo @session("user_permissions")?>';
     user_permissions = Object.values(JSON.parse(user_permissions));
     var checkDeletePermission = false;
@@ -116,7 +125,7 @@
                 const searchValue = data.search.value.toLowerCase();
                 const orderColumnIndex = data.order[0].column;
                 const orderDirection = data.order[0].dir;
-                const orderableColumns = (checkDeletePermission) ? ['', 'title', 'description', 'text', 'position', 'set_order', '', ''] : ['title', 'description', 'text', 'position', 'set_order', '', '']; // Ensure this matches the actual column names
+                const orderableColumns = (checkDeletePermission) ? ['', 'title', 'description', 'text', 'position', 'zone', 'set_order', '', ''] : ['title', 'description', 'text', 'position', 'zone', 'set_order', '', '']; // Ensure this matches the actual column names
                 const orderByField = orderableColumns[orderColumnIndex]; // Adjust the index to match your table
                 if (searchValue.length >= 3 || searchValue.length === 0) {
                     $('#data-table_processing').show();
@@ -139,12 +148,14 @@
                     querySnapshot.forEach(function (doc) {
                         let childData = doc.data();
                         childData.id = doc.id; // Ensure the document ID is included in the data
+                        childData.zone = zoneNames[childData.zoneId] || '';
                         if (searchValue) {
                             if (
                                 (childData.title && childData.title.toString().toLowerCase().includes(searchValue)) ||
                                 (childData.description && childData.description.toString().toLowerCase().includes(searchValue)) ||
                                 (childData.text && childData.text.toString().toLowerCase().includes(searchValue)) ||
-                                (childData.position && childData.position.toString().toLowerCase().includes(searchValue))
+                                (childData.position && childData.position.toString().toLowerCase().includes(searchValue)) ||
+                                (childData.zone && childData.zone.toString().toLowerCase().includes(searchValue))
                             ) {
                                 filteredRecords.push(childData);
                             }
@@ -174,6 +185,7 @@
                             childData.description || '',
                             childData.text || '',
                             childData.position || '',
+                            childData.zone ? '<span class="badge badge-info">' + childData.zone + '</span>' : '<span class="text-muted">No Zone</span>',
                             childData.set_order || 0,
                             childData.is_publish ? '<label class="switch"><input type="checkbox" checked id="' + childData.id + '" name="isSwitch"><span class="slider round"></span></label>' : '<label class="switch"><input type="checkbox" id="' + childData.id + '" name="isSwitch"><span class="slider round"></span></label>',
                             '<span class="action-btn"><a href="' + route1 + '"><i class="mdi mdi-lead-pencil" title="Edit"></i></a><?php if (in_array('mart_banners.delete', json_decode(@session('user_permissions'), true))) { ?> <a id="'+childData.id+'" name="mart-banner-delete" class="delete-btn" href="javascript:void(0)"><i class="mdi mdi-delete"></i></a><?php } ?></span>'
@@ -199,7 +211,7 @@
             },
             order: (checkDeletePermission) ? [1, 'asc'] : [0, 'asc'],
             columnDefs: [
-                { targets: (checkDeletePermission) ? [0, 6, 7] : [5, 6], orderable: false }
+                { targets: (checkDeletePermission) ? [0, 7, 8] : [6, 7], orderable: false }
             ],
             language: {
                 zeroRecords: 'No records found',

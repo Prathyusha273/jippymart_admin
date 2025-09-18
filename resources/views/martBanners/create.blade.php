@@ -65,6 +65,18 @@
                             </select>
                         </div>
                     </div>
+                    <div class="form-group row width-50">
+                        <label class="col-3 control-label">Zone</label>
+                        <div class="col-7">
+                            <select id="zone_select" class="form-control">
+                                <option value="">Select Zone (Optional)</option>
+                                <!-- options populated dynamically -->
+                            </select>
+                            <div class="form-text text-muted">
+                                Select the zone for this banner (optional)
+                            </div>
+                        </div>
+                    </div>
                     <div class="form-group row width-100 radio-form-row d-flex" id="redirect_type_div">
                         <div class="radio-form col-md-2">
                             <input type="radio" class="redirect_type" value="store" name="redirect_type" id="store">
@@ -129,6 +141,9 @@
         
         // Load products for product redirect
         loadProducts();
+        
+        // Load zones
+        loadZones();
 
         // Handle redirect type change
         $('.redirect_type').on('change', function() {
@@ -186,6 +201,24 @@
         });
     }
 
+    // Load zones
+    function loadZones() {
+        $('#zone_select').html("");
+        $('#zone_select').append($("<option value=''>Select Zone (Optional)</option>"));
+        
+        var ref_zones = database.collection('zone').where('publish', '==', true).orderBy('name', 'asc');
+        ref_zones.get().then(async function(snapshots) {
+            snapshots.docs.forEach((listval) => {
+                var data = listval.data();
+                $('#zone_select').append($("<option></option>")
+                    .attr("value", listval.id)
+                    .text(data.name));
+            });
+        }).catch(function(error) {
+            console.error('Error loading zones:', error);
+        });
+    }
+
     function handleFileSelect(evt) {
         var f = evt.target.files[0];
         var reader = new FileReader();
@@ -229,6 +262,7 @@
         var setOrder = parseInt($('.set_order').val()) || 0;
         var isPublish = $('#is_publish').is(':checked');
         var position = $('#position').val();
+        var zone = $('#zone_select').val();
         var redirectType = $('.redirect_type:checked').val();
         var storeId = $('#storeId').val();
         var productId = $('#productId').val();
@@ -287,6 +321,12 @@
         // Clear previous errors
         $('.error_top').hide();
 
+        // Get zone title
+        var zoneTitle = '';
+        if (zone) {
+            zoneTitle = $('#zone_select option:selected').text() || '';
+        }
+
         // Disable save button and show loading
         $('.save-mart-banner-btn').prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Saving...');
 
@@ -302,6 +342,8 @@
                 set_order: setOrder,
                 is_publish: isPublish,
                 position: position,
+                zoneId: zone || '',
+                zoneTitle: zoneTitle || '',
                 redirect_type: redirectType,
                 photo: imageUrl,
                 created_at: firebase.firestore.FieldValue.serverTimestamp(),

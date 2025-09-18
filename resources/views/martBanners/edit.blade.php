@@ -65,6 +65,18 @@
                             </select>
                         </div>
                     </div>
+                    <div class="form-group row width-50">
+                        <label class="col-3 control-label">Zone</label>
+                        <div class="col-7">
+                            <select id="zone_select" class="form-control">
+                                <option value="">Select Zone (Optional)</option>
+                                <!-- options populated dynamically -->
+                            </select>
+                            <div class="form-text text-muted">
+                                Select the zone for this banner (optional)
+                            </div>
+                        </div>
+                    </div>
                     <div class="form-group row width-100 radio-form-row d-flex" id="redirect_type_div">
                         <div class="radio-form col-md-2">
                             <input type="radio" class="redirect_type" value="store" name="redirect_type" id="store">
@@ -144,6 +156,9 @@
 
         // Load products for product redirect
         loadProducts();
+        
+        // Load zones
+        loadZones();
 
         // Load existing banner data
         loadBannerData();
@@ -191,6 +206,11 @@
                 $('.set_order').val(bannerData.set_order || 0);
                 $('#is_publish').prop('checked', bannerData.is_publish !== false);
                 $('#position').val(bannerData.position || 'top');
+                
+                // Set zone if exists
+                if (bannerData.zoneId) {
+                    $('#zone_select').val(bannerData.zoneId);
+                }
 
                 // Set redirect type
                 var redirectType = bannerData.redirect_type || 'external_link';
@@ -302,6 +322,35 @@
         });
     }
 
+    // Load zones
+    function loadZones() {
+        console.log('🔄 Loading zones...');
+        $('#zone_select').html("");
+        $('#zone_select').append($("<option value=''>Select Zone (Optional)</option>"));
+
+        var ref_zones = database.collection('zone').where('publish', '==', true).orderBy('name', 'asc');
+        ref_zones.get().then(async function(snapshots) {
+            console.log('📄 Found', snapshots.docs.length, 'zones');
+            snapshots.docs.forEach((listval) => {
+                var data = listval.data();
+                $('#zone_select').append($("<option></option>")
+                    .attr("value", listval.id)
+                    .text(data.name || data.title || 'Unnamed Zone'));
+            });
+            console.log('✅ Zones loaded successfully');
+        }).catch(function(error) {
+            console.error('❌ Error loading zones:', error);
+            $.toast({
+                heading: 'Error',
+                text: 'Error loading zones: ' + error.message,
+                position: 'top-right',
+                loaderBg: '#ff6849',
+                icon: 'error',
+                hideAfter: 5000
+            });
+        });
+    }
+
     // Handle file selection
     function handleFileSelect(event) {
         var file = event.target.files[0];
@@ -330,6 +379,7 @@
         var setOrder = $('.set_order').val();
         var isPublish = $('#is_publish').is(':checked');
         var position = $('#position').val();
+        var zone = $('#zone_select').val();
         var redirectType = $('.redirect_type:checked').val();
         var storeId = $('#storeId').val();
         var productId = $('#productId').val();
@@ -401,6 +451,12 @@
             return;
         }
 
+        // Get zone title
+        var zoneTitle = '';
+        if (zone) {
+            zoneTitle = $('#zone_select option:selected').text() || '';
+        }
+
         // Prepare banner data
         var bannerData = {
             title: title,
@@ -410,6 +466,8 @@
             set_order: parseInt(setOrder) || 0,
             is_publish: isPublish,
             position: position,
+            zoneId: zone || '',
+            zoneTitle: zoneTitle || '',
             redirect_type: redirectType,
             storeId: redirectType === 'store' ? storeId : null,
             productId: redirectType === 'product' ? productId : null,

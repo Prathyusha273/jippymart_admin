@@ -2634,6 +2634,7 @@ return [
     'choose_file' => 'Choose File',
     'promotions_plural'=>'Promotions',
     'promotions_table_text'=>'View and manage all the promotions',
+    'phone_number' => 'Phone Number',
 ];
 ?>
 

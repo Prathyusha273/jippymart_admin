@@ -137,6 +137,11 @@
                                         <option value="seasonal">Seasonal</option>
                                     </select>
                                 </div>
+                                <div class="select-box pl-3">
+                                    <select class="form-control brand_selector">
+                                        <option value=""  selected>Brands</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -263,6 +268,7 @@
                                             <th>Mart</th>
                                             <?php } ?>
                                             <th>Mart Categories</th>
+                                            <th>Brand</th>
                                             <th>Options</th>
                                             <th>Published</th>
                                             <th>Available</th>
@@ -356,6 +362,16 @@
                     .text(data.title));
             })
         });
+        
+        // Load brands for filter
+        database.collection('brands').where('status','==',true).get().then(async function(snapshots) {
+            snapshots.docs.forEach((listval) => {
+                var data=listval.data();
+                $('.brand_selector').append($("<option></option>")
+                    .attr("value",data.id)
+                    .text(data.name));
+            })
+        });
         // Try both 'mart' and 'Mart' to handle case sensitivity
         // Fetch vendors with vType: 'mart' (case-insensitive)
         database.collection('vendors').get().then(async function(snapshots) {
@@ -381,6 +397,7 @@
             var foodType = $('.food_type_selector').val();
             var category = $('.category_selector').val();
             var feature = $('.feature_selector').val();
+            var brand = $('.brand_selector').val();
             refData = initialRef;
             if (restaurant) {
                 refData = refData.where('vendorID', '==', restaurant);
@@ -416,6 +433,9 @@
                         break;
                 }
             }
+            if (brand) {
+                refData = refData.where('brandID', '==', brand);
+            }
             ref=refData;
             $('#foodTable').DataTable().ajax.reload();
         });
@@ -437,6 +457,11 @@
             });
             $('.feature_selector').select2({
                 placeholder: "Item Features",
+                minimumResultsForSearch: Infinity,
+                allowClear: true
+            });
+            $('.brand_selector').select2({
+                placeholder: "Brands",
                 minimumResultsForSearch: Infinity,
                 allowClear: true
             });
@@ -484,9 +509,9 @@
                     const orderColumnIndex=data.order[0].column;
                     const orderDirection=data.order[0].dir;
                     @if($id!='')
-                    const orderableColumns=(checkDeletePermission)? ['','foodName','price','disPrice','category','','']:['name','price','disPrice','category','','']; // Ensure this matches the actual column names
+                    const orderableColumns=(checkDeletePermission)? ['','foodName','price','disPrice','category','brand','','']:['name','price','disPrice','category','brand','','']; // Ensure this matches the actual column names
                     @else
-                    const orderableColumns=(checkDeletePermission)? ['','foodName','price','disPrice','restaurant','category','','']:['name','price','disPrice','restaurant','category','','']; // Ensure this matches the actual column names
+                    const orderableColumns=(checkDeletePermission)? ['','foodName','price','disPrice','restaurant','category','brand','','']:['name','price','disPrice','restaurant','category','brand','','']; // Ensure this matches the actual column names
                     @endif
                     const orderByField=orderableColumns[orderColumnIndex]; // Adjust the index to match your table
                     if(searchValue.length>=3||searchValue.length===0) {
@@ -522,6 +547,12 @@
                         categoryDocs.forEach(doc => {
                             categoryNames[doc.id]=doc.data().title;
                         });
+                        
+                        var brandNames={};
+                        const brandDocs=await database.collection('brands').get();
+                        brandDocs.forEach(doc => {
+                            brandNames[doc.id]=doc.data().name;
+                        });
                         let records=[];
                         let filteredRecords=[];
                         await Promise.all(querySnapshot.docs.map(async (doc) => {
@@ -537,6 +568,7 @@
                             childData.finalPrice=parseInt(finalPrice);
                             childData.restaurant=restaurantNames[childData.vendorID]||'';
                             childData.category=categoryNames[childData.categoryID]||'';
+                            childData.brand=brandNames[childData.brandID]||'';
                             if(searchValue) {
                                 if(
                                     (childData.name&&childData.name.toString().toLowerCase().includes(searchValue))||
@@ -544,6 +576,7 @@
                                     (childData.disPrice&&childData.disPrice.toString().includes(searchValue))||
                                     (childData.restaurant&&childData.restaurant.toString().toLowerCase().includes(searchValue))||
                                     (childData.category&&childData.category.toString().toLowerCase().includes(searchValue))||
+                                    (childData.brand&&childData.brand.toString().toLowerCase().includes(searchValue))||
                                     (childData.price_range&&childData.price_range.toString().toLowerCase().includes(searchValue))||
                                     (childData.best_value_option&&childData.best_value_option.toString().toLowerCase().includes(searchValue))
                                 ) {
@@ -600,7 +633,7 @@
                 columnDefs: [
                     {
                         orderable: false,
-                        targets: (restaurantID=='')? ((checkDeletePermission)? [0,6,7]:[5,6]):((checkDeletePermission)? [0,5,6]:[4,6])
+                        targets: (restaurantID=='')? ((checkDeletePermission)? [0,7,8]:[6,7]):((checkDeletePermission)? [0,6,7]:[5,7])
                     },
                     {
                         type: 'formatted-num',
@@ -722,6 +755,13 @@
             var caregoryroute='{{route("categories.edit", ":id")}}';
             caregoryroute=caregoryroute.replace(':id',val.categoryID);
             html.push('<a href="'+caregoryroute+'">'+val.category+'</a>');
+            
+            // Add brand display
+            if(val.brand && val.brand !== '') {
+                html.push('<span class="badge badge-info">'+val.brand+'</span>');
+            } else {
+                html.push('<span class="text-muted">No Brand</span>');
+            }
 
             // Enhanced Options column
             if(val.has_options && val.options && val.options.length > 0) {

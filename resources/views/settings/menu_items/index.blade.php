@@ -44,8 +44,15 @@
                     <p class="mb-0 text-dark-2">{{trans('lang.banner_items_table_text')}}</p>
                    </div>
                    <div class="card-header-right d-flex align-items-center">
-                    <div class="card-header-btn mr-3"> 
+                    <div class="card-header-btn mr-3">
+                        <select id="zoneFilter" class="form-control" style="width: 200px;">
+                            <option value="">All Zones</option>
+                        </select>
+                    </div>
+                    <div class="card-header-btn mr-3">
+                        <?php if (in_array('banners.create', json_decode(@session('user_permissions'), true))) { ?>
                         <a class="btn-primary btn rounded-full" href="{!! route('setting.banners.create') !!}"><i class="mdi mdi-plus mr-2"></i>{{trans('lang.menu_items_create')}}</a>
+                        <?php } ?>
                      </div>
                    </div>                
                  </div>
@@ -66,6 +73,7 @@
                                         <?php } ?>
                                         <th>{{trans('lang.title')}}</th>
                                         <th>{{trans('lang.banner_position')}}</th>
+                                        <th>Zone</th>
                                         <th>{{trans('lang.publish')}}</th>
                                         <th>{{trans('lang.actions')}}</th>
                                     </tr>
@@ -86,10 +94,29 @@
     var refData = database.collection('menu_items').orderBy('title');
     var placeholderImage = '';
     var placeholder = database.collection('settings').doc('placeHolderImage');
+    var zoneFilter = '';
+    var zonesMap = {};
+    
     placeholder.get().then(async function(snapshotsimage) {
         var placeholderImageData = snapshotsimage.data();
         placeholderImage = placeholderImageData.image;
     })
+    
+    // Load zones for filter
+    function loadZones() {
+        $('#zoneFilter').html('<option value="">All Zones</option>');
+        database.collection('zone').where('publish', '==', true).orderBy('name', 'asc').get().then(function(snapshots) {
+            snapshots.docs.forEach(function(doc) {
+                var data = doc.data();
+                zonesMap[doc.id] = data.name;
+                $('#zoneFilter').append($("<option></option>")
+                    .attr("value", doc.id)
+                    .text(data.name));
+            });
+        }).catch(function(error) {
+            console.error('Error loading zones:', error);
+        });
+    }
     var user_permissions = '<?php echo @session("user_permissions")?>';
     user_permissions = Object.values(JSON.parse(user_permissions));
     var checkDeletePermission = false;
@@ -97,6 +124,15 @@
         checkDeletePermission = true;
     }
     $(document).ready(function() {
+        // Load zones first
+        loadZones();
+        
+        // Zone filter change handler
+        $('#zoneFilter').on('change', function() {
+            zoneFilter = $(this).val();
+            table.ajax.reload();
+        });
+        
         jQuery("#data-table_processing").show();
         const table = $('#bannerItemsTable').DataTable({
             pageLength: 10, // Number of rows per page
@@ -109,7 +145,7 @@
                 const searchValue = data.search.value.toLowerCase();
                 const orderColumnIndex = data.order[0].column;
                 const orderDirection = data.order[0].dir;
-                const orderableColumns =(checkDeletePermission) ? ['',  'title', 'position', '', ''] : [ 'title', 'position', '', '']; // Ensure this matches the actual column names
+                const orderableColumns =(checkDeletePermission) ? ['',  'title', 'position', 'zoneTitle', '', ''] : [ 'title', 'position', 'zoneTitle', '', '']; // Ensure this matches the actual column names
                 const orderByField = orderableColumns[orderColumnIndex]; // Adjust the index to match your table
                 if (searchValue.length >= 3 || searchValue.length === 0) {
                     $('#data-table_processing').show();
@@ -132,10 +168,17 @@
                     querySnapshot.forEach(function (doc) {
                         let childData = doc.data();
                         childData.id = doc.id; // Ensure the document ID is included in the data
+                        
+                        // Apply zone filter
+                        if (zoneFilter && childData.zoneId !== zoneFilter) {
+                            return; // Skip this record if zone filter doesn't match
+                        }
+                        
                         if (searchValue) {
                             if (
                                 (childData.title && childData.title.toString().toLowerCase().includes(searchValue)) ||
-                                (childData.position && childData.position.toString().toLowerCase().includes(searchValue))
+                                (childData.position && childData.position.toString().toLowerCase().includes(searchValue)) ||
+                                (childData.zoneTitle && childData.zoneTitle.toString().toLowerCase().includes(searchValue))
                             ) {
                                 filteredRecords.push(childData);
                             }
@@ -163,8 +206,9 @@
                             checkDeletePermission ? '<td class="delete-all"><input type="checkbox" name="record" id="is_open_' + childData.id + '" class="is_open" data-id="' + childData.id + '" style="width:30px;"><label class="col-3 control-label"\n' + 'for="is_open_' + childData.id + '" ></label></td>' : '',
                             imageHtml+'<a href="' + route1 + '">' + childData.title + '</a>',
                             childData.position,
+                            childData.zoneTitle || 'No Zone',
                             childData.is_publish ? '<label class="switch"><input type="checkbox" checked id="' + childData.id + '" name="isSwitch"><span class="slider round"></span></label>' : '<label class="switch"><input type="checkbox" id="' + childData.id + '" name="isSwitch"><span class="slider round"></span></label>',
-                            '<span class="action-btn"><a href="' + route1 + '"><i class="mdi mdi-lead-pencil" title="Edit"></i></a><?php if (in_array('banners.delete', json_decode(@session('user_permissions'), true))) { ?> <a id="' + childData.id + '" name="vendor-delete" class="delete-btn" href="javascript:void(0)"><i class="mdi mdi-delete"></i></a></span><?php } ?>'
+                            '<span class="action-btn"><?php if (in_array('banners.edit', json_decode(@session('user_permissions'), true))) { ?><a href="' + route1 + '"><i class="mdi mdi-lead-pencil" title="Edit"></i></a><?php } ?><?php if (in_array('banners.delete', json_decode(@session('user_permissions'), true))) { ?> <a id="' + childData.id + '" name="vendor-delete" class="delete-btn" href="javascript:void(0)"><i class="mdi mdi-delete"></i></a><?php } ?></span>'
                         ]);
                     });
                     $('#data-table_processing').hide(); // Hide loader
@@ -187,7 +231,7 @@
             },
             order: (checkDeletePermission) ? [1, 'asc'] : [0, 'asc'],
             columnDefs: [
-                { targets: (checkDeletePermission) ? [0, 3, 4] : [2,3], orderable: false }
+                { targets: (checkDeletePermission) ? [0, 4, 5] : [3, 4], orderable: false }
             ],
             language: {
                 zeroRecords: '{{trans("lang.no_record_found")}}',
