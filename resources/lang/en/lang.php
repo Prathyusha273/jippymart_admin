@@ -591,7 +591,7 @@ return [
 
     'deliveryCharge' => "Delivery Charge",
 
-    'mart_delivery_charge' => "Mart Delivery Charge",
+    'mart_settings' => "Mart Settings",
 
     'martdeliveryCharge' => "Mart Delivery Charge",
 

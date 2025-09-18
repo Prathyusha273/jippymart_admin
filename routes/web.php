@@ -415,8 +415,8 @@ Route::prefix('settings')->group(function () {
     Route::middleware(['permission:delivery-charge,settings.app.deliveryCharge'])->group(function () {
         Route::get('app/deliveryCharge', [App\Http\Controllers\SettingsController::class, 'deliveryCharge'])->name('settings.app.deliveryCharge');
     });
-    Route::middleware(['permission:mart-delivery-charge,settings.app.martDeliveryCharge'])->group(function () {
-        Route::get('app/martDeliveryCharge', [App\Http\Controllers\SettingsController::class, 'martDeliveryCharge'])->name('settings.app.martDeliveryCharge');
+    Route::middleware(['permission:mart-settings,settings.app.martSettings'])->group(function () {
+        Route::get('app/martSettings', [App\Http\Controllers\SettingsController::class, 'martSettings'])->name('settings.app.martSettings');
     });
     // Route::middleware(['permission:price-setting,settings.app.priceSetting'])->group(function () {
         Route::get('app/priceSetting', [App\Http\Controllers\SettingsController::class, 'priceSetting'])->name('settings.app.priceSettings');

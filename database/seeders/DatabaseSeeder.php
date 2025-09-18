@@ -49,6 +49,11 @@ class DatabaseSeeder extends Seeder
         $this->call([
             BrandsPermissionsSeeder::class,
         ]);
+
+        // Add mart settings permissions to super admin
+        $this->call([
+            MartSettingsPermissionsSeeder::class,
+        ]);
     }
 }
 
@@ -61,3 +66,4 @@ class DatabaseSeeder extends Seeder
 //php artisan db:seed --class=MartPermissionsSeeder
 //php artisan db:seed --class=BrandsPermissionsSeeder
 //php artisan db:seed --class=MartItemsPermissionsSeeder
+//php artisan db:seed --class=MartSettingsPermissionsSeeder
