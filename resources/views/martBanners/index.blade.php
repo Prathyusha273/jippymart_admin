@@ -15,7 +15,7 @@
         </div>
     </div>
     <div class="container-fluid">
-       <div class="admin-top-section"> 
+       <div class="admin-top-section">
         <div class="row">
             <div class="col-12">
                 <div class="d-flex top-title-section pb-4 justify-content-between">
@@ -26,13 +26,13 @@
                     </div>
                     <div class="d-flex top-title-right align-self-center">
                         <div class="select-box pl-3">
-                           
+
                         </div>
                     </div>
                 </div>
             </div>
-        </div> 
-  
+        </div>
+
        </div>
        <div class="table-list">
        <div class="row">
@@ -44,10 +44,10 @@
                     <p class="mb-0 text-dark-2">Manage mart banner items for the application</p>
                    </div>
                    <div class="card-header-right d-flex align-items-center">
-                    <div class="card-header-btn mr-3"> 
+                    <div class="card-header-btn mr-3">
                         <a class="btn-primary btn rounded-full" href="{!! route('mart.banners.create') !!}"><i class="mdi mdi-plus mr-2"></i>Create New Banner</a>
                      </div>
-                   </div>                
+                   </div>
                  </div>
                  <div class="card-body">
                          <div class="table-responsive m-t-10">
@@ -65,8 +65,6 @@
                                         </th>
                                         <?php } ?>
                                         <th>Title</th>
-                                        <th>Description</th>
-                                        <th>Text</th>
                                         <th>Position</th>
                                         <th>Zone</th>
                                         <th>Order</th>
@@ -98,7 +96,7 @@
         var placeholderImageData = snapshotsimage.data();
         placeholderImage = placeholderImageData.image;
     })
-    
+
     var zoneNames = {};
     // Load zones for display
     database.collection('zone').where('publish', '==', true).get().then(async function(snapshots) {
@@ -125,14 +123,14 @@
                 const searchValue = data.search.value.toLowerCase();
                 const orderColumnIndex = data.order[0].column;
                 const orderDirection = data.order[0].dir;
-                const orderableColumns = (checkDeletePermission) ? ['', 'title', 'description', 'text', 'position', 'zone', 'set_order', '', ''] : ['title', 'description', 'text', 'position', 'zone', 'set_order', '', '']; // Ensure this matches the actual column names
+                const orderableColumns = (checkDeletePermission) ? ['', 'title', 'position', 'zone', 'set_order', '', ''] : ['title', 'position', 'zone', 'set_order', '', '']; // Ensure this matches the actual column names
                 const orderByField = orderableColumns[orderColumnIndex]; // Adjust the index to match your table
                 if (searchValue.length >= 3 || searchValue.length === 0) {
                     $('#data-table_processing').show();
                 }
                 refData.get().then(async function (querySnapshot) {
                     if (querySnapshot.empty) {
-                        $('.total_count').text(0); 
+                        $('.total_count').text(0);
                         console.error("No data found in Firestore.");
                         $('#data-table_processing').hide(); // Hide loader
                         callback({
@@ -152,8 +150,6 @@
                         if (searchValue) {
                             if (
                                 (childData.title && childData.title.toString().toLowerCase().includes(searchValue)) ||
-                                (childData.description && childData.description.toString().toLowerCase().includes(searchValue)) ||
-                                (childData.text && childData.text.toString().toLowerCase().includes(searchValue)) ||
                                 (childData.position && childData.position.toString().toLowerCase().includes(searchValue)) ||
                                 (childData.zone && childData.zone.toString().toLowerCase().includes(searchValue))
                             ) {
@@ -173,7 +169,7 @@
                         }
                     });
                     const totalRecords = filteredRecords.length;
-                    $('.total_count').text(totalRecords); 
+                    $('.total_count').text(totalRecords);
                     const paginatedRecords = filteredRecords.slice(start, start + length);
                     paginatedRecords.forEach(function (childData) {
                         var route1 = '{{route("mart.banners.edit", ":id")}}';
@@ -182,8 +178,6 @@
                         records.push([
                             checkDeletePermission ? '<td class="delete-all"><input type="checkbox" name="record" id="is_open_' + childData.id + '" class="is_open" data-id="' + childData.id + '" style="width:30px;"><label class="col-3 control-label" for="is_open_' + childData.id + '" ></label></td>' : '',
                             imageHtml + '<a href="' + route1 + '">' + (childData.title || '') + '</a>',
-                            childData.description || '',
-                            childData.text || '',
                             childData.position || '',
                             childData.zone ? '<span class="badge badge-info">' + childData.zone + '</span>' : '<span class="text-muted">No Zone</span>',
                             childData.set_order || 0,
@@ -211,7 +205,7 @@
             },
             order: (checkDeletePermission) ? [1, 'asc'] : [0, 'asc'],
             columnDefs: [
-                { targets: (checkDeletePermission) ? [0, 7, 8] : [6, 7], orderable: false }
+                { targets: (checkDeletePermission) ? [0, 5, 6] : [4, 5], orderable: false }
             ],
             language: {
                 zeroRecords: 'No records found',
@@ -244,7 +238,7 @@
     $(document).on("click", "input[name='isSwitch']", async function(e) {
         var ischeck = $(this).is(':checked');
         var id = this.id;
-        
+
         // Get banner item title for logging
         var bannerTitle = '';
         try {
@@ -255,7 +249,7 @@
         } catch (error) {
             console.error('Error getting banner title:', error);
         }
-        
+
         if (ischeck) {
             database.collection('mart_banners').doc(id).update({
                 'is_publish': true
@@ -319,7 +313,7 @@
                 Promise.all(deletePromises).then(function() {
                     toastr.success('Selected banner items deleted successfully');
                     table.ajax.reload();
-                    
+
                     // Log activity for bulk delete
                     logActivity('mart_banner_items', 'deleted', 'Bulk deleted mart banner items: ' + selectedTitles.join(', '));
                 }).catch(function(error) {
@@ -334,7 +328,7 @@
     // Handle individual delete
     $(document).on('click', 'a[name="mart-banner-delete"]', function() {
         var id = this.id;
-        
+
         // Get banner item title for logging
         var bannerTitle = '';
         try {
@@ -351,7 +345,7 @@
             database.collection('mart_banners').doc(id).delete().then(function() {
                 toastr.success('Banner item deleted successfully');
                 table.ajax.reload();
-                
+
                 // Log activity for banner item delete
                 logActivity('mart_banner_items', 'deleted', 'Deleted mart banner item: ' + bannerTitle);
             }).catch(function(error) {

@@ -25,18 +25,18 @@
                             <input type="text" class="form-control title" placeholder="Enter banner title">
                         </div>
                     </div>
-                    <div class="form-group row width-50">
-                        <label class="col-3 control-label">Description</label>
-                        <div class="col-7">
-                            <textarea class="form-control description" rows="3" placeholder="Enter banner description"></textarea>
-                        </div>
-                    </div>
-                    <div class="form-group row width-50">
-                        <label class="col-3 control-label">Text (Optional)</label>
-                        <div class="col-7">
-                            <textarea class="form-control text" rows="2" placeholder="Enter additional text (optional)"></textarea>
-                        </div>
-                    </div>
+{{--                    <div class="form-group row width-50">--}}
+{{--                        <label class="col-3 control-label">Description</label>--}}
+{{--                        <div class="col-7">--}}
+{{--                            <textarea class="form-control description" rows="3" placeholder="Enter banner description"></textarea>--}}
+{{--                        </div>--}}
+{{--                    </div>--}}
+{{--                    <div class="form-group row width-50">--}}
+{{--                        <label class="col-3 control-label">Text (Optional)</label>--}}
+{{--                        <div class="col-7">--}}
+{{--                            <textarea class="form-control text" rows="2" placeholder="Enter additional text (optional)"></textarea>--}}
+{{--                        </div>--}}
+{{--                    </div>--}}
                     <div class="form-group row width-50">
                         <label class="col-3 control-label">Order</label>
                         <div class="col-7">
@@ -62,6 +62,15 @@
                                 <option value="top">Top</option>
                                 <option value="middle">Middle</option>
                                 <option value="bottom">Bottom</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group row width-50" id="banner_screen">
+                        <label class="col-3 control-label">Screen</label>
+                        <div class="col-7">
+                            <select name="screen" id="screen" class="form-control">
+                                <option value="home">Home Screen</option>
+                                <option value="product">Product Screen</option>
                             </select>
                         </div>
                     </div>
@@ -138,10 +147,10 @@
     $(document).ready(function() {
         // Load stores for store redirect
         loadStores();
-        
+
         // Load products for product redirect
         loadProducts();
-        
+
         // Load zones
         loadZones();
 
@@ -149,7 +158,7 @@
         $('.redirect_type').on('change', function() {
             var redirectType = $(this).val();
             $('#vendor_div, #product_div, #external_link_div').hide();
-            
+
             if (redirectType === 'store') {
                 $('#vendor_div').show();
             } else if (redirectType === 'product') {
@@ -169,7 +178,7 @@
     function loadStores() {
         $('#storeId').html("");
         $('#storeId').append($("<option value=''>Select Store</option>"));
-        
+
         var ref_vendors = database.collection('vendors');
         ref_vendors.get().then(async function(snapshots) {
             snapshots.docs.forEach((listval) => {
@@ -187,7 +196,7 @@
     function loadProducts() {
         $('#productId').html("");
         $('#productId').append($("<option value=''>Select Product</option>"));
-        
+
         var ref_products = database.collection('mart_items');
         ref_products.get().then(async function(snapshots) {
             snapshots.docs.forEach((listval) => {
@@ -205,7 +214,7 @@
     function loadZones() {
         $('#zone_select').html("");
         $('#zone_select').append($("<option value=''>Select Zone (Optional)</option>"));
-        
+
         var ref_zones = database.collection('zone').where('publish', '==', true).orderBy('name', 'asc');
         ref_zones.get().then(async function(snapshots) {
             snapshots.docs.forEach((listval) => {
@@ -262,6 +271,7 @@
         var setOrder = parseInt($('.set_order').val()) || 0;
         var isPublish = $('#is_publish').is(':checked');
         var position = $('#position').val();
+        var screen = $('#screen').val();
         var zone = $('#zone_select').val();
         var redirectType = $('.redirect_type:checked').val();
         var storeId = $('#storeId').val();
@@ -333,7 +343,7 @@
         try {
             // Upload image first
             const imageUrl = await storeImageData();
-            
+
             // Prepare banner data
             const bannerData = {
                 title: title,
@@ -342,6 +352,7 @@
                 set_order: setOrder,
                 is_publish: isPublish,
                 position: position,
+                screen: screen,
                 zoneId: zone || '',
                 zoneTitle: zoneTitle || '',
                 redirect_type: redirectType,
@@ -361,12 +372,12 @@
 
             // Save to Firestore
             const docRef = await database.collection('mart_banners').add(bannerData);
-            
+
             // Success - redirect to index page
             if (typeof toastr !== 'undefined') {
                 toastr.success('Banner created successfully!');
             }
-            
+
             setTimeout(() => {
                 window.location.href = '{{ route("mart.banners") }}';
             }, 1000);

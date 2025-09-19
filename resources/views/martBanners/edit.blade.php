@@ -25,18 +25,18 @@
                             <input type="text" class="form-control title" placeholder="Enter banner title">
                         </div>
                     </div>
-                    <div class="form-group row width-100">
-                        <label class="col-3 control-label">Description</label>
-                        <div class="col-7">
-                            <textarea class="form-control description" rows="3" placeholder="Enter banner description"></textarea>
-                        </div>
-                    </div>
-                    <div class="form-group row width-100">
-                        <label class="col-3 control-label">Text</label>
-                        <div class="col-7">
-                            <textarea class="form-control text" rows="3" placeholder="Enter additional text content"></textarea>
-                        </div>
-                    </div>
+{{--                    <div class="form-group row width-100">--}}
+{{--                        <label class="col-3 control-label">Description</label>--}}
+{{--                        <div class="col-7">--}}
+{{--                            <textarea class="form-control description" rows="3" placeholder="Enter banner description"></textarea>--}}
+{{--                        </div>--}}
+{{--                    </div>--}}
+{{--                    <div class="form-group row width-100">--}}
+{{--                        <label class="col-3 control-label">Text</label>--}}
+{{--                        <div class="col-7">--}}
+{{--                            <textarea class="form-control text" rows="3" placeholder="Enter additional text content"></textarea>--}}
+{{--                        </div>--}}
+{{--                    </div>--}}
                     <div class="form-group row width-50">
                         <label class="col-3 control-label">Set Order</label>
                         <div class="col-7">
@@ -62,6 +62,15 @@
                                 <option value="top">Top</option>
                                 <option value="middle">Middle</option>
                                 <option value="bottom">Bottom</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group row width-50" id="banner_screen">
+                        <label class="col-3 control-label">Screen</label>
+                        <div class="col-7">
+                            <select name="screen" id="screen" class="form-control">
+                                <option value="home">Home Screen</option>
+                                <option value="product">Product Screen</option>
                             </select>
                         </div>
                     </div>
@@ -132,9 +141,11 @@
     var database = window.database || firebase.firestore();
     var storage = window.storage || firebase.storage();
     var photo = '';
+    var fileName = '';
     var new_added_photos = [];
     var bannerImageFile = "";
     var id = '{{ $id }}';
+    var storageRef = firebase.storage().ref('images');
 
     $(document).ready(function() {
         // Wait for Firebase to be ready
@@ -156,7 +167,7 @@
 
         // Load products for product redirect
         loadProducts();
-        
+
         // Load zones
         loadZones();
 
@@ -201,12 +212,11 @@
 
                 // Populate form fields
                 $('.title').val(bannerData.title || '');
-                $('.description').val(bannerData.description || '');
-                $('.text').val(bannerData.text || '');
                 $('.set_order').val(bannerData.set_order || 0);
                 $('#is_publish').prop('checked', bannerData.is_publish !== false);
                 $('#position').val(bannerData.position || 'top');
-                
+                $('#screen').val(bannerData.screen || 'home');
+
                 // Set zone if exists
                 if (bannerData.zoneId) {
                     $('#zone_select').val(bannerData.zoneId);
@@ -353,20 +363,45 @@
 
     // Handle file selection
     function handleFileSelect(event) {
-        var file = event.target.files[0];
-        if (file) {
-            if (file.size > 5 * 1024 * 1024) {
+        var f = event.target.files[0];
+        if (f) {
+            if (f.size > 5 * 1024 * 1024) {
                 alert('File size should be less than 5MB');
                 return;
             }
 
             var reader = new FileReader();
-            reader.onload = function(e) {
-                $('.user_image').html('<img src="' + e.target.result + '" style="max-width: 100px; max-height: 100px; border-radius: 4px;">');
-                photo = e.target.result;
-            };
-            reader.readAsDataURL(file);
+            reader.onload = (function(theFile) {
+                return function(e) {
+                    var filePayload = e.target.result;
+                    var val = f.name;
+                    var ext = val.split('.')[1];
+                    var docName = val.split('fakepath')[1];
+                    var filename = (f.name).replace(/C:\\fakepath\\/i, '')
+                    photo = filePayload;
+                    fileName = filename;
+                    $(".user_image").empty();
+                    $(".user_image").append('<img class="rounded" style="width:50px" src="' + photo + '" alt="image">');
+                };
+            })(f);
+            reader.readAsDataURL(f);
         }
+    }
+
+    async function storeImageData() {
+        var newPhoto = '';
+        try {
+            photo = photo.replace(/^data:image\/[a-z]+;base64,/, "")
+            var uploadTask = await storageRef.child(fileName).putString(photo, 'base64', {
+                contentType: 'image/jpg'
+            });
+            var downloadURL = await uploadTask.ref.getDownloadURL();
+            newPhoto = downloadURL;
+            photo = downloadURL;
+        } catch (error) {
+            console.log("ERR ===", error);
+        }
+        return newPhoto;
     }
 
     // Update mart banner
@@ -374,11 +409,10 @@
         console.log('🔄 Starting banner update process...');
 
         var title = $('.title').val().trim();
-        var description = $('.description').val().trim();
-        var text = $('.text').val().trim();
         var setOrder = $('.set_order').val();
         var isPublish = $('#is_publish').is(':checked');
         var position = $('#position').val();
+        var screen = $('#screen').val();
         var zone = $('#zone_select').val();
         var redirectType = $('.redirect_type:checked').val();
         var storeId = $('#storeId').val();
@@ -386,7 +420,7 @@
         var externalLink = $('#external_link').val().trim();
 
         console.log('📝 Form data:', {
-            title, description, text, setOrder, isPublish, position,
+            title, setOrder, isPublish, position,
             redirectType, storeId, productId, externalLink, photo
         });
 
@@ -457,29 +491,36 @@
             zoneTitle = $('#zone_select option:selected').text() || '';
         }
 
-        // Prepare banner data
-        var bannerData = {
-            title: title,
-            description: description,
-            text: text,
-            photo: photo,
-            set_order: parseInt(setOrder) || 0,
-            is_publish: isPublish,
-            position: position,
-            zoneId: zone || '',
-            zoneTitle: zoneTitle || '',
-            redirect_type: redirectType,
-            storeId: redirectType === 'store' ? storeId : null,
-            productId: redirectType === 'product' ? productId : null,
-            external_link: redirectType === 'external_link' ? externalLink : null,
-            updated_at: firebase.firestore.FieldValue.serverTimestamp()
-        };
-
         // Show loading
         $('.edit-mart-banner-btn').prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Saving...');
 
         try {
             console.log('💾 Updating banner in Firestore...');
+
+            // Upload new image if one was selected
+            var imageUrl = photo;
+            if (fileName && photo.includes('data:image')) {
+                console.log('📸 Uploading new image to Firebase Storage...');
+                imageUrl = await storeImageData();
+                console.log('✅ Image uploaded successfully:', imageUrl);
+            }
+
+            // Prepare banner data
+            var bannerData = {
+                title: title,
+                photo: imageUrl,
+                set_order: parseInt(setOrder) || 0,
+                is_publish: isPublish,
+                position: position,
+                screen: screen,
+                zoneId: zone || '',
+                zoneTitle: zoneTitle || '',
+                redirect_type: redirectType,
+                storeId: redirectType === 'store' ? storeId : null,
+                productId: redirectType === 'product' ? productId : null,
+                external_link: redirectType === 'external_link' ? externalLink : null,
+                updated_at: firebase.firestore.FieldValue.serverTimestamp()
+            };
 
             // Update in Firestore
             await database.collection('mart_banners').doc(id).update(bannerData);
