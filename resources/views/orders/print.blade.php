@@ -175,6 +175,59 @@
                     color: black !important;
                 }
 
+                /* Promotional Price Styles for Print */
+                .promotional-price {
+                    color: #28a745 !important;
+                    font-weight: bold;
+                }
+
+                .original-price {
+                    text-decoration: line-through;
+                    color: #6c757d;
+                }
+
+                .promotional_savings {
+                    color: #28a745 !important;
+                    font-weight: bold;
+                }
+
+                .badge-success {
+                    background-color: #28a745;
+                    color: white;
+                    padding: 2px 6px;
+                    border-radius: 3px;
+                    font-size: 10px;
+                }
+
+                /* Promotional Item Badge Styles for Print */
+                .promotional-badge {
+                    background: linear-gradient(45deg, #ff6b6b, #ff8e8e) !important;
+                    color: white !important;
+                    padding: 4px 10px !important;
+                    border-radius: 15px !important;
+                    font-size: 9px !important;
+                    font-weight: bold !important;
+                    text-transform: uppercase !important;
+                    letter-spacing: 0.5px !important;
+                    box-shadow: 0 2px 6px rgba(255, 107, 107, 0.4) !important;
+                    display: inline-block !important;
+                    margin-top: 4px !important;
+                    text-align: center !important;
+                    width: fit-content !important;
+                    border: none !important;
+                    outline: none !important;
+                }
+
+                /* Promotional item row styling for print */
+                .promotional-item-row {
+                    background: linear-gradient(90deg, rgba(255, 107, 107, 0.05), rgba(255, 142, 142, 0.05));
+                    border-left: 3px solid #ff6b6b;
+                }
+
+                .promotional-item-row td {
+                    position: relative;
+                }
+
                 @media print {
                     @page {
                         size: portrait;
@@ -236,6 +289,10 @@
                     var currencyAtRight = false;
                     var decimal_degits = 0;
                     var refCurrency = database.collection('currencies').where('isActive', '==', true);
+                    
+                    // Promotional pricing system variables
+                    var promotionalTotals = null;
+                    var promotionalPricingApplied = false;
                     refCurrency.get().then(async function (snapshots) {
                         var currencyData = snapshots.docs[0].data();
                         currentCurrency = currencyData.symbol;
@@ -247,6 +304,23 @@
                         // Now load order data after currency is loaded
                         ref.get().then(async function (snapshots) {
                             var order = snapshots.docs[0].data();
+                            
+                            // ========== PROMOTIONAL PRICING SYSTEM START ==========
+                            console.log('🚀 ===== PROMOTIONAL PRICING SYSTEM STARTING (PRINT) =====');
+                            console.log('🚀 Order ID:', order.id);
+                            console.log('🚀 Order vendor ID:', order.vendorID);
+                            console.log('🚀 Order products count:', order.products ? order.products.length : 0);
+                            
+                            // Calculate promotional totals first
+                            if (order.vendorID && order.products) {
+                                try {
+                                    promotionalTotals = await calculatePromotionalTotals(order.products, order.vendorID);
+                                    console.log('💰 Promotional totals calculated:', promotionalTotals);
+                                } catch (error) {
+                                    console.error('❌ Error calculating promotional totals:', error);
+                                    promotionalTotals = null;
+                                }
+                            }
                             $(".customerName").text(order.author.firstName + " " + order.author.lastName);
                             $(".orderId").text(id);
                             var date = order.createdAt.toDate().toDateString();
@@ -336,7 +410,21 @@
                             }
                             append_procucts_list = document.getElementById('order_products');
                             append_procucts_list.innerHTML = '';
-                            var productsListHTML = buildHTMLProductsList(order.products);
+                            
+                            // Build product list with promotional pricing
+                            var productsListHTML = '';
+                            if (order.vendorID && order.products) {
+                                try {
+                                    productsListHTML = await buildHTMLProductsListWithPromotions(order.products, order.vendorID);
+                                    console.log('🎯 Product list built with promotional pricing');
+                                } catch (error) {
+                                    console.error('❌ Error building promotional product list:', error);
+                                    productsListHTML = buildHTMLProductsList(order.products);
+                                }
+                            } else {
+                                productsListHTML = buildHTMLProductsList(order.products);
+                            }
+                            
                             var productstotalHTML = buildHTMLProductstotal(order);
                             if (productsListHTML != '') {
                                 append_procucts_list.innerHTML = productsListHTML;
@@ -648,14 +736,35 @@
                         var currentCurrency = currentCurrency || '₹';
                         var products = order.products;
 
-                        // Calculate subtotal from products
+                        // Calculate subtotal from products with promotional pricing support
                         if (products) {
-                            products.forEach(function (product) {
-                                var price = (product.discountPrice && parseFloat(product.discountPrice) > 0)
-                                    ? parseFloat(product.discountPrice)
-                                    : parseFloat(product.price);
-                                subtotal += price * (parseInt(product.quantity) || 1);
-                            });
+                            console.log('💰 ===== CALCULATING SUBTOTAL WITH PROMOTIONAL SUPPORT (PRINT) =====');
+                            console.log('💰 Vendor ID for promotional check:', order.vendorID);
+                            
+                            // Try to use promotional pricing if vendor ID is available
+                            if (order.vendorID && promotionalTotals) {
+                                try {
+                                    console.log('💰 Using promotional subtotal:', promotionalTotals.promotionalSubtotal);
+                                    subtotal = promotionalTotals.promotionalSubtotal;
+                                } catch (error) {
+                                    console.error('❌ Error using promotional subtotal:', error);
+                                    // Fallback to original calculation
+                                    products.forEach(function (product) {
+                                        var price = (product.discountPrice && parseFloat(product.discountPrice) > 0)
+                                            ? parseFloat(product.discountPrice)
+                                            : parseFloat(product.price);
+                                        subtotal += price * (parseInt(product.quantity) || 1);
+                                    });
+                                }
+                            } else {
+                                console.log('💰 No promotional totals available, using original calculation');
+                                products.forEach(function (product) {
+                                    var price = (product.discountPrice && parseFloat(product.discountPrice) > 0)
+                                        ? parseFloat(product.discountPrice)
+                                        : parseFloat(product.price);
+                                    subtotal += price * (parseInt(product.quantity) || 1);
+                                });
+                            }
                         }
 
                         // Calculate total price including extras
@@ -793,5 +902,325 @@
                     }
 
                     // Usage: after fetching order data, call fillPrintOrderSummary(order)
+
+                    // ========== PROMOTIONAL PRICING FUNCTIONS ==========
+                    
+                    // Clean and robust promotional price checking function
+                    async function getPromotionalPrice(product, vendorID) {
+                        try {
+                            console.log('🔍 ===== PROMOTIONAL PRICE CHECK START (PRINT) =====');
+                            console.log('🔍 Product Details:', {
+                                id: product.id,
+                                name: product.name,
+                                price: product.price,
+                                discountPrice: product.discountPrice,
+                                vendorID: vendorID
+                            });
+                            
+                            // Get all promotions for this product and vendor
+                            const promotionQuery = database.collection('promotions')
+                                .where('product_id', '==', product.id)
+                                .where('restaurant_id', '==', vendorID)
+                                .where('isAvailable', '==', true);
+                            
+                            const promotionSnapshot = await promotionQuery.get();
+                            
+                            if (!promotionSnapshot.empty) {
+                                console.log('🔍 Found', promotionSnapshot.docs.length, 'promotions, checking time validity...');
+                                
+                                const now = firebase.firestore.Timestamp.now();
+                                
+                                // Check each promotion for time validity
+                                for (const doc of promotionSnapshot.docs) {
+                                    const promotionData = doc.data();
+                                    
+                                    const startTime = promotionData.start_time;
+                                    const endTime = promotionData.end_time;
+                                    
+                                    // Check if promotion is currently active
+                                    const isAfterStart = !startTime || now >= startTime;
+                                    const isBeforeEnd = !endTime || now <= endTime;
+                                    const isActive = isAfterStart && isBeforeEnd;
+                                    
+                                    if (isActive) {
+                                        console.log('🎯 ===== PROMOTIONAL PRICE FOUND (PRINT) =====');
+                                        console.log('🎯 Product:', product.name);
+                                        console.log('🎯 Original Price:', product.discountPrice || product.price);
+                                        console.log('🎯 Special Price:', promotionData.special_price);
+                                        
+                                        return {
+                                            price: parseFloat(promotionData.special_price),
+                                            isPromotional: true,
+                                            promotionId: doc.id,
+                                            originalPrice: parseFloat(product.discountPrice || product.price)
+                                        };
+                                    }
+                                }
+                                
+                                console.log('ℹ️ No active promotions found (time-based filtering)');
+                            } else {
+                                console.log('ℹ️ No promotions found for this product');
+                            }
+                            
+                            console.log('ℹ️ ===== NO PROMOTIONAL PRICE FOUND (PRINT) =====');
+                            console.log('ℹ️ Product:', product.name);
+                            console.log('ℹ️ Using regular price:', product.discountPrice || product.price);
+                            
+                            return {
+                                price: parseFloat(product.discountPrice || product.price),
+                                isPromotional: false,
+                                promotionId: null,
+                                originalPrice: parseFloat(product.discountPrice || product.price)
+                            };
+                            
+                        } catch (error) {
+                            console.error('❌ ===== ERROR IN PROMOTIONAL PRICE CHECK (PRINT) =====');
+                            console.error('❌ Error details:', error);
+                            
+                            return {
+                                price: parseFloat(product.discountPrice || product.price),
+                                isPromotional: false,
+                                promotionId: null,
+                                originalPrice: parseFloat(product.discountPrice || product.price)
+                            };
+                        }
+                    }
+
+                    // Enhanced function to build product list with promotional pricing
+                    async function buildHTMLProductsListWithPromotions(snapshotsProducts, vendorID) {
+                        try {
+                            console.log('🎯 ===== BUILDING PRODUCT LIST WITH PROMOTIONS (PRINT) =====');
+                            console.log('🎯 Products:', snapshotsProducts.length);
+                            console.log('🎯 Vendor ID:', vendorID);
+                            
+                            var html = '';
+                            var alldata = [];
+                            var number = [];
+                            var totalProductPrice = 0;
+                            
+                            for (const product of snapshotsProducts) {
+                                try {
+                                    console.log('🎯 ===== PROCESSING PRODUCT FOR LIST (PRINT) =====');
+                                    console.log('🎯 Product:', product.name, 'ID:', product.id);
+                                    
+                                    // Get promotional price for this product
+                                    const priceInfo = await getPromotionalPrice(product, vendorID);
+                                    console.log('🎯 Price Info Result:', priceInfo);
+                                    
+                                    var val = product;
+                                    html = html + '<tr data-product-id="' + val.id + '">';
+                                    var extra_html = '';
+                                    if (product.extras != undefined && product.extras != '' && product.extras.length > 0) {
+                                        extra_html = extra_html + '<span>';
+                                        var extra_count = 1;
+                                        try {
+                                            product.extras.forEach((extra) => {
+                                                if (extra_count > 1) {
+                                                    extra_html = extra_html + ',' + extra;
+                                                } else {
+                                                    extra_html = extra_html + extra;
+                                                }
+                                                extra_count++;
+                                            })
+                                        } catch (error) {
+                                        }
+                                        extra_html = extra_html + '</span>';
+                                    }
+                                    html = html + '<td class="order-product"><div class="order-product-box">';
+                                    if (val.photo != '' && val.photo != null) {
+                                        html = html + '<img onerror="this.onerror=null;this.src=\'' + place_image + '\'" class="img-circle img-size-32 mr-2" style="width:60px;height:60px;" src="' + val.photo + '" alt="image">';
+                                    } else {
+                                        html = html + '<img class="img-circle img-size-32 mr-2" style="width:60px;height:60px;" src="' + place_image + '" alt="image">';
+                                    }
+                                    html = html + '</div><div class="orders-tracking"><h6>' + val.name + '</h6><div class="orders-tracking-item-details">';
+                                    if (extra_count > 1 || product.size) {
+                                    }
+                                    if (extra_count > 1) {
+                                        html = html + '<div class="extra"><span>{{trans("lang.extras")}} :</span><span class="ext-item">' + extra_html + '</span></div>';
+                                    }
+                                    if (product.size) {
+                                        html = html + '<div class="type"><span>{{trans("lang.type")}} :</span><span class="ext-size">' + product.size + '</span></div>';
+                                    }
+                                    if (product.variant_info) {
+                                        html += '<div class="variant-info">';
+                                        html += '<ul>';
+                                        $.each(product.variant_info.variant_options, function (label, value) {
+                                            html += '<li class="variant"><span class="label">' + label + '</span><span class="value">' + value + '</span></li>';
+                                        });
+                                        html += '</ul>';
+                                        html += '</div>';
+                                    }
+                                    
+                                    // Use promotional price if available, otherwise use original price
+                                    var final_price = priceInfo.price;
+                                    console.log('🎯 Using final price:', final_price, 'for product:', product.name);
+                                    console.log('🎯 Is promotional:', priceInfo.isPromotional);
+                                    
+                                    price_item = final_price.toFixed(decimal_degits);
+                                    totalProductPrice = parseFloat(price_item) * parseInt(val.quantity);
+                                    var extras_price = 0;
+                                    if (product.extras != undefined && product.extras != '' && product.extras.length > 0) {
+                                        extras_price_item = (parseFloat(val.extras_price) * parseInt(val.quantity)).toFixed(2);
+                                        if (parseFloat(extras_price_item) != NaN && val.extras_price != undefined) {
+                                            extras_price = extras_price_item;
+                                        }
+                                        totalProductPrice = parseFloat(extras_price) + parseFloat(totalProductPrice);
+                                    }
+                                    totalProductPrice = parseFloat(totalProductPrice).toFixed(decimal_degits);
+                                    if (currencyAtRight) {
+                                        price_val = parseFloat(price_item).toFixed(decimal_degits) + "" + currentCurrency;
+                                        extras_price_val = parseFloat(extras_price).toFixed(decimal_degits) + "" + currentCurrency;
+                                        totalProductPrice_val = parseFloat(totalProductPrice).toFixed(decimal_degits) + "" + currentCurrency;
+                                    } else {
+                                        price_val = currentCurrency + "" + parseFloat(price_item).toFixed(decimal_degits);
+                                        extras_price_val = currentCurrency + "" + parseFloat(extras_price).toFixed(decimal_degits);
+                                        totalProductPrice_val = currentCurrency + "" + parseFloat(totalProductPrice).toFixed(decimal_degits);
+                                    }
+                                    
+                                    // Add promotional badge and styling if this is a promotional item
+                                    var promotionalBadge = '';
+                                    var rowClass = '';
+                                    if (priceInfo.isPromotional) {
+                                        promotionalBadge = '<div class="promotional-badge" style="background: linear-gradient(45deg, #ff6b6b, #ff8e8e); color: white; padding: 4px 10px; border-radius: 15px; font-size: 9px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 2px 6px rgba(255, 107, 107, 0.4); display: inline-block; margin-top: 4px; text-align: center; width: fit-content; border: none; outline: none;">🎯 PROMO</div>';
+                                        rowClass = ' promotional-item-row';
+                                        console.log('🎯 Adding promotional badge for:', product.name);
+                                    }
+                                    
+                                    html = html + '</div></div></td>';
+                                    html = html + '<td>' + price_val + '</td><td>' + val.quantity + '</td><td> + ' + extras_price_val + '</td><td>  ' + totalProductPrice_val + '</td>';
+                                    html = html + '</tr>';
+                                    
+                                    // Update the product name with promotional badge UNDER the name
+                                    if (priceInfo.isPromotional) {
+                                        html = html.replace(
+                                            '<h6>' + val.name + '</h6>',
+                                            '<h6>' + val.name + '</h6>' + promotionalBadge
+                                        );
+                                        // Add promotional row class to the tr element
+                                        html = html.replace(
+                                            '<tr data-product-id="' + val.id + '">',
+                                            '<tr data-product-id="' + val.id + '" class="' + rowClass + '">'
+                                        );
+                                    }
+                                    
+                                    total_price += parseFloat(totalProductPrice);
+                                    total_addon_price += parseFloat(extras_price);
+                                    total_item_price += parseFloat(price_item);
+                                } catch (error) {
+                                    console.error('❌ Error processing product:', product.name, error);
+                                    // Fallback to original pricing if promotional pricing fails
+                                    console.log('🔄 Falling back to original pricing for:', product.name);
+                                }
+                            }
+                            totalProductPrice = 0;
+                            if (currencyAtRight) {
+                                total_item_price = parseFloat(total_item_price).toFixed(decimal_degits) + "" + currentCurrency;
+                                total_addon_price = parseFloat(total_addon_price).toFixed(decimal_degits) + "" + currentCurrency;
+                                $('.total_price').text(parseFloat(total_price).toFixed(decimal_degits) + "" + currentCurrency);
+                            } else {
+                                total_item_price = currentCurrency + "" + parseFloat(total_item_price).toFixed(decimal_degits);
+                                total_addon_price = currentCurrency + "" + parseFloat(total_addon_price).toFixed(decimal_degits);
+                                $('.total_price').text(currentCurrency + "" + parseFloat(total_price).toFixed(decimal_degits));
+                            }
+                            $('.total_item_price').text(total_item_price);
+                            $('.total_addon_price').text(total_addon_price);
+                            console.log('🎯 ===== PRODUCT LIST BUILD COMPLETE (PRINT) =====');
+                            return html;
+                        } catch (error) {
+                            console.error('❌ Error in buildHTMLProductsListWithPromotions:', error);
+                            // Fallback to original function if promotional function fails
+                            console.log('🔄 Falling back to original buildHTMLProductsList function');
+                            return buildHTMLProductsList(snapshotsProducts);
+                        }
+                    }
+
+                    // Enhanced function to calculate totals with promotional pricing
+                    async function calculatePromotionalTotals(products, vendorID) {
+                        console.log('💰 ===== CALCULATING PROMOTIONAL TOTALS (PRINT) =====');
+                        console.log('💰 Products:', products.length);
+                        console.log('💰 Vendor ID:', vendorID);
+                        
+                        let promotionalSubtotal = 0;
+                        let originalSubtotal = 0;
+                        let promotionalSavings = 0;
+                        let promotionalItems = [];
+                        let regularItems = [];
+                        
+                        for (const product of products) {
+                            console.log('💰 ===== CALCULATING PRODUCT TOTAL (PRINT) =====');
+                            console.log('💰 Product:', product.name, 'ID:', product.id);
+                            
+                            const priceInfo = await getPromotionalPrice(product, vendorID);
+                            console.log('💰 Price Info Result:', priceInfo);
+                            
+                            const quantity = parseInt(product.quantity) || 1;
+                            const originalPrice = parseFloat(product.discountPrice || product.price);
+                            const promotionalPrice = priceInfo.price;
+                            
+                            if (priceInfo.isPromotional) {
+                                const itemTotal = promotionalPrice * quantity;
+                                const originalTotal = originalPrice * quantity;
+                                const savings = originalTotal - itemTotal;
+                                
+                                promotionalSubtotal += itemTotal;
+                                originalSubtotal += originalTotal;
+                                promotionalSavings += savings;
+                                
+                                promotionalItems.push({
+                                    name: product.name,
+                                    originalPrice: originalPrice,
+                                    promotionalPrice: promotionalPrice,
+                                    quantity: quantity,
+                                    originalTotal: originalTotal,
+                                    promotionalTotal: itemTotal,
+                                    savings: savings
+                                });
+                                
+                                console.log('💰 ===== PROMOTIONAL ITEM CALCULATION (PRINT) =====');
+                                console.log('💰 Product:', product.name);
+                                console.log('💰 Original Price:', originalPrice);
+                                console.log('💰 Promotional Price:', promotionalPrice);
+                                console.log('💰 Quantity:', quantity);
+                                console.log('💰 Original Total:', originalTotal);
+                                console.log('💰 Promotional Total:', itemTotal);
+                                console.log('💰 Savings:', savings);
+                                console.log('💰 Running Promotional Subtotal:', promotionalSubtotal);
+                                console.log('💰 Running Promotional Savings:', promotionalSavings);
+                            } else {
+                                const itemTotal = originalPrice * quantity;
+                                promotionalSubtotal += itemTotal;
+                                originalSubtotal += itemTotal;
+                                
+                                regularItems.push({
+                                    name: product.name,
+                                    price: originalPrice,
+                                    quantity: quantity,
+                                    total: itemTotal
+                                });
+                                
+                                console.log('💰 ===== REGULAR ITEM CALCULATION (PRINT) =====');
+                                console.log('💰 Product:', product.name);
+                                console.log('💰 Price:', originalPrice);
+                                console.log('💰 Quantity:', quantity);
+                                console.log('💰 Total:', itemTotal);
+                                console.log('💰 Running Promotional Subtotal:', promotionalSubtotal);
+                            }
+                        }
+                        
+                        console.log('💰 ===== FINAL CALCULATION SUMMARY (PRINT) =====');
+                        console.log('💰 Original Subtotal:', originalSubtotal);
+                        console.log('💰 Promotional Subtotal:', promotionalSubtotal);
+                        console.log('💰 Total Promotional Savings:', promotionalSavings);
+                        console.log('💰 Promotional Items:', promotionalItems.length);
+                        console.log('💰 Regular Items:', regularItems.length);
+                        
+                        return {
+                            promotionalSubtotal: promotionalSubtotal,
+                            originalSubtotal: originalSubtotal,
+                            promotionalSavings: promotionalSavings,
+                            promotionalItems: promotionalItems,
+                            regularItems: regularItems
+                        };
+                    }
                 </script>
 @endsection
