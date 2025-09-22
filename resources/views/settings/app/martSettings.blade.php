@@ -84,7 +84,7 @@
                         // Create default doc if not exists
                         if (!deliverySettings) {
                             await database.collection('mart_settings').doc('delivery_settings').set({
-                                is_active: false,
+                                is_active: true,
                                 free_delivery_distance_km: 3,
                                 free_delivery_threshold: 199,
                                 per_km_charge_above_free_distance: 7,

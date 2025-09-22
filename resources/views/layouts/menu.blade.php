@@ -397,6 +397,9 @@ $role_has_permission = App\Models\Permission::where('role_id', $user->role_id)->
                  @if(in_array('mart-settings', $role_has_permission))
                 <li><a href="{!! url('settings/app/martSettings') !!}">{{trans('lang.mart_settings')}}</a></li>
                 @endif
+                @if(in_array('app-settings', $role_has_permission))
+                <li><a href="{!! url('settings/app/appSettings') !!}">{{trans('lang.app_settings')}}</a></li>
+                @endif
                 @if(in_array('document-verification', $role_has_permission))
                 <li><a href="{!! url('settings/app/documentVerification') !!}">{{trans('lang.document_verification')}}</a></li>
                 @endif

@@ -125,6 +125,10 @@ class SettingsController extends Controller
     {
         return view("settings.app.martSettings");
     }
+    public function appSettings()
+    {
+        return view("settings.app.appSettings");
+    }
     public function priceSetting()
     {
         return view("settings.app.priceSettings");
