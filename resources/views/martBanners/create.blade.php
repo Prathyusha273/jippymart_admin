@@ -95,7 +95,15 @@
                             <input type="radio" class="redirect_type" value="product" name="redirect_type" id="product">
                             <label class="custom-control-label">Product</label>
                         </div>
-                        <div class="radio-form col-md-4">
+                        <div class="radio-form col-md-2">
+                            <input type="radio" class="redirect_type" value="mart_category" name="redirect_type" id="mart_category">
+                            <label class="custom-control-label">Mart Category</label>
+                        </div>
+                        <div class="radio-form col-md-2">
+                            <input type="radio" class="redirect_type" value="ads_link" name="redirect_type" id="ads_link">
+                            <label class="custom-control-label">Ads Link</label>
+                        </div>
+                        <div class="radio-form col-md-2">
                             <input type="radio" class="redirect_type" value="external_link" name="redirect_type" id="external" checked>
                             <label class="custom-control-label">External Link</label>
                         </div>
@@ -114,6 +122,20 @@
                             <select name="productId" id="productId" class="form-control">
                                 <option value="">Select Product</option>
                             </select>
+                        </div>
+                    </div>
+                    <div class="form-group row width-50" id="mart_category_div" style="display: none;">
+                        <label class="col-3 control-label">Mart Category</label>
+                        <div class="col-7">
+                            <select name="martCategoryId" id="martCategoryId" class="form-control">
+                                <option value="">Select Mart Category</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group row width-50" id="ads_link_div" style="display: none;">
+                        <label class="col-3 control-label">Ads Link</label>
+                        <div class="col-7">
+                            <input type="text" class="form-control" id="ads_link" placeholder="https://example.com/ads">
                         </div>
                     </div>
                     <div class="form-group row width-100" id="external_link_div">
@@ -151,21 +173,33 @@
         // Load products for product redirect
         loadProducts();
 
+        // Load mart categories
+        loadMartCategories();
+
         // Load zones
         loadZones();
 
         // Handle redirect type change
         $('.redirect_type').on('change', function() {
             var redirectType = $(this).val();
-            $('#vendor_div, #product_div, #external_link_div').hide();
+            $('#vendor_div, #product_div, #mart_category_div, #ads_link_div, #external_link_div').hide();
 
             if (redirectType === 'store') {
                 $('#vendor_div').show();
             } else if (redirectType === 'product') {
                 $('#product_div').show();
+            } else if (redirectType === 'mart_category') {
+                $('#mart_category_div').show();
+            } else if (redirectType === 'ads_link') {
+                $('#ads_link_div').show();
             } else if (redirectType === 'external_link') {
                 $('#external_link_div').show();
             }
+        });
+
+        // Handle zone change to reload stores
+        $('#zone_select').on('change', function() {
+            loadStores();
         });
 
         // Handle save button click
@@ -179,13 +213,59 @@
         $('#storeId').html("");
         $('#storeId').append($("<option value=''>Select Store</option>"));
 
+        var selectedZone = $('#zone_select').val();
+        var currentTime = new Date();
+        var currentDay = currentTime.getDay(); // 0 = Sunday, 1 = Monday, etc.
+        var currentHour = currentTime.getHours();
+        var currentMinute = currentTime.getMinutes();
+        var currentTimeMinutes = currentHour * 60 + currentMinute;
+
         var ref_vendors = database.collection('vendors');
         ref_vendors.get().then(async function(snapshots) {
             snapshots.docs.forEach((listval) => {
                 var data = listval.data();
-                $('#storeId').append($("<option></option>")
-                    .attr("value", data.id)
-                    .text(data.title));
+                
+                // Filter by vType: mart
+                if (data.vType !== 'mart') {
+                    return;
+                }
+
+                // Filter by zone if selected
+                if (selectedZone && data.zoneId !== selectedZone) {
+                    return;
+                }
+
+                // Check if store is open
+                var isOpen = true;
+                if (data.isOpen === false) {
+                    isOpen = false;
+                }
+
+                // Check working hours if available
+                if (data.workingHours && data.workingHours[currentDay]) {
+                    var dayHours = data.workingHours[currentDay];
+                    if (dayHours.isOpen === false) {
+                        isOpen = false;
+                    } else if (dayHours.openTime && dayHours.closeTime) {
+                        var openTime = dayHours.openTime.split(':');
+                        var closeTime = dayHours.closeTime.split(':');
+                        var openMinutes = parseInt(openTime[0]) * 60 + parseInt(openTime[1]);
+                        var closeMinutes = parseInt(closeTime[0]) * 60 + parseInt(closeTime[1]);
+                        
+                        if (currentTimeMinutes < openMinutes || currentTimeMinutes > closeMinutes) {
+                            isOpen = false;
+                        }
+                    }
+                }
+
+                // Only show open stores
+                if (isOpen) {
+                    var storeName = data.title || data.name || 'Unnamed Store';
+                    var zoneText = selectedZone ? '' : (data.zoneTitle ? ' (' + data.zoneTitle + ')' : '');
+                    $('#storeId').append($("<option></option>")
+                        .attr("value", data.id)
+                        .text(storeName + zoneText));
+                }
             });
         }).catch(function(error) {
             console.error('Error loading stores:', error);
@@ -207,6 +287,29 @@
             });
         }).catch(function(error) {
             console.error('Error loading products:', error);
+        });
+    }
+
+    // Load mart categories
+    function loadMartCategories() {
+        $('#martCategoryId').html("");
+        $('#martCategoryId').append($("<option value=''>Select Mart Category</option>"));
+
+        var ref_categories = database.collection('mart_categories').orderBy('title', 'asc');
+        ref_categories.get().then(async function(snapshots) {
+            console.log('📄 Found', snapshots.docs.length, 'mart categories');
+            snapshots.docs.forEach((listval) => {
+                var data = listval.data();
+                var displayText = data.title || data.name || 'Unnamed Category';
+                var publishStatus = data.publish ? '' : ' (Unpublished)';
+                var sectionText = data.section ? ' - ' + data.section : '';
+                $('#martCategoryId').append($("<option></option>")
+                    .attr("value", listval.id)
+                    .text(displayText + sectionText + publishStatus));
+            });
+            console.log('✅ Mart categories loaded successfully');
+        }).catch(function(error) {
+            console.error('❌ Error loading mart categories:', error);
         });
     }
 
@@ -276,6 +379,8 @@
         var redirectType = $('.redirect_type:checked').val();
         var storeId = $('#storeId').val();
         var productId = $('#productId').val();
+        var martCategoryId = $('#martCategoryId').val();
+        var adsLink = $('#ads_link').val();
         var externalLink = $('#external_link').val();
 
         // Validation
@@ -316,6 +421,22 @@
             $('.error_top').show().html('<p>Please select a product</p>');
             if (typeof toastr !== 'undefined') {
                 toastr.warning('Please select a product');
+            }
+            return;
+        }
+
+        if (redirectType === 'mart_category' && !martCategoryId) {
+            $('.error_top').show().html('<p>Please select a mart category</p>');
+            if (typeof toastr !== 'undefined') {
+                toastr.warning('Please select a mart category');
+            }
+            return;
+        }
+
+        if (redirectType === 'ads_link' && !adsLink) {
+            $('.error_top').show().html('<p>Please enter ads link</p>');
+            if (typeof toastr !== 'undefined') {
+                toastr.warning('Please enter ads link');
             }
             return;
         }
@@ -366,6 +487,10 @@
                 bannerData.storeId = storeId;
             } else if (redirectType === 'product') {
                 bannerData.productId = productId;
+            } else if (redirectType === 'mart_category') {
+                bannerData.martCategoryId = martCategoryId;
+            } else if (redirectType === 'ads_link') {
+                bannerData.ads_link = adsLink;
             } else if (redirectType === 'external_link') {
                 bannerData.external_link = externalLink;
             }
