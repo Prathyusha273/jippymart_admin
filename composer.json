@@ -13,7 +13,7 @@
     "firebase/php-jwt": "^6.11",
     "google/apiclient": "^2.16",
     "google/apiclient-services": "^0.407.0",
-    "google/cloud-firestore": "^1.52",
+    "google/cloud-firestore": "^1.53",
     "guzzlehttp/guzzle": "^7.2",
     "illuminate/support": "^10.0",
     "intervention/image": "^3.11",
@@ -25,7 +25,8 @@
     "paytm/paytmchecksum": "^1.1",
     "phpoffice/phpspreadsheet": "^4.5",
     "razorpay/razorpay": "2.*",
-    "spatie/laravel-sitemap": "*",
+    "spatie/laravel-sitemap": "^7.3",
+    "spatie/schema-org": "^3.23",
     "stripe/stripe-php": "^14.10"
   },
   "require-dev": {

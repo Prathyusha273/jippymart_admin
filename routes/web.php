@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Admin\SeoController;
+use App\Http\Controllers\Admin\SitemapController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CuisineController;
@@ -1390,6 +1392,14 @@ Route::prefix('performance')->group(function () {
 
 });
 
+Route::prefix('admin/seo')->middleware('')->group(function () {
+    Route::get('/', [SeoController::class, 'index'])->name('seo.index');
+    Route::get('/{id}/edit', [SeoController::class, 'edit'])->name('seo.edit');
+    Route::put('/{id}', [SeoController::class, 'update'])->name('seo.update');
+    Route::get('/sitemap', [SitemapController::class, 'index'])->name('seo.sitemap');
+});
+
+
 
 
 // Database Cache Testing Routes
@@ -1407,7 +1417,7 @@ Route::prefix('cache-test')->group(function () {
 // Test email routes
 Route::get('/test-email-notification', function () {
     $adminEmails = ['info@jippymart.in', 'mohan@jippymart.in', 'sivapm@jippymart.in', 'sudheer@jippymart.in'];
-    
+
     $orderData = [
         'id' => 'TEST-ORDER-123',
         'status' => 'Order Placed',
@@ -1432,7 +1442,7 @@ Route::get('/test-email-notification', function () {
             ]
         ]
     ];
-    
+
     try {
         foreach ($adminEmails as $email) {
             Mail::to($email)->send(new \App\Mail\OrderEmailNotification($orderData, 'Order Placed', $adminEmails));
@@ -1459,7 +1469,7 @@ Route::get('/test-simple-email', function () {
 Route::get('/test-order-placed-email', function () {
     try {
         $adminEmails = ['info@jippymart.in', 'mohan@jippymart.in', 'sivapm@jippymart.in', 'sudheer@jippymart.in'];
-        
+
         $orderData = [
             'id' => 'TEST-ORDER-PLACED-' . time(),
             'status' => 'Order Placed',
@@ -1477,9 +1487,9 @@ Route::get('/test-order-placed-email', function () {
                 'phoneNumber' => '+91-9876543211'
             ]
         ];
-        
+
         \Mail::to($adminEmails)->send(new \App\Mail\OrderEmailNotification($orderData, 'Order Placed', $adminEmails));
-        
+
         return response()->json(['success' => true, 'message' => 'Order Placed email sent successfully to: ' . implode(', ', $adminEmails)]);
     } catch (\Exception $e) {
         return response()->json(['success' => false, 'message' => 'Failed to send Order Placed email: ' . $e->getMessage()]);
@@ -1489,7 +1499,7 @@ Route::get('/test-order-placed-email', function () {
 // Direct email test route
 Route::get('/test-direct-email', function () {
     $adminEmails = ['info@jippymart.in', 'mohan@jippymart.in', 'sivapm@jippymart.in', 'sudheer@jippymart.in'];
-    
+
     $orderData = [
         'id' => 'DIRECT-TEST-' . time(),
         'status' => 'Order Placed',
@@ -1509,17 +1519,17 @@ Route::get('/test-direct-email', function () {
             ['name' => 'Test Product', 'price' => '200', 'quantity' => 1]
         ]
     ];
-    
+
     try {
         \Log::info('Testing direct email notification', ['orderData' => $orderData]);
-        
+
         foreach ($adminEmails as $email) {
             Mail::to($email)->send(new \App\Mail\OrderEmailNotification($orderData, 'Order Placed', [$email]));
             \Log::info('Email sent to: ' . $email);
         }
-        
+
         return response()->json([
-            'success' => true, 
+            'success' => true,
             'message' => 'Direct test email sent successfully to all admin emails',
             'order_id' => $orderData['id']
         ]);
