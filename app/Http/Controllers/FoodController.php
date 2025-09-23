@@ -436,7 +436,7 @@ class FoodController extends Controller
             $snapshot = $document->snapshot();
 
             if (!$snapshot->exists()) {
-                return response()->json(['success' => false, 'message' => 'Product not found'], 404);
+                return response()->json(['success' => false, 'message' => 'Food item not found'], 404);
             }
 
             $currentData = $snapshot->data();
@@ -445,12 +445,17 @@ class FoodController extends Controller
 
             // Validate field
             if (!in_array($field, ['price', 'disPrice'])) {
-                return response()->json(['success' => false, 'message' => 'Invalid field'], 400);
+                return response()->json(['success' => false, 'message' => 'Invalid field. Only price and disPrice are allowed.'], 400);
             }
 
-            // Validate value
+            // Enhanced value validation
             if (!is_numeric($value) || $value < 0) {
-                return response()->json(['success' => false, 'message' => 'Invalid price value'], 400);
+                return response()->json(['success' => false, 'message' => 'Invalid price value. Price must be a positive number.'], 400);
+            }
+
+            // Additional validation for maximum price (prevent extremely high values)
+            if ($value > 999999) {
+                return response()->json(['success' => false, 'message' => 'Price cannot exceed 999,999'], 400);
             }
 
             // Prepare update data with proper data types (matching edit page)
@@ -509,7 +514,19 @@ class FoodController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Update failed: ' . $e->getMessage()], 500);
+            // Log the error for debugging
+            \Log::error('Food inline update failed', [
+                'id' => $id,
+                'field' => $request->input('field'),
+                'value' => $request->input('value'),
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false, 
+                'message' => 'Update failed. Please try again or contact support if the problem persists.'
+            ], 500);
         }
     }
 

@@ -775,18 +775,18 @@ class MartItemController extends Controller
             $updateData = [];
 
             if ($field === 'price') {
-                $updateData[] = ['path' => 'price', 'value' => (string) $value]; // String format to match sample
+                $updateData[] = ['path' => 'price', 'value' => (float) $value]; // Number format to match edit form
 
                 // If discount price is higher than new price, reset it
                 if (isset($currentData['disPrice']) && !empty($currentData['disPrice']) && (float)$currentData['disPrice'] > (float)$value) {
-                    $updateData[] = ['path' => 'disPrice', 'value' => ''];
+                    $updateData[] = ['path' => 'disPrice', 'value' => 0]; // Number format to match edit form
                 }
             } elseif ($field === 'disPrice') {
-                // If setting discount price to 0 or empty, remove it
+                // If setting discount price to 0 or empty, set to 0
                 if ($value == 0 || empty($value)) {
-                    $updateData[] = ['path' => 'disPrice', 'value' => ''];
+                    $updateData[] = ['path' => 'disPrice', 'value' => 0]; // Number format to match edit form
                 } else {
-                    $updateData[] = ['path' => 'disPrice', 'value' => (string) $value]; // String format to match sample
+                    $updateData[] = ['path' => 'disPrice', 'value' => (float) $value]; // Number format to match edit form
 
                     // Validate discount price is not higher than original price
                     if ((float)$value > (float)$currentData['price']) {
@@ -804,7 +804,7 @@ class MartItemController extends Controller
 
             // Check if discount was reset
             foreach ($updateData as $update) {
-                if ($update['path'] === 'disPrice' && $update['value'] === '') {
+                if ($update['path'] === 'disPrice' && $update['value'] === 0) {
                     $hasDiscountReset = true;
                     break;
                 }
