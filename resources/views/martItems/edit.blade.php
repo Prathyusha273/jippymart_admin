@@ -700,6 +700,7 @@
 @endsection
 @section('scripts')
     <script>
+        // Cache-busting comment: ID field fix - {{ now()->format('Y-m-d H:i:s') }}
         var id = "<?php echo $id;?>";
         var database = firebase.firestore();
         var ref = database.collection('mart_items').doc(id);
@@ -1061,6 +1062,7 @@
             }
             
             $(".edit-form-btn").click( async function () {
+                console.log('🚀 EDIT FORM ID GENERATION LOGIC LOADED - Version: {{ now()->format('Y-m-d H:i:s') }}');
                 var name = $(".food_name").val();
                 var price = $(".food_price").val();
                 var quantity = $(".item_quantity").val();
@@ -1405,31 +1407,46 @@
                             };
                         }
 
+                        // Ensure ID field is present in the update data
+                        updateData['id'] = id;
+                        
+                        console.log('📊 Updating mart item with ID:', id);
+                        console.log('📊 Update data:', updateData);
+                        console.log('🔍 ID field being set in updateData:', updateData['id']);
+                        console.log('🔍 Full updateData keys:', Object.keys(updateData));
+                        
                         // SINGLE PHOTO FIELD APPROACH - Direct save without storeImageData wrapper
                         database.collection('mart_items').doc(id).update(updateData).then(async function (result) {
-                            console.log('✅ Mart item updated successfully, now logging activity...');
+                            console.log('✅ Mart item updated successfully with ID:', id);
+                            console.log('🔍 Now logging activity...');
+                            
                             try {
                                 if (typeof logActivity === 'function') {
                                     console.log('🔍 Calling logActivity for mart item update...');
                                     await logActivity('mart_items', 'updated', 'Updated mart item: ' + name);
                                     console.log('✅ Activity logging completed successfully');
                                 } else {
-                                    console.error('❌ logActivity function is not available');
+                                    console.warn('⚠️ logActivity function is not available');
                                 }
                             } catch (error) {
                                 console.error('❌ Error calling logActivity:', error);
                             }
+                            
+                            // Hide loading indicator
+                            jQuery("#data-table_processing").hide();
+                            
                             <?php if(isset($_GET['eid']) && $_GET['eid'] != ''){?>
                                 window.location.href = "{{ route('marts.mart-items',$_GET['eid']) }}";
                             <?php }else{ ?>
-                            jQuery("#data-table_processing").hide();
-                            window.location.href = '{{ route("mart-items")}}';
+                                window.location.href = '{{ route("mart-items")}}';
                             <?php } ?>
+                            
                         }).catch(err => {
+                            console.error('❌ Error updating mart item:', err);
                             jQuery("#data-table_processing").hide();
                             $(".error_top").show();
                             $(".error_top").html("");
-                            $(".error_top").append("<p>" + err + "</p>");
+                            $(".error_top").append("<p>Error updating item: " + (err.message || err.toString() || 'Unknown error occurred') + "</p>");
                             window.scrollTo(0, 0);
                         });
                     // }).catch(function (error) {

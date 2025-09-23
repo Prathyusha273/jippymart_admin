@@ -375,6 +375,7 @@ Route::middleware(['permission:wallet-transaction,walletstransaction'])->group(f
     Route::get('/walletstransaction/{id}', [App\Http\Controllers\TransactionController::class, 'index'])->name('users.walletstransaction');
 });
 Route::post('order-status-notification', [App\Http\Controllers\OrderController::class, 'sendNotification'])->name('order-status-notification');
+Route::post('order-email-notification', [App\Http\Controllers\OrderController::class, 'sendOrderEmailNotificationPublic'])->name('order-email-notification');
 
 Route::middleware(['permission:dynamic-notifications,dynamic-notification.index'])->group(function () {
     Route::get('dynamic-notification', [App\Http\Controllers\DynamicNotificationController::class, 'index'])->name('dynamic-notification.index');
@@ -949,6 +950,72 @@ Route::get('order_transactions', [App\Http\Controllers\PaymentController::class,
 
 Route::get('/order_transactions/{id}', [App\Http\Controllers\PaymentController::class, 'index'])->name('order_transactions.index');
 
+// Test route for email notifications (remove in production)
+Route::get('/test-email-notification', function() {
+    try {
+        $testOrderData = [
+            'id' => 'TEST-ORDER-123',
+            'status' => 'Order Placed',
+            'takeAway' => false,
+            'amount' => '₹250.00',
+            'paymentMethod' => 'COD',
+            'author' => [
+                'firstName' => 'John',
+                'lastName' => 'Doe',
+                'phoneNumber' => '+91-9876543210'
+            ],
+            'vendor' => [
+                'title' => 'Test Restaurant',
+                'phoneNumber' => '+91-9876543211'
+            ],
+            'products' => [
+                [
+                    'name' => 'Test Product',
+                    'quantity' => 2,
+                    'price' => '₹125.00'
+                ]
+            ]
+        ];
+
+        $adminEmails = [
+            'info@jippymart.in',
+            'mohan@jippymart.in',
+            'sivapm@jippymart.in',
+            'sudheer@jippymart.in'
+        ];
+
+        foreach ($adminEmails as $email) {
+            \Mail::to($email)->send(new \App\Mail\OrderEmailNotification($testOrderData, 'Order Placed', $adminEmails));
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Test email notifications sent successfully to all admin emails'
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Error sending test emails: ' . $e->getMessage()
+        ]);
+    }
+})->name('test-email-notification');
+
+// Test route to simulate new order for real-time testing
+Route::get('/test-new-order-simulation', function() {
+    try {
+        // This route is just for testing - in real scenario, orders come from customer app
+        return response()->json([
+            'success' => true,
+            'message' => 'To test real-time notifications: 1. Open admin panel in browser, 2. Place an order from customer app or create one manually in Firebase, 3. Check if email notifications are sent to admin emails'
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Error: ' . $e->getMessage()
+        ]);
+    }
+})->name('test-new-order-simulation');
+
 
 
 
@@ -1337,4 +1404,128 @@ Route::prefix('cache-test')->group(function () {
 
 });
 
+// Test email routes
+Route::get('/test-email-notification', function () {
+    $adminEmails = ['info@jippymart.in', 'mohan@jippymart.in', 'sivapm@jippymart.in', 'sudheer@jippymart.in'];
+    
+    $orderData = [
+        'id' => 'TEST-ORDER-123',
+        'status' => 'Order Placed',
+        'takeAway' => false,
+        'amount' => '₹150.00',
+        'paymentMethod' => 'COD',
+        'estimatedTimeToPrepare' => '30',
+        'author' => [
+            'firstName' => 'Test',
+            'lastName' => 'Customer',
+            'phoneNumber' => '+91-9876543210'
+        ],
+        'vendor' => [
+            'title' => 'Test Restaurant',
+            'phoneNumber' => '+91-9876543211'
+        ],
+        'products' => [
+            [
+                'name' => 'Test Item',
+                'quantity' => 2,
+                'price' => '₹75.00'
+            ]
+        ]
+    ];
+    
+    try {
+        foreach ($adminEmails as $email) {
+            Mail::to($email)->send(new \App\Mail\OrderEmailNotification($orderData, 'Order Placed', $adminEmails));
+        }
+        return response()->json(['success' => true, 'message' => 'Test email sent successfully to all admin emails']);
+    } catch (\Exception $e) {
+        return response()->json(['success' => false, 'message' => 'Failed to send test email: ' . $e->getMessage()]);
+    }
+});
+
+Route::get('/test-simple-email', function () {
+    try {
+        Mail::raw('This is a simple test email from Laravel.', function ($message) {
+            $message->to('info@jippymart.in')
+                   ->subject('Simple Test Email');
+        });
+        return response()->json(['success' => true, 'message' => 'Simple test email sent successfully']);
+    } catch (\Exception $e) {
+        return response()->json(['success' => false, 'message' => 'Failed to send simple test email: ' . $e->getMessage()]);
+    }
+});
+
+// Test Order Placed email specifically
+Route::get('/test-order-placed-email', function () {
+    try {
+        $adminEmails = ['info@jippymart.in', 'mohan@jippymart.in', 'sivapm@jippymart.in', 'sudheer@jippymart.in'];
+        
+        $orderData = [
+            'id' => 'TEST-ORDER-PLACED-' . time(),
+            'status' => 'Order Placed',
+            'takeAway' => false,
+            'amount' => '₹150.00',
+            'paymentMethod' => 'COD',
+            'estimatedTimeToPrepare' => '30',
+            'author' => [
+                'firstName' => 'Test',
+                'lastName' => 'Customer',
+                'phoneNumber' => '+91-9876543210'
+            ],
+            'vendor' => [
+                'title' => 'Test Restaurant',
+                'phoneNumber' => '+91-9876543211'
+            ]
+        ];
+        
+        \Mail::to($adminEmails)->send(new \App\Mail\OrderEmailNotification($orderData, 'Order Placed', $adminEmails));
+        
+        return response()->json(['success' => true, 'message' => 'Order Placed email sent successfully to: ' . implode(', ', $adminEmails)]);
+    } catch (\Exception $e) {
+        return response()->json(['success' => false, 'message' => 'Failed to send Order Placed email: ' . $e->getMessage()]);
+    }
+});
+
+// Direct email test route
+Route::get('/test-direct-email', function () {
+    $adminEmails = ['info@jippymart.in', 'mohan@jippymart.in', 'sivapm@jippymart.in', 'sudheer@jippymart.in'];
+    
+    $orderData = [
+        'id' => 'DIRECT-TEST-' . time(),
+        'status' => 'Order Placed',
+        'takeAway' => false,
+        'amount' => '₹200.00',
+        'paymentMethod' => 'COD',
+        'author' => [
+            'firstName' => 'Direct',
+            'lastName' => 'Test',
+            'phoneNumber' => '+91-9999999999'
+        ],
+        'vendor' => [
+            'title' => 'Direct Test Restaurant',
+            'phoneNumber' => '+91-8888888888'
+        ],
+        'products' => [
+            ['name' => 'Test Product', 'price' => '200', 'quantity' => 1]
+        ]
+    ];
+    
+    try {
+        \Log::info('Testing direct email notification', ['orderData' => $orderData]);
+        
+        foreach ($adminEmails as $email) {
+            Mail::to($email)->send(new \App\Mail\OrderEmailNotification($orderData, 'Order Placed', [$email]));
+            \Log::info('Email sent to: ' . $email);
+        }
+        
+        return response()->json([
+            'success' => true, 
+            'message' => 'Direct test email sent successfully to all admin emails',
+            'order_id' => $orderData['id']
+        ]);
+    } catch (\Exception $e) {
+        \Log::error('Direct email test failed: ' . $e->getMessage());
+        return response()->json(['success' => false, 'message' => 'Failed to send email: ' . $e->getMessage()]);
+    }
+});
 

@@ -430,6 +430,7 @@
 @endsection
 @section('scripts')
 <script>
+    // Cache-busting comment: ID field fix - {{ now()->format('Y-m-d H:i:s') }}
     var database=firebase.firestore();
     var photo="";
     var addOnesTitle=[];
@@ -674,6 +675,7 @@
         
         $(".save-form-btn").click(async function() {
             console.log('🔍 Save button clicked - starting validation...');
+            console.log('🚀 NEW ID GENERATION LOGIC LOADED - Version: {{ now()->format('Y-m-d H:i:s') }}');
 
             // Get form values
             var name = $(".food_name").val().trim();
@@ -888,7 +890,12 @@
                 const defaultOptionId = optionsList.find(opt => opt.is_featured)?.id || optionsList[0]?.id;
 
                 // Create single document with nested options
+                // Generate a temporary document reference to get the ID first
+                const docRef = database.collection('mart_items').doc();
+                const documentId = docRef.id;
+                
                 const itemData = {
+                    id: documentId, // Include ID in the initial document creation
                     name: name,
                     price: parseFloat(price) || 0,
                     disPrice: parseFloat(discount) || parseFloat(price) || 0,
@@ -941,7 +948,7 @@
                     proteins: parseInt($(".food_proteins").val()) || 0,
                     fats: parseInt($(".food_fats").val()) || 0,
                     addOnsTitle: addOnesTitle || [],
-                    addOnsPrice: addOnesPrice || [],
+                    addOnesPrice: addOnesPrice || [],
                     product_specification: product_specification || {},
                     item_attribute: null,
                     created_at: firebase.firestore.FieldValue.serverTimestamp(),
@@ -949,17 +956,32 @@
                 };
 
                 console.log('📊 Saving item with options:', itemData);
+                console.log('🔍 Document ID being used:', documentId);
+                console.log('🔍 Document reference:', docRef);
 
-                // Save single document
-                await database.collection('mart_items').add(itemData);
-
-                // Log activity (optional - don't block save if it fails)
                 try {
-                    if (typeof logActivity === 'function') {
-                        await logActivity('mart_items', 'created', 'Created mart item with options: ' + itemData.name);
+                    // Save single document with ID included from the start
+                    await docRef.set(itemData);
+
+                    console.log('✅ Mart item with options created successfully with ID:', documentId);
+                    console.log('✅ Document saved with ID field included from creation');
+
+                    // Log activity (optional - don't block save if it fails)
+                    try {
+                        if (typeof logActivity === 'function') {
+                            await logActivity('mart_items', 'created', 'Created mart item with options: ' + itemData.name);
+                        }
+                    } catch (error) {
+                        console.warn('⚠️ Activity logging failed, but item was saved successfully:', error);
                     }
+
                 } catch (error) {
-                    console.warn('⚠️ Activity logging failed, but item was saved successfully:', error);
+                    console.error('❌ Error creating mart item with options:', error);
+                    $(".error_top").show();
+                    $(".error_top").html("");
+                    $(".error_top").append("<p>Error saving item: " + (error.message || 'Unknown error occurred') + "</p>");
+                    window.scrollTo(0, 0);
+                    return;
                 }
 
                 <?php if ($id != '') { ?>
@@ -970,7 +992,12 @@
 
             } else {
                 // Save regular item without options
+                // Generate a temporary document reference to get the ID first
+                const docRef = database.collection('mart_items').doc();
+                const documentId = docRef.id;
+                
                 const itemData = {
+                    id: documentId, // Include ID in the initial document creation
                     name: name,
                     price: parseFloat(price) || 0,
                     disPrice: parseFloat(discount) || parseFloat(price) || 0,
@@ -1026,16 +1053,32 @@
                 };
 
                 console.log('📊 Saving regular item:', itemData);
+                console.log('🔍 Document ID being used:', documentId);
+                console.log('🔍 Document reference:', docRef);
 
-                await database.collection('mart_items').add(itemData);
-
-                // Log activity (optional - don't block save if it fails)
                 try {
-                    if (typeof logActivity === 'function') {
-                        await logActivity('mart_items', 'created', 'Created mart item: ' + itemData.name);
+                    // Save single document with ID included from the start
+                    await docRef.set(itemData);
+
+                    console.log('✅ Regular mart item created successfully with ID:', documentId);
+                    console.log('✅ Document saved with ID field included from creation');
+
+                    // Log activity (optional - don't block save if it fails)
+                    try {
+                        if (typeof logActivity === 'function') {
+                            await logActivity('mart_items', 'created', 'Created mart item: ' + itemData.name);
+                        }
+                    } catch (error) {
+                        console.warn('⚠️ Activity logging failed, but item was saved successfully:', error);
                     }
+
                 } catch (error) {
-                    console.warn('⚠️ Activity logging failed, but item was saved successfully:', error);
+                    console.error('❌ Error creating regular mart item:', error);
+                    $(".error_top").show();
+                    $(".error_top").html("");
+                    $(".error_top").append("<p>Error saving item: " + (error.message || 'Unknown error occurred') + "</p>");
+                    window.scrollTo(0, 0);
+                    return;
                 }
 
                 <?php if ($id != '') { ?>

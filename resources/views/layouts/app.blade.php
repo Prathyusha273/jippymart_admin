@@ -1291,6 +1291,106 @@
         let knownOrderIds = new Set();
         let pageLoadTime = Date.now();
         let isInitialized = false;
+        
+        // Debug function to test real-time notifications manually
+        window.testRealtimeNotification = function() {
+            console.log('🧪 Testing real-time notification system...');
+            console.log('Known order IDs:', knownOrderIds.size);
+            console.log('Page load time:', new Date(pageLoadTime));
+            console.log('Is initialized:', isInitialized);
+            console.log('Current time:', new Date());
+            
+            // Test with a mock order
+            const mockOrder = {
+                id: 'TEST-' + Date.now(),
+                status: 'Order Placed',
+                author: { firstName: 'Test', lastName: 'Customer', phoneNumber: '1234567890' },
+                vendor: { title: 'Test Restaurant', phoneNumber: '9876543210' },
+                toPayAmount: 150,
+                payment_method: 'cod',
+                takeAway: false,
+                products: [{ name: 'Test Item', price: '150', quantity: 1 }]
+            };
+            
+            console.log('🔄 Triggering test notification with mock order:', mockOrder);
+            showNewOrderNotification(mockOrder);
+        };
+        
+        // Function to manually send email for specific order
+        window.sendEmailForOrder = function(orderId) {
+            console.log('📧 Manually sending email for order:', orderId);
+            
+            // Get order data from Firebase
+            database.collection('restaurant_orders').doc(orderId).get().then((doc) => {
+                if (doc.exists) {
+                    const orderData = doc.data();
+                    orderData.id = doc.id;
+                    console.log('📋 Order data retrieved:', orderData);
+                    sendNewOrderEmailNotification(orderData);
+                } else {
+                    console.error('❌ Order not found:', orderId);
+                }
+            }).catch((error) => {
+                console.error('❌ Error getting order:', error);
+            });
+        };
+        
+        // Function to clear known orders cache (for testing)
+        window.clearKnownOrders = function() {
+            knownOrderIds.clear();
+            localStorage.removeItem('knownOrderIds');
+            console.log('🗑️ Cleared known orders cache. Next orders will be treated as new.');
+        };
+        
+        // Function to show current system status
+        window.showNotificationStatus = function() {
+            console.log('📊 Notification System Status:');
+            console.log('- Known order IDs:', knownOrderIds.size);
+            console.log('- Page load time:', new Date(pageLoadTime));
+            console.log('- Is initialized:', isInitialized);
+            console.log('- Current time:', new Date());
+            console.log('- Available functions: testRealtimeNotification(), sendEmailForOrder(id), clearKnownOrders()');
+        };
+        
+        // Debug: Log that functions are available
+        console.log('🔧 Debug functions loaded:', {
+            clearKnownOrders: typeof window.clearKnownOrders,
+            testRealtimeNotification: typeof window.testRealtimeNotification,
+            sendEmailForOrder: typeof window.sendEmailForOrder,
+            showNotificationStatus: typeof window.showNotificationStatus
+        });
+        
+        // Alternative: Define functions globally for easier access
+        window.debugClearCache = function() {
+            if (typeof knownOrderIds !== 'undefined') {
+                knownOrderIds.clear();
+                localStorage.removeItem('knownOrderIds');
+                console.log('🗑️ Cleared known orders cache (alternative method)');
+            } else {
+                console.error('❌ knownOrderIds not available');
+            }
+        };
+        
+        window.debugTestNotification = function() {
+            if (typeof showNewOrderNotification !== 'undefined') {
+                const mockOrder = {
+                    id: 'DEBUG-TEST-' + Date.now(),
+                    status: 'Order Placed',
+                    author: { firstName: 'Debug', lastName: 'Test', phoneNumber: '1234567890' },
+                    vendor: { title: 'Debug Restaurant', phoneNumber: '9876543210' },
+                    toPayAmount: 150,
+                    payment_method: 'cod',
+                    takeAway: false,
+                    products: [{ name: 'Debug Item', price: '150', quantity: 1 }]
+                };
+                console.log('🧪 Testing with debug function:', mockOrder);
+                showNewOrderNotification(mockOrder);
+            } else {
+                console.error('❌ showNewOrderNotification not available');
+            }
+        };
+        
+        console.log('🔧 Alternative debug functions loaded: debugClearCache(), debugTestNotification()');
         let notificationSound = null;
         let customRingtone = null;
         let soundEnabled = localStorage.getItem('notificationSoundEnabled') !== 'false';
@@ -1435,6 +1535,9 @@
         function showNewOrderNotification(orderData) {
             playNotificationSound();
 
+            // Note: Email notification is now sent directly in the real-time listener
+            // to ensure emails are sent even if visual notifications are skipped
+
             // Fallback: Check for toast plugin
             if (typeof Swal === 'undefined') {
                 console.error('SweetAlert not loaded!');
@@ -1476,6 +1579,57 @@
 
             updateOrderCount();
             updateNotificationBadge();
+        }
+
+        // Function to send email notification for new orders
+        async function sendNewOrderEmailNotification(orderData) {
+            try {
+                console.log('📧 Sending email notification for new order:', orderData.id, 'Status:', orderData.status);
+                
+                const emailData = {
+                    _token: '{{ csrf_token() }}',
+                    order_id: orderData.id,
+                    orderStatus: orderData.status || 'Order Placed', // Use actual order status
+                    takeAway: orderData.takeAway || false,
+                    amount: orderData.toPayAmount ? `₹${orderData.toPayAmount}` : (orderData.amount || '₹0.00'),
+                    paymentMethod: orderData.payment_method || orderData.paymentMethod || 'COD',
+                    
+                    // Customer information
+                    customer_name: orderData.author ? orderData.author.firstName : '',
+                    customer_lastname: orderData.author ? orderData.author.lastName : '',
+                    customer_phone: orderData.author ? orderData.author.phoneNumber : '',
+                    
+                    // Restaurant information
+                    vendor_name: orderData.vendor ? orderData.vendor.title : '',
+                    vendor_phone: orderData.vendor ? orderData.vendor.phoneNumber : '',
+                    
+                    // Driver information (usually null for new orders)
+                    driver_name: orderData.driver ? orderData.driver.firstName : '',
+                    driver_lastname: orderData.driver ? orderData.driver.lastName : '',
+                    driver_phone: orderData.driver ? orderData.driver.phoneNumber : '',
+                    
+                    // Products information
+                    products: orderData.products || []
+                };
+
+                const response = await fetch('{{ route("order-email-notification") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: new URLSearchParams(emailData)
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log('✅ Email notification sent successfully:', result);
+                } else {
+                    console.error('❌ Failed to send email notification:', response.status, response.statusText);
+                }
+            } catch (error) {
+                console.error('❌ Error sending email notification:', error);
+            }
         }
         // Get time ago string
         function getTimeAgo(date) {
@@ -1569,10 +1723,10 @@
 
             // Listen for new documents
             ordersRef.onSnapshot((snapshot) => {
-                console.log('Snapshot received, changes:', snapshot.docChanges().length);
+                console.log('📡 Snapshot received, changes:', snapshot.docChanges().length, 'Total docs:', snapshot.docs.length);
 
                 snapshot.docChanges().forEach((change) => {
-                    // console.log('Change type:', change.type, 'Document ID:', change.doc.id);
+                    console.log('🔄 Change type:', change.type, 'Document ID:', change.doc.id);
 
                     if (change.type === 'added') {
                         const orderData = change.doc.data();
@@ -1582,27 +1736,48 @@
 
                         // Check if this is a truly new order
                         if (!knownOrderIds.has(orderData.id)) {
-                            // Additional check: only show notification if order was created after page load
+                            // Additional check: only show notification if order was created after page load (with 10 minute buffer for better coverage)
                             const orderCreatedAt = orderData.createdAt ? new Date(orderData.createdAt.seconds * 1000) : new Date();
-                            const isRecentOrder = orderCreatedAt.getTime() > pageLoadTime;
+                            const bufferTime = 10 * 60 * 1000; // 10 minutes buffer (increased from 5 minutes)
+                            const isRecentOrder = orderCreatedAt.getTime() > (pageLoadTime - bufferTime);
+
+                            console.log('🆕 New order detected (ID not in known set):', orderData.id, 'Status:', orderData.status);
+                            console.log('📅 Order created at:', orderCreatedAt);
+                            console.log('📅 Page load time:', new Date(pageLoadTime));
+                            console.log('📅 Is recent order (with buffer):', isRecentOrder);
+
+                            // Always send email notification for new orders, regardless of initialization status
+                            // This ensures emails are sent even if the system is still initializing
+                            console.log('📧 Sending email notification for new order:', orderData.id);
+                            sendNewOrderEmailNotification(orderData);
 
                             if (isRecentOrder) {
                                 // This is a new order we haven't seen before
-                                console.log('New order detected (ID not in known set):', orderData.id);
-
                                 // Only show notification if system is initialized (to avoid showing old orders on page load)
                                 if (isInitialized) {
+                                    console.log('🔔 Showing notification for new order:', orderData.id);
                                     showNewOrderNotification(orderData);
+                                } else {
+                                    console.log('⏳ System not initialized yet, skipping visual notification for:', orderData.id, 'but email was sent');
                                 }
                             } else {
-                                console.log('Order is old (created before page load):', orderData.id);
+                                console.log('📅 Order is old (created before page load buffer):', orderData.id, 'but email was still sent');
                             }
 
                             // Add to known orders and save to localStorage
                             knownOrderIds.add(orderData.id);
                             saveKnownOrderIds();
                         } else {
-                            // console.log('Order already known (ID in known set):', orderData.id);
+                            // Order is already known, but let's check if it's a status change that needs email notification
+                            console.log('📋 Order already known (ID in known set):', orderData.id, 'Status:', orderData.status);
+                            
+                            // Check if this is a status change that should trigger email notification
+                            const shouldNotifyStatus = ['Order Rejected', 'Order Completed'].includes(orderData.status);
+                            
+                            if (shouldNotifyStatus && isInitialized) {
+                                console.log('📧 Status change detected for known order, sending email notification:', orderData.id);
+                                showNewOrderNotification(orderData);
+                            }
                         }
                     }
                 });

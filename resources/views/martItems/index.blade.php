@@ -489,13 +489,16 @@
             });
             var fieldConfig = {
                 columns: [
-                    { key: 'foodName', header: "{{trans('lang.food_name')}}" },
-                    { key: 'restaurant', header: "{{trans('lang.restaurant')}}" },
-                    { key: 'category', header: "{{trans('lang.category')}}" },
-                    { key: 'price', header: "{{trans('lang.food_price')}}" },
+                    { key: 'id', header: "Product ID" },
+                    { key: 'foodName', header: "Item Name" },
+                    { key: 'vendorID', header: "Mart ID" },
+                    { key: 'restaurant', header: "Mart Name" },
+                    { key: 'category', header: "Mart Categories" },
+                    { key: 'brand', header: "Brand" },
+                    { key: 'price', header: "Price" },
                     { key: 'disPrice', header: "Discount Price" },
                 ],
-                fileName: "{{trans('lang.food_table')}}",
+                fileName: "Mart Items",
             };
             const table=$('#foodTable').DataTable({
                 pageLength: 10, // Number of rows per page

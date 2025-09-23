@@ -339,7 +339,9 @@
             });
             var fieldConfig = {
                 columns: [
+                    { key: 'id', header: "Product ID" },
                     { key: 'foodName', header: "{{trans('lang.food_name')}}" },
+                    { key: 'vendorID', header: "Restaurant ID" },
                     { key: 'restaurant', header: "{{trans('lang.restaurant')}}" },
                     { key: 'category', header: "{{trans('lang.category')}}" },
                     { key: 'price', header: "{{trans('lang.food_price')}}" },
