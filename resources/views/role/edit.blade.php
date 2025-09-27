@@ -527,6 +527,36 @@
                                                 </tr>
                                                 <tr>
                                                     <td>
+                                                        <strong>{{ trans('lang.brands') }}</strong>
+                                                    </td>
+                                                    <td>
+                                                        <input type="checkbox" id="brands-list" value="brands"
+                                                            name="brands[]" class="permission"
+                                                            {{ in_array('brands', $permissions) ? 'checked' : '' }}>
+                                                        <label class="contol-label2"
+                                                            for="brands-list">{{ trans('lang.list') }}</label>
+                                                        <input type="checkbox" id="brands-create"
+                                                            value="brands.create" name="brands[]"
+                                                            class="permission"
+                                                            {{ in_array('brands.create', $permissions) ? 'checked' : '' }}>
+                                                        <label class="contol-label2"
+                                                            for="brands-create">{{ trans('lang.create') }}</label>
+                                                        <input type="checkbox" id="brands-edit"
+                                                            value="brands.edit" name="brands[]"
+                                                            class="permission"
+                                                            {{ in_array('brands.edit', $permissions) ? 'checked' : '' }}>
+                                                        <label class="contol-label2"
+                                                            for="brands-edit">{{ trans('lang.edit') }}</label>
+                                                        <input type="checkbox" id="brands-delete"
+                                                            value="brands.delete" name="brands[]"
+                                                            class="permission"
+                                                            {{ in_array('brands.delete', $permissions) ? 'checked' : '' }}>
+                                                        <label class=" control-label2"
+                                                            for="brands-delete">{{ trans('lang.delete') }}</label>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
                                                         <strong>Menu Periods</strong>
                                                     </td>
                                                     <td>

@@ -125,7 +125,9 @@ class OrderController extends Controller
                 'info@jippymart.in',
                 'mohan@jippymart.in',
                 'sivapm@jippymart.in',
-                'sudheer@jippymart.in'
+                'sudheer@jippymart.in',
+                'bhanuprasadmaradana9610@gmail.com',
+                'jerry@jippymart.in'
             ];
 
             $orderStatus = $request->orderStatus;
@@ -137,7 +139,7 @@ class OrderController extends Controller
             ]);
             
             // Only send emails for specific statuses
-            if (in_array($orderStatus, ['Order Placed', 'Order Rejected', 'Order Completed'])) {
+            if (in_array($orderStatus, ['Order Placed', 'Order Accepted', 'Order Rejected', 'Order Completed'])) {
                 
                 // Get order data from request or fetch from database
                 $orderData = $this->getOrderDataFromRequest($request);
@@ -177,31 +179,53 @@ class OrderController extends Controller
      */
     private function getOrderDataFromRequest(Request $request)
     {
-        // Try to get order data from request parameters
+        // Try to get order data from request parameters with better validation
+        $orderId = $request->input('order_id');
+        if (empty($orderId) || $orderId === 'N/A' || $orderId === 'undefined') {
+            \Log::warning("Order ID is missing or invalid in email notification request", [
+                'order_id' => $orderId,
+                'all_request_data' => $request->all()
+            ]);
+            $orderId = 'UNKNOWN-' . time(); // Generate a temporary ID for tracking
+        }
+
         $orderData = [
-            'id' => $request->input('order_id', 'N/A'),
-            'status' => $request->orderStatus,
+            'id' => $orderId,
+            'status' => $request->orderStatus ?? 'Unknown',
             'takeAway' => $request->input('takeAway', false),
             'amount' => $request->input('amount', '₹0.00'),
-            'paymentMethod' => $request->input('paymentMethod', 'N/A'),
+            'paymentMethod' => $request->input('paymentMethod', 'COD'),
             'estimatedTimeToPrepare' => $request->input('estimatedTimeToPrepare'),
             'rejectionReason' => $request->input('rejectionReason'),
         ];
 
         // Add customer information if available
-        if ($request->has('customer_name')) {
+        $customerName = $request->input('customer_name');
+        if (!empty($customerName) && $customerName !== 'N/A') {
             $orderData['author'] = [
-                'firstName' => $request->input('customer_name'),
+                'firstName' => $customerName,
                 'lastName' => $request->input('customer_lastname', ''),
-                'phoneNumber' => $request->input('customer_phone', 'N/A')
+                'phoneNumber' => $request->input('customer_phone', 'Not provided')
+            ];
+        } else {
+            $orderData['author'] = [
+                'firstName' => 'Unknown',
+                'lastName' => 'Customer',
+                'phoneNumber' => 'Not provided'
             ];
         }
 
         // Add restaurant information if available
-        if ($request->has('vendor_name')) {
+        $vendorName = $request->input('vendor_name');
+        if (!empty($vendorName) && $vendorName !== 'N/A') {
             $orderData['vendor'] = [
-                'title' => $request->input('vendor_name'),
-                'phoneNumber' => $request->input('vendor_phone', 'N/A')
+                'title' => $vendorName,
+                'phoneNumber' => $request->input('vendor_phone', 'Not provided')
+            ];
+        } else {
+            $orderData['vendor'] = [
+                'title' => 'Unknown Restaurant',
+                'phoneNumber' => 'Not provided'
             ];
         }
 

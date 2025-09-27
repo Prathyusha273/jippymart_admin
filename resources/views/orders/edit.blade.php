@@ -1034,15 +1034,22 @@
             }
 
             $('#add-prepare-time-btn').click(function () {
+                // Prevent multiple clicks by disabling button
+                if ($(this).prop('disabled')) {
+                    return false;
+                }
+                
                 if (parseInt(subscriptionTotalOrders) == 0) {
                     alert('{{ trans("lang.can_not_accept_more_orders") }}');
                     return false;
                 } else {
-
+                    // Show loading state
+                    $(this).prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Accepting...');
 
                     var preparationTime = $('#prepare_time').val();
                     if (preparationTime == '') {
                         $('#add_prepare_time_error').text('{{ trans('lang.add_prepare_time_error') }}');
+                        $(this).prop('disabled', false).html('{{ trans('submit') }}');
                         return false;
                     }
                     var date = firebase.firestore.FieldValue.serverTimestamp();
@@ -1127,7 +1134,11 @@
                             });
                         });
                     });
-                }
+                }).catch(function(error) {
+                    console.error('❌ Error updating order to accepted status:', error);
+                    $('#add-prepare-time-btn').prop('disabled', false).html('{{ trans('submit') }}');
+                    alert('Error accepting order: ' + error.message);
+                });
             });
 
             // Enhanced function to send comprehensive order data for email notifications
@@ -1194,11 +1205,31 @@
                     },
                     success: function (data) {
                         window.location.href = '{{ route('orders') }}';
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('❌ Error sending notification:', error);
+                        $('#add-prepare-time-btn').prop('disabled', false).html('{{ trans('submit') }}');
+                        alert('Order accepted but failed to send notification. Please refresh the page.');
+                        window.location.href = '{{ route('orders') }}';
                     }
                 });
             }
 
             $(".edit-form-btn").click(async function () {
+                // Prevent multiple clicks by disabling button
+                if ($(this).prop('disabled')) {
+                    return false;
+                }
+                
+                // Show loading state
+                $(this).prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Updating...');
+                
+                // Add timeout to prevent infinite loading
+                var updateTimeout = setTimeout(function() {
+                    $('.edit-form-btn').prop('disabled', false).html('<i class="fa fa-save"></i> {{ trans("lang.update") }}');
+                    alert('Request timed out. Please try again.');
+                }, 60000); // 60 seconds timeout
+                
                 var clientName = $(".client_name").val();
                 var orderStatus = $("#order_status").val();
                 if (old_order_status != orderStatus) {
@@ -1264,17 +1295,17 @@
                         database.collection('restaurant_orders').doc(id).update({
                             'status': orderStatus,
                         }).then(async function (result) {
-('✅ Order status updated successfully, now logging activity...');
+                            console.log('✅ Order status updated successfully, now logging activity...');
                             try {
                                 if (typeof logActivity === 'function') {
-('🔍 Calling logActivity for order status update...');
+                                    console.log('🔍 Calling logActivity for order status update...');
                                     await logActivity('orders', 'status_updated', 'Updated order #' + id + ' status to: ' + orderStatus);
-('✅ Activity logging completed successfully');
+                                    console.log('✅ Activity logging completed successfully');
                                 } else {
-('❌ logActivity function is not available');
+                                    console.log('❌ logActivity function is not available');
                                 }
                             } catch (error) {
-('❌ Error calling logActivity:', error);
+                                console.log('❌ Error calling logActivity:', error);
                             }
                             var subject = '';
                             var message = '';
@@ -1476,6 +1507,8 @@
                                                         });
                                                 })
                                             } else {
+                                                clearTimeout(updateTimeout);
+                                                $('.edit-form-btn').prop('disabled', false).html('<i class="fa fa-save"></i> {{ trans("lang.update") }}');
                                                 <?php if (isset($_GET['eid']) && $_GET['eid'] != '') { ?>
                                                     window.location.href =
                                                     "{{ route('restaurants.orders', $_GET['eid']) }}";
@@ -1485,6 +1518,8 @@
                                                 <?php } ?>
                                             }
                                         } else {
+                                            clearTimeout(updateTimeout);
+                                            $('.edit-form-btn').prop('disabled', false).html('<i class="fa fa-save"></i> {{ trans("lang.update") }}');
                                             <?php if (isset($_GET['eid']) && $_GET['eid'] != '') { ?>
                                                 window.location.href =
                                                 "{{ route('restaurants.orders', $_GET['eid']) }}";
@@ -1496,9 +1531,23 @@
                                     }
                                 });
                             }
+                        }).catch(function(error) {
+                            console.error('❌ Error updating order status:', error);
+                            clearTimeout(updateTimeout);
+                            $('.edit-form-btn').prop('disabled', false).html('<i class="fa fa-save"></i> {{ trans("lang.update") }}');
+                            alert('Error updating order status: ' + error.message);
                         });
                     }
+                } else {
+                    // No status change, just reset button
+                    clearTimeout(updateTimeout);
+                    $('.edit-form-btn').prop('disabled', false).html('<i class="fa fa-save"></i> {{ trans("lang.update") }}');
                 }
+            }).catch(function(error) {
+                console.error('❌ Error in order update process:', error);
+                clearTimeout(updateTimeout);
+                $('.edit-form-btn').prop('disabled', false).html('<i class="fa fa-save"></i> {{ trans("lang.update") }}');
+                alert('Error processing order update: ' + error.message);
             })
         })
 

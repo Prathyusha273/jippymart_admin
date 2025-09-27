@@ -15,4 +15,3 @@ class SitemapController extends Controller
         return response()->download(public_path('sitemap.xml'));
     }
 }
-

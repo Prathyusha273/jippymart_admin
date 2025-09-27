@@ -615,7 +615,6 @@
         }
     });
 
-
     var langcount = 0;
     var languages_list = database.collection('settings').doc('languages');
     languages_list.get().then(async function (snapshotslang) {
@@ -1349,7 +1348,19 @@
             console.log('- Page load time:', new Date(pageLoadTime));
             console.log('- Is initialized:', isInitialized);
             console.log('- Current time:', new Date());
+            console.log('- System start time:', new Date(pageLoadTime - (2 * 60 * 1000)));
             console.log('- Available functions: testRealtimeNotification(), sendEmailForOrder(id), clearKnownOrders()');
+        };
+        
+        // Function to test recent orders processing
+        window.testRecentOrderProcessing = function() {
+            console.log('🧪 Testing recent order processing...');
+            console.log('📊 Current system state:');
+            console.log('- Known orders:', Array.from(knownOrderIds));
+            console.log('- Page load time:', new Date(pageLoadTime));
+            console.log('- System start time:', new Date(pageLoadTime - (2 * 60 * 1000)));
+            console.log('- Current time:', new Date());
+            console.log('- Time difference:', Math.round((Date.now() - pageLoadTime) / (1000 * 60)), 'minutes');
         };
         
         // Debug: Log that functions are available
@@ -1397,7 +1408,7 @@
         let recentOrders = [];
         let tooltipTimeout = null;
 
-        // Load known order IDs from localStorage
+        // Enhanced load known order IDs from localStorage with better validation
         function loadKnownOrderIds() {
             try {
                 const savedOrderIds = localStorage.getItem('knownOrderIds');
@@ -1407,34 +1418,60 @@
                     const timestamp = parseInt(savedTimestamp);
                     const now = Date.now();
 
-                    // Only use saved IDs if they're from the last 24 hours
-                    if (now - timestamp < 24 * 60 * 60 * 1000) {
+                    // Only use saved IDs if they're from the last 12 hours (reduced from 24 hours for better accuracy)
+                    if (now - timestamp < 12 * 60 * 60 * 1000) {
                         const orderIds = JSON.parse(savedOrderIds);
-                        knownOrderIds = new Set(orderIds);
-                        console.log('Loaded known order IDs from localStorage:', knownOrderIds.size, 'orders');
+                        
+                        // Validate that we have an array of strings
+                        if (Array.isArray(orderIds) && orderIds.every(id => typeof id === 'string' && id.length > 0)) {
+                            knownOrderIds = new Set(orderIds);
+                            console.log('📋 Loaded known order IDs from localStorage:', knownOrderIds.size, 'orders');
+                            console.log('📅 Cache timestamp:', new Date(timestamp));
+                            console.log('📅 Cache age:', Math.round((now - timestamp) / (1000 * 60)), 'minutes');
+                        } else {
+                            console.log('📋 Invalid order IDs format in localStorage, starting fresh');
+                            localStorage.removeItem('knownOrderIds');
+                            localStorage.removeItem('knownOrderIdsTimestamp');
+                        }
                     } else {
-                        // Clear old data
+                        console.log('📋 Saved order IDs are too old (older than 12 hours), starting fresh');
                         localStorage.removeItem('knownOrderIds');
                         localStorage.removeItem('knownOrderIdsTimestamp');
-                        // console.log('Cleared old known order IDs from localStorage');
                     }
+                } else {
+                    console.log('📋 No saved order IDs found, starting fresh');
                 }
             } catch (error) {
-                console.error('Error loading known order IDs:', error);
+                console.error('❌ Error loading known order IDs:', error);
                 // Clear corrupted data
                 localStorage.removeItem('knownOrderIds');
                 localStorage.removeItem('knownOrderIdsTimestamp');
+                knownOrderIds = new Set(); // Reset to empty set
             }
         }
 
-        // Save known order IDs to localStorage
+        // Enhanced save known order IDs to localStorage with better error handling
         function saveKnownOrderIds() {
             try {
                 const orderIdsArray = Array.from(knownOrderIds);
-                localStorage.setItem('knownOrderIds', JSON.stringify(orderIdsArray));
-                localStorage.setItem('knownOrderIdsTimestamp', Date.now().toString());
+                
+                // Validate data before saving
+                if (Array.isArray(orderIdsArray) && orderIdsArray.length > 0) {
+                    localStorage.setItem('knownOrderIds', JSON.stringify(orderIdsArray));
+                    localStorage.setItem('knownOrderIdsTimestamp', Date.now().toString());
+                    console.log('💾 Saved known order IDs to localStorage:', orderIdsArray.length, 'orders');
+                } else {
+                    console.log('💾 No order IDs to save or invalid data');
+                }
             } catch (error) {
-                console.error('Error saving known order IDs:', error);
+                console.error('❌ Error saving known order IDs:', error);
+                // Try to clear corrupted data
+                try {
+                    localStorage.removeItem('knownOrderIds');
+                    localStorage.removeItem('knownOrderIdsTimestamp');
+                } catch (clearError) {
+                    console.error('❌ Error clearing corrupted localStorage:', clearError);
+                }
             }
         }
 
@@ -1585,6 +1622,14 @@
         async function sendNewOrderEmailNotification(orderData) {
             try {
                 console.log('📧 Sending email notification for new order:', orderData.id, 'Status:', orderData.status);
+                console.log('📧 Email notification details:', {
+                    orderId: orderData.id,
+                    status: orderData.status,
+                    customer: orderData.author ? `${orderData.author.firstName} ${orderData.author.lastName}` : 'Unknown',
+                    restaurant: orderData.vendor ? orderData.vendor.title : 'Unknown',
+                    amount: orderData.toPayAmount || orderData.amount || '₹0.00',
+                    timestamp: new Date().toISOString()
+                });
                 
                 const emailData = {
                     _token: '{{ csrf_token() }}',
@@ -1623,9 +1668,13 @@
 
                 if (response.ok) {
                     const result = await response.json();
-                    console.log('✅ Email notification sent successfully:', result);
+                    console.log('✅ Email notification sent successfully for order:', orderData.id);
+                    console.log('📧 Email response:', result);
                 } else {
-                    console.error('❌ Failed to send email notification:', response.status, response.statusText);
+                    console.error('❌ Failed to send email notification for order:', orderData.id);
+                    console.error('📧 HTTP Error:', response.status, response.statusText);
+                    const errorText = await response.text();
+                    console.error('📧 Error details:', errorText);
                 }
             } catch (error) {
                 console.error('❌ Error sending email notification:', error);
@@ -1718,12 +1767,24 @@
 
         // Start real-time listener
         function startRealtimeListener() {
-            console.log('Starting enhanced real-time listener for restaurant_orders collection...');
+            console.log('🚀 Starting enhanced real-time listener for restaurant_orders collection...');
+            console.log('📊 System Status:', {
+                knownOrderIds: knownOrderIds.size,
+                isInitialized: isInitialized,
+                pageLoadTime: new Date(pageLoadTime),
+                currentTime: new Date()
+            });
+            
             const ordersRef = database.collection('restaurant_orders');
 
             // Listen for new documents
             ordersRef.onSnapshot((snapshot) => {
                 console.log('📡 Snapshot received, changes:', snapshot.docChanges().length, 'Total docs:', snapshot.docs.length);
+                console.log('🔍 Snapshot metadata:', {
+                    fromCache: snapshot.metadata.fromCache,
+                    hasPendingWrites: snapshot.metadata.hasPendingWrites,
+                    isEqual: snapshot.metadata.isEqual
+                });
 
                 snapshot.docChanges().forEach((change) => {
                     console.log('🔄 Change type:', change.type, 'Document ID:', change.doc.id);
@@ -1736,22 +1797,36 @@
 
                         // Check if this is a truly new order
                         if (!knownOrderIds.has(orderData.id)) {
-                            // Additional check: only show notification if order was created after page load (with 10 minute buffer for better coverage)
+                            // Enhanced order age validation - check if order is actually new
                             const orderCreatedAt = orderData.createdAt ? new Date(orderData.createdAt.seconds * 1000) : new Date();
-                            const bufferTime = 10 * 60 * 1000; // 10 minutes buffer (increased from 5 minutes)
+                            const bufferTime = 2 * 60 * 1000; // 2 minutes buffer (reduced from 10 minutes for better accuracy)
                             const isRecentOrder = orderCreatedAt.getTime() > (pageLoadTime - bufferTime);
+                            
+                            // Additional validation: Check if order is older than 1 hour (likely an old order being re-processed)
+                            const oneHourAgo = Date.now() - (60 * 60 * 1000);
+                            const isOrderTooOld = orderCreatedAt.getTime() < oneHourAgo;
+                            
+                            // Critical validation: Only process orders created AFTER system initialization
+                            const systemStartTime = pageLoadTime - bufferTime; // System start time with buffer
+                            const isOrderCreatedAfterSystemStart = orderCreatedAt.getTime() > systemStartTime;
+                            
+                            // Only process if order is recent AND not too old AND created after system start
+                            const shouldProcessOrder = isRecentOrder && !isOrderTooOld && isOrderCreatedAfterSystemStart;
 
                             console.log('🆕 New order detected (ID not in known set):', orderData.id, 'Status:', orderData.status);
                             console.log('📅 Order created at:', orderCreatedAt);
                             console.log('📅 Page load time:', new Date(pageLoadTime));
+                            console.log('📅 System start time:', new Date(systemStartTime));
                             console.log('📅 Is recent order (with buffer):', isRecentOrder);
+                            console.log('📅 Is order too old (>1 hour):', isOrderTooOld);
+                            console.log('📅 Is order created after system start:', isOrderCreatedAfterSystemStart);
+                            console.log('📅 Should process order:', shouldProcessOrder);
 
-                            // Always send email notification for new orders, regardless of initialization status
-                            // This ensures emails are sent even if the system is still initializing
-                            console.log('📧 Sending email notification for new order:', orderData.id);
-                            sendNewOrderEmailNotification(orderData);
+                            // Only process orders that pass age validation
+                            if (shouldProcessOrder) {
+                                console.log('📧 Sending email notification for validated new order:', orderData.id);
+                                sendNewOrderEmailNotification(orderData);
 
-                            if (isRecentOrder) {
                                 // This is a new order we haven't seen before
                                 // Only show notification if system is initialized (to avoid showing old orders on page load)
                                 if (isInitialized) {
@@ -1761,22 +1836,36 @@
                                     console.log('⏳ System not initialized yet, skipping visual notification for:', orderData.id, 'but email was sent');
                                 }
                             } else {
-                                console.log('📅 Order is old (created before page load buffer):', orderData.id, 'but email was still sent');
+                                console.log('❌ Order failed age validation - skipping email and notification:', orderData.id);
+                                console.log('   - Is recent:', isRecentOrder);
+                                console.log('   - Is too old:', isOrderTooOld);
+                                console.log('   - Created after system start:', isOrderCreatedAfterSystemStart);
+                                console.log('   - Order age:', Math.round((Date.now() - orderCreatedAt.getTime()) / (1000 * 60)), 'minutes');
+                                console.log('   - System age:', Math.round((Date.now() - systemStartTime) / (1000 * 60)), 'minutes');
                             }
 
-                            // Add to known orders and save to localStorage
-                            knownOrderIds.add(orderData.id);
-                            saveKnownOrderIds();
+                            // Only add to known orders if the order was actually processed
+                            if (shouldProcessOrder) {
+                                knownOrderIds.add(orderData.id);
+                                saveKnownOrderIds();
+                                console.log('✅ Added order to known set:', orderData.id);
+                            } else {
+                                console.log('⏭️ Skipped adding order to known set (failed validation):', orderData.id);
+                            }
                         } else {
                             // Order is already known, but let's check if it's a status change that needs email notification
                             console.log('📋 Order already known (ID in known set):', orderData.id, 'Status:', orderData.status);
                             
                             // Check if this is a status change that should trigger email notification
-                            const shouldNotifyStatus = ['Order Rejected', 'Order Completed'].includes(orderData.status);
+                            const shouldNotifyStatus = ['Order Accepted', 'Order Rejected', 'Order Completed'].includes(orderData.status);
                             
                             if (shouldNotifyStatus && isInitialized) {
                                 console.log('📧 Status change detected for known order, sending email notification:', orderData.id);
+                                // Send email notification for status changes
+                                sendNewOrderEmailNotification(orderData);
                                 showNewOrderNotification(orderData);
+                            } else {
+                                console.log('📋 Status change for known order but no notification needed:', orderData.id, 'Status:', orderData.status);
                             }
                         }
                     }
