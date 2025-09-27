@@ -231,6 +231,7 @@
                                             <?php } ?>
                                             <th>{{trans('lang.restaurant_info')}}</th>
                                             <th>{{trans('lang.owner_info')}}</th>
+                                            <th>Zone</th>
                                             <th>Admin Commission</th>
                                             <th>{{trans('lang.date')}}</th>
                                             <th>{{trans('lang.wallet_history')}}</th>
@@ -331,26 +332,74 @@
         var restaurantTypeValue = $('.restaurant_type_selector').val();
         var businessModelValue = $('.business_model_selector').val();
         var cuisineValue = $('.cuisine_selector').val();
+        
+        console.log('Filter change triggered:');
+        console.log('- Zone Value:', zoneValue);
+        console.log('- Restaurant Type:', restaurantTypeValue);
+        console.log('- Business Model:', businessModelValue);
+        console.log('- Cuisine:', cuisineValue);
+        
+        // Reset refData to base collection
         refData = database.collection('vendors');
-        if (zoneValue) {
+        
+        // Apply zone filter
+        if (zoneValue && zoneValue !== '') {
+            console.log('Filtering by zone:', zoneValue);
             refData = refData.where('zoneId', '==', zoneValue);
+            console.log('Applied zone filter, refData query:', refData);
+        } else {
+            console.log('No zone filter applied');
         }
+        
+        // Apply restaurant type filter
         if (restaurantTypeValue == "true") {
             refData = refData.where('enabledDiveInFuture', '==', true);
         }
-        if (businessModelValue) {
+        
+        // Apply business model filter
+        if (businessModelValue && businessModelValue !== '') {
             var vendorSelectedIds = await subscriptionPlanVendorIds(businessModelValue);
             if (vendorSelectedIds.length > 0) {
                 refData = refData.where('id', 'in', vendorSelectedIds);
-            } else{
+            } else {
                 refData = refData.where('id', '==', null);
             }
         }
-        if (cuisineValue) {
+        
+        // Apply cuisine filter
+        if (cuisineValue && cuisineValue !== '') {
             refData = refData.where('categoryID', '==', cuisineValue);
         }
+        
+        // Reload the table with new filters
         $('#storeTable').DataTable().ajax.reload();
     });
+    
+    // Clear all filters functionality
+    $('#clearFilters').click(function() {
+        $('.zone_selector').val('').trigger('change');
+        $('.restaurant_type_selector').val('').trigger('change');
+        $('.business_model_selector').val('').trigger('change');
+        $('.cuisine_selector').val('').trigger('change');
+        
+        // Reset refData to base collection
+        refData = database.collection('vendors');
+        
+        // Reload the table
+        $('#storeTable').DataTable().ajax.reload();
+    });
+    
+    // Test function to check zone data
+    window.testZoneData = function() {
+        console.log('Testing zone data...');
+        database.collection('vendors').limit(5).get().then(function(snapshots) {
+            console.log('Sample restaurants:');
+            snapshots.docs.forEach(doc => {
+                const data = doc.data();
+                console.log(`Restaurant: ${data.title}, ZoneId: ${data.zoneId}`);
+            });
+        });
+    };
     async function subscriptionPlanVendorIds(businessModelValue){
         var vendorIds = []
         try {
@@ -373,12 +422,19 @@
     var vendorData = [];
     var vendorProducts = [];
     database.collection('zone').where('publish', '==', true).orderBy('name','asc').get().then(async function (snapshots) {
+        console.log('Loading zones:', snapshots.docs.length);
         snapshots.docs.forEach((listval) => {
             var data = listval.data();
+            console.log('Zone found:', data.name, 'ID:', data.id);
             $('.zone_selector').append($("<option></option>")
                 .attr("value", data.id)
                 .text(data.name));
-        })
+        });
+        
+        // Enable the zone selector after zones are loaded
+        $('.zone_selector').prop('disabled', false);
+    }).catch(function(error) {
+        console.error('Error loading zones:', error);
     });
     database.collection('vendor_categories').where('publish', '==', true).get().then(async function (snapshots) {
         snapshots.docs.forEach((listval) => {
@@ -450,6 +506,7 @@
                 { key: 'id', header: "{{trans('lang.id')}}" },
                 { key: 'title', header: "{{trans('lang.restaurant')}}" },
                 { key: 'authorName', header: "{{trans('lang.owner_name')}}" },
+                { key: 'zoneName', header: "{{trans('lang.zone')}}" },
                 { key: 'phonenumber', header: "{{trans('lang.phone')}}" },
                 { key: 'createdAt', header: "{{trans('lang.created_at')}}" },
                 { key: 'location', header: "{{trans('lang.location')}}" },
@@ -467,12 +524,15 @@
                 const searchValue = data.search.value.toLowerCase();
                 const orderColumnIndex = data.order[0].column;
                 const orderDirection = data.order[0].dir;
-                const orderableColumns = (checkDeletePermission) ? ['','title', 'authorName', 'createdAt', '', ''] : ['title', 'authorName', 'createdAt', '', ''];
+                const orderableColumns = (checkDeletePermission) ? ['','title', 'authorName', 'zoneName', 'createdAt', '', ''] : ['title', 'authorName', 'zoneName', 'createdAt', '', ''];
                 const orderByField = orderableColumns[orderColumnIndex];
                 if (searchValue.length >= 3 || searchValue.length === 0) {
                     $('#data-table_processing').show();
                 }
-                await refData.orderBy('createdAt', 'asc').get().then(async function(querySnapshot) {
+                console.log('Executing query with refData:', refData);
+                // Temporarily remove orderBy to avoid index requirement
+                await refData.get().then(async function(querySnapshot) {
+                    console.log('Query result - Total documents found:', querySnapshot.docs.length);
                     if (querySnapshot.empty) {
                         $('.rest_count').text(0);
                         console.error("No data found in Firestore.");
@@ -492,11 +552,36 @@
                     }
                     let records = [];
                     let filteredRecords = [];
-                    await Promise.all(querySnapshot.docs.map(async (doc) => {
+                    
+                    // Sort documents by createdAt since we removed orderBy from query
+                    const sortedDocs = querySnapshot.docs.sort((a, b) => {
+                        const aTime = a.data().createdAt ? a.data().createdAt.toDate().getTime() : 0;
+                        const bTime = b.data().createdAt ? b.data().createdAt.toDate().getTime() : 0;
+                        return aTime - bTime; // Ascending order
+                    });
+                    
+                    await Promise.all(sortedDocs.map(async (doc) => {
                         let childData = doc.data();
+                        console.log('Restaurant data:', childData.title, 'zoneId:', childData.zoneId);
                         childData.phone = (childData.phonenumber != '' && childData.phonenumber != null && childData.phonenumber.slice(0, 1) == '+') ? childData.phonenumber.slice(1) : childData.phonenumber;
                         childData.id = doc.id;
                         childData.phonenumber = shortEditNumber(childData.phonenumber);
+                        
+                        // Add zone name for export functionality
+                        if (childData.hasOwnProperty('zoneId') && childData.zoneId != null && childData.zoneId != '') {
+                            try {
+                                const zoneDoc = await database.collection('zone').doc(childData.zoneId).get();
+                                if (zoneDoc.exists) {
+                                    childData.zoneName = zoneDoc.data().name || 'Unknown Zone';
+                                } else {
+                                    childData.zoneName = 'Zone Not Found';
+                                }
+                            } catch (error) {
+                                childData.zoneName = 'Error loading zone';
+                            }
+                        } else {
+                            childData.zoneName = 'No Zone';
+                        }
                         if (searchValue) {
                             var date = '';
                             var time = '';
@@ -572,6 +657,11 @@
                         filteredData: filteredRecords,
                         data: records
                     });
+                    
+                    // Update zone names after table is populated
+                    setTimeout(() => {
+                        updateZoneNames();
+                    }, 100);
                 }).catch(function(error) {
                     console.error("Error fetching data from Firestore:", error);
                     $('#data-table_processing').hide();
@@ -584,16 +674,16 @@
                     });
                 });
             },
-            order: (checkDeletePermission) ? [[4, 'desc']] : [[3, 'desc']],
+            order: (checkDeletePermission) ? [[5, 'desc']] : [[4, 'desc']],
             columnDefs: [
                 {
-                    targets: (checkDeletePermission) ? 4 : 3,
+                    targets: (checkDeletePermission) ? 5 : 4,
                     type: 'date',
                     render: function(data) {
                         return data;
                     }
                 },
-                { orderable: false, targets: (checkDeletePermission) ? [0, 4, 5] : [3, 4] },
+                { orderable: false, targets: (checkDeletePermission) ? [0, 5, 6] : [4, 5] },
             ],
             "language": {
                 "zeroRecords": "{{trans('lang.no_record_found')}}",
@@ -693,6 +783,17 @@
             ownerInfo += '';
         }
         html.push(ownerInfo);
+        
+        // Zone column
+        var zoneInfo = '';
+        if (val.hasOwnProperty('zoneId') && val.zoneId != null && val.zoneId != '') {
+            // We'll fetch the zone name asynchronously and update it
+            zoneInfo = '<span class="zone-name" data-zone-id="' + val.zoneId + '">Loading...</span>';
+        } else {
+            zoneInfo = 'No Zone';
+        }
+        html.push(zoneInfo);
+        
         // Admin Commission column
         var adminCommission = '';
         if (val.adminCommission && val.adminCommission.fix_commission !== undefined) {
@@ -739,6 +840,49 @@
         html.push(actionHtml);
         return html;
     }
+    
+    // Function to fetch and update zone names
+    async function updateZoneNames() {
+        const zoneElements = document.querySelectorAll('.zone-name[data-zone-id]');
+        const zoneIds = Array.from(zoneElements).map(el => el.getAttribute('data-zone-id'));
+        const uniqueZoneIds = [...new Set(zoneIds)];
+        
+        if (uniqueZoneIds.length === 0) return;
+        
+        try {
+            // Fetch all zones at once
+            const zonePromises = uniqueZoneIds.map(zoneId => 
+                database.collection('zone').doc(zoneId).get()
+            );
+            
+            const zoneSnapshots = await Promise.all(zonePromises);
+            const zoneData = {};
+            
+            zoneSnapshots.forEach((snapshot, index) => {
+                if (snapshot.exists) {
+                    const data = snapshot.data();
+                    zoneData[uniqueZoneIds[index]] = data.name || 'Unknown Zone';
+                } else {
+                    zoneData[uniqueZoneIds[index]] = 'Zone Not Found';
+                }
+            });
+            
+            // Update all zone elements
+            zoneElements.forEach(element => {
+                const zoneId = element.getAttribute('data-zone-id');
+                if (zoneData[zoneId]) {
+                    element.textContent = zoneData[zoneId];
+                }
+            });
+        } catch (error) {
+            console.error('Error fetching zone names:', error);
+            // Update all elements to show error
+            zoneElements.forEach(element => {
+                element.textContent = 'Error loading zone';
+            });
+        }
+    }
+    
     async function vendorStatus(id) {
         let status = true;
         await database.collection('users').doc(id).get().then((snapshots) => {

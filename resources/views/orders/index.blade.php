@@ -369,12 +369,19 @@
         console.log('Final initial ref:', ref);
     }
     database.collection('zone').where('publish','==',true).orderBy('name','asc').get().then(async function(snapshots) {
+        console.log('Loading zones for orders:', snapshots.docs.length);
         snapshots.docs.forEach((listval) => {
             var data=listval.data();
+            console.log('Zone found for orders:', data.name, 'ID:', data.id);
             $('.zone_selector').append($("<option></option>")
                 .attr("value",data.id)
                 .text(data.name));
-        })
+        });
+        
+        // Enable the zone selector after zones are loaded
+        $('.zone_selector').prop('disabled', false);
+    }).catch(function(error) {
+        console.error('Error loading zones for orders:', error);
     });
     $('.status_selector').select2({
         placeholder: '{{trans("lang.status")}}',  
@@ -416,12 +423,18 @@
     }
     setDate(); 
     var initialRef=ref;
+    
+    // Store the original reference for filtering
+    console.log('=== INITIAL REF SETUP ===');
+    console.log('Initial Ref stored:', initialRef);
     $('.filteredRecords').change(async function() {
         var status=$('.status_selector').val();
         var zoneValue=$('.zone_selector').val();
         var orderType=$('.order_type_selector').val();
         var daterangepicker = $('#daterange').data('daterangepicker');
-        var refData=initialRef;
+        
+        // Reset refData to base collection or use current ref
+        var refData = initialRef || ref || database.collection('restaurant_orders');
         
         console.log('=== FILTER CHANGE DEBUG ===');
         console.log('Selected Status:', status);
@@ -430,9 +443,17 @@
         console.log('Initial Ref:', initialRef);
         console.log('Current Ref:', ref);
         
-        if(zoneValue) {
-            refData=refData.where('zoneId','==',zoneValue);
-            console.log('Applied Zone Filter:', zoneValue);
+        // Apply zone filter - we need to filter by restaurant zoneId since orders don't have zoneId
+        if(zoneValue && zoneValue !== '') {
+            console.log('Filtering by zone:', zoneValue);
+            // Since orders don't have zoneId, we need to filter by restaurant zoneId
+            // We'll do this by getting all restaurants in the zone first, then filtering orders
+            console.log('Zone filtering will be applied after fetching orders (since orders don\'t have zoneId)');
+            // Store the zone filter for later use
+            window.currentZoneFilter = zoneValue;
+        } else {
+            console.log('No zone filter applied');
+            window.currentZoneFilter = null;
         }
         if(status && status !== 'All') {
             refData=refData.where('status','==',status);
@@ -541,6 +562,7 @@
                     $('#data-table_processing').show();
                 }
                 console.log('About to fetch data from Firestore with ref:', ref);
+                console.log('Current refData for orders:', ref);
                 await ref.get().then(async function(querySnapshot) {
                     console.log('Firestore Query Result:');
                     console.log('Query Snapshot Size:', querySnapshot.size);
@@ -567,6 +589,33 @@
                     
                     await Promise.all(querySnapshot.docs.map(async (doc) => {
                         let childData=doc.data();
+                        console.log('Order data:', childData.id, 'zoneId:', childData.zoneId);
+                        
+                        // Check if we need to filter by zone (since orders don't have zoneId)
+                        if (window.currentZoneFilter) {
+                            // Get restaurant zoneId to check if it matches the selected zone
+                            let restaurantZoneId = null;
+                            if (childData.vendor && childData.vendor.zoneId) {
+                                restaurantZoneId = childData.vendor.zoneId;
+                            } else if (childData.vendorID) {
+                                // Fetch restaurant data to get zoneId
+                                try {
+                                    const restaurantDoc = await database.collection('vendors').doc(childData.vendorID).get();
+                                    if (restaurantDoc.exists) {
+                                        restaurantZoneId = restaurantDoc.data().zoneId;
+                                    }
+                                } catch (error) {
+                                    console.error('Error fetching restaurant zone:', error);
+                                }
+                            }
+                            
+                            // Skip this order if it doesn't belong to the selected zone
+                            if (restaurantZoneId !== window.currentZoneFilter) {
+                                console.log('Skipping order', childData.id, 'from zone', restaurantZoneId, 'not matching', window.currentZoneFilter);
+                                return; // Skip this order
+                            }
+                            console.log('Order', childData.id, 'matches zone filter');
+                        }
                         
                         // Add null checks for vendor data
                         if(childData.hasOwnProperty('vendor') && childData.vendor && childData.vendor.title) {
@@ -1031,6 +1080,45 @@
     
     // Initialize quick driver assignment
     loadQuickDrivers();
+    
+    // Test function to check zone data in orders
+    window.testOrderZoneData = function() {
+        console.log('Testing order zone data...');
+        database.collection('restaurant_orders').limit(5).get().then(async function(snapshots) {
+            console.log('Sample orders:');
+            for (const doc of snapshots.docs) {
+                const data = doc.data();
+                let restaurantZoneId = 'N/A';
+                
+                if (data.vendor && data.vendor.zoneId) {
+                    restaurantZoneId = data.vendor.zoneId;
+                } else if (data.vendorID) {
+                    try {
+                        const restaurantDoc = await database.collection('vendors').doc(data.vendorID).get();
+                        if (restaurantDoc.exists) {
+                            restaurantZoneId = restaurantDoc.data().zoneId || 'No zoneId in restaurant';
+                        }
+                    } catch (error) {
+                        restaurantZoneId = 'Error fetching restaurant';
+                    }
+                }
+                
+                console.log(`Order: ${data.id}, Order ZoneId: ${data.zoneId}, Restaurant ZoneId: ${restaurantZoneId}`);
+            }
+        });
+    };
+    
+    // Test function to check if orders exist without filters
+    window.testAllOrders = function() {
+        console.log('Testing all orders...');
+        database.collection('restaurant_orders').limit(10).get().then(function(snapshots) {
+            console.log('Total orders found:', snapshots.docs.length);
+            snapshots.docs.forEach(doc => {
+                const data = doc.data();
+                console.log(`Order: ${data.id}, Status: ${data.status}, ZoneId: ${data.zoneId}`);
+            });
+        });
+    };
     
     // Handle quick assign button clicks
     $(document).on('click', 'a[href*="#manual_driver_assignment_section"]', function(e) {
