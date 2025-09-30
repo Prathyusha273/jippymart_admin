@@ -31,14 +31,14 @@
                                 <div role="tabpanel" class="tab-pane active" id="promotion_information">
                                     <fieldset>
                                         <legend>Create Promotion</legend>
-                                        <div class="form-group row width-100">
+                                        <div class="form-group row width-50">
                                             <label class="col-3 control-label">Restaurant</label>
                                             <div class="col-7">
                                                 <select id="promotion_restaurant" class="form-control"></select>
                                                 <div class="form-text text-muted">Select the restaurant for this promotion.</div>
                                             </div>
                                         </div>
-                                        <div class="form-group row width-100">
+                                        <div class="form-group row width-50">
                                             <label class="col-3 control-label">Product</label>
                                             <div class="col-7">
                                                 <select id="promotion_product" class="form-control"></select>
@@ -48,52 +48,52 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="form-group row width-100">
+                                        <div class="form-group row width-50">
                                             <label class="col-3 control-label">Special Price</label>
                                             <div class="col-7">
                                                 <input type="text" class="form-control" id="promotion_special_price" min="0" step="0.01">
                                             </div>
                                         </div>
-                                        <div class="form-group row width-100">
+                                        <div class="form-group row width-50">
                                             <label class="col-3 control-label">Item Limit</label>
                                             <div class="col-7">
                                                 <input type="text" class="form-control" id="promotion_item_limit" min="1" value="2">
                                                 <div class="form-text text-muted">Maximum number of items that can be ordered with this promotion. Default: 2</div>
                                             </div>
                                         </div>
-                                        <div class="form-group row width-100">
+                                        <div class="form-group row width-50">
                                             <label class="col-3 control-label">Extra KM Charge</label>
                                             <div class="col-7">
                                                 <input type="text" class="form-control" id="promotion_extra_km_charge" min="0" value="7">
                                                 <div class="form-text text-muted">Additional charge per kilometer beyond free delivery distance. Default: 7</div>
                                             </div>
                                         </div>
-                                        <div class="form-group row width-100">
+                                        <div class="form-group row width-50">
                                             <label class="col-3 control-label">Free Delivery KM</label>
                                             <div class="col-7">
                                                 <input type="text" class="form-control" id="promotion_free_delivery_km" min="0" value="3">
                                                 <div class="form-text text-muted">Distance in kilometers for free delivery. Default: 3</div>
                                             </div>
                                         </div>
-                                        <div class="form-group row width-100">
+                                        <div class="form-group row width-50">
                                             <label class="col-3 control-label">Start Time</label>
                                             <div class="col-7">
                                                 <input type="datetime-local" class="form-control" id="promotion_start_time">
                                             </div>
                                         </div>
-                                        <div class="form-group row width-100">
+                                        <div class="form-group row width-50">
                                             <label class="col-3 control-label">End Time</label>
                                             <div class="col-7">
                                                 <input type="datetime-local" class="form-control" id="promotion_end_time">
                                             </div>
                                         </div>
-                                        <div class="form-group row width-100">
+                                        <div class="form-group row width-50">
                                             <label class="col-3 control-label">Payment Mode</label>
                                             <div class="col-7">
                                                 <input type="text" class="form-control" value="prepaid" id="promotion_payment_mode" readonly>
                                             </div>
                                         </div>
-                                        <div class="form-group row width-100">
+                                        <div class="form-group row width-50">
                                             <div class="col-7 offset-3">
                                                 <div class="form-check">
                                                     <input type="checkbox" class="form-check-input" id="promotion_is_available" checked>
