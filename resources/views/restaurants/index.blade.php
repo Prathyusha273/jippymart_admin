@@ -37,11 +37,11 @@
                                 <option value="" disabled selected>{{trans('lang.business_model')}}</option>
                             </select>
                         </div>
-                        <div class="select-box pl-3">
-                            <select class="form-control cuisine_selector">
-                                <option value="" disabled selected>{{trans('lang.select_cuisines')}}</option>
-                            </select>
-                        </div>
+{{--                        <div class="select-box pl-3">--}}
+{{--                            <select class="form-control cuisine_selector">--}}
+{{--                                <option value="" disabled selected>{{trans('lang.select_cuisines')}}</option>--}}
+{{--                            </select>--}}
+{{--                        </div>--}}
                         <div class="select-box pl-3">
                             <select class="form-control zone_selector">
                             <option value="" disabled selected>{{trans('lang.select_zone')}}</option>
@@ -332,16 +332,16 @@
         var restaurantTypeValue = $('.restaurant_type_selector').val();
         var businessModelValue = $('.business_model_selector').val();
         var cuisineValue = $('.cuisine_selector').val();
-        
+
         console.log('Filter change triggered:');
         console.log('- Zone Value:', zoneValue);
         console.log('- Restaurant Type:', restaurantTypeValue);
         console.log('- Business Model:', businessModelValue);
         console.log('- Cuisine:', cuisineValue);
-        
+
         // Reset refData to base collection
         refData = database.collection('vendors');
-        
+
         // Apply zone filter
         if (zoneValue && zoneValue !== '') {
             console.log('Filtering by zone:', zoneValue);
@@ -350,12 +350,12 @@
         } else {
             console.log('No zone filter applied');
         }
-        
+
         // Apply restaurant type filter
         if (restaurantTypeValue == "true") {
             refData = refData.where('enabledDiveInFuture', '==', true);
         }
-        
+
         // Apply business model filter
         if (businessModelValue && businessModelValue !== '') {
             var vendorSelectedIds = await subscriptionPlanVendorIds(businessModelValue);
@@ -365,30 +365,30 @@
                 refData = refData.where('id', '==', null);
             }
         }
-        
+
         // Apply cuisine filter
         if (cuisineValue && cuisineValue !== '') {
             refData = refData.where('categoryID', '==', cuisineValue);
         }
-        
+
         // Reload the table with new filters
         $('#storeTable').DataTable().ajax.reload();
     });
-    
+
     // Clear all filters functionality
     $('#clearFilters').click(function() {
         $('.zone_selector').val('').trigger('change');
         $('.restaurant_type_selector').val('').trigger('change');
         $('.business_model_selector').val('').trigger('change');
         $('.cuisine_selector').val('').trigger('change');
-        
+
         // Reset refData to base collection
         refData = database.collection('vendors');
-        
+
         // Reload the table
         $('#storeTable').DataTable().ajax.reload();
     });
-    
+
     // Test function to check zone data
     window.testZoneData = function() {
         console.log('Testing zone data...');
@@ -430,7 +430,7 @@
                 .attr("value", data.id)
                 .text(data.name));
         });
-        
+
         // Enable the zone selector after zones are loaded
         $('.zone_selector').prop('disabled', false);
     }).catch(function(error) {
@@ -552,21 +552,21 @@
                     }
                     let records = [];
                     let filteredRecords = [];
-                    
+
                     // Sort documents by createdAt since we removed orderBy from query
                     const sortedDocs = querySnapshot.docs.sort((a, b) => {
                         const aTime = a.data().createdAt ? a.data().createdAt.toDate().getTime() : 0;
                         const bTime = b.data().createdAt ? b.data().createdAt.toDate().getTime() : 0;
                         return aTime - bTime; // Ascending order
                     });
-                    
+
                     await Promise.all(sortedDocs.map(async (doc) => {
                         let childData = doc.data();
                         console.log('Restaurant data:', childData.title, 'zoneId:', childData.zoneId);
                         childData.phone = (childData.phonenumber != '' && childData.phonenumber != null && childData.phonenumber.slice(0, 1) == '+') ? childData.phonenumber.slice(1) : childData.phonenumber;
                         childData.id = doc.id;
                         childData.phonenumber = shortEditNumber(childData.phonenumber);
-                        
+
                         // Add zone name for export functionality
                         if (childData.hasOwnProperty('zoneId') && childData.zoneId != null && childData.zoneId != '') {
                             try {
@@ -657,7 +657,7 @@
                         filteredData: filteredRecords,
                         data: records
                     });
-                    
+
                     // Update zone names after table is populated
                     setTimeout(() => {
                         updateZoneNames();
@@ -783,7 +783,7 @@
             ownerInfo += '';
         }
         html.push(ownerInfo);
-        
+
         // Zone column
         var zoneInfo = '';
         if (val.hasOwnProperty('zoneId') && val.zoneId != null && val.zoneId != '') {
@@ -793,7 +793,7 @@
             zoneInfo = 'No Zone';
         }
         html.push(zoneInfo);
-        
+
         // Admin Commission column
         var adminCommission = '';
         if (val.adminCommission && val.adminCommission.fix_commission !== undefined) {
@@ -840,24 +840,24 @@
         html.push(actionHtml);
         return html;
     }
-    
+
     // Function to fetch and update zone names
     async function updateZoneNames() {
         const zoneElements = document.querySelectorAll('.zone-name[data-zone-id]');
         const zoneIds = Array.from(zoneElements).map(el => el.getAttribute('data-zone-id'));
         const uniqueZoneIds = [...new Set(zoneIds)];
-        
+
         if (uniqueZoneIds.length === 0) return;
-        
+
         try {
             // Fetch all zones at once
-            const zonePromises = uniqueZoneIds.map(zoneId => 
+            const zonePromises = uniqueZoneIds.map(zoneId =>
                 database.collection('zone').doc(zoneId).get()
             );
-            
+
             const zoneSnapshots = await Promise.all(zonePromises);
             const zoneData = {};
-            
+
             zoneSnapshots.forEach((snapshot, index) => {
                 if (snapshot.exists) {
                     const data = snapshot.data();
@@ -866,7 +866,7 @@
                     zoneData[uniqueZoneIds[index]] = 'Zone Not Found';
                 }
             });
-            
+
             // Update all zone elements
             zoneElements.forEach(element => {
                 const zoneId = element.getAttribute('data-zone-id');
@@ -882,7 +882,7 @@
             });
         }
     }
-    
+
     async function vendorStatus(id) {
         let status = true;
         await database.collection('users').doc(id).get().then((snapshots) => {
@@ -1411,7 +1411,7 @@
          // Generate impersonation token with retry logic
          let retryCount = 0;
          const maxRetries = 3;
-         
+
          function attemptImpersonation() {
              $.ajax({
                  url: '{{ route("admin.impersonate.generate") }}',
@@ -1424,11 +1424,11 @@
                  },
                                  success: function(response) {
                     console.log('🔍 Admin Panel Response:', response);
-                    
+
                     if (response.success) {
                         // Show success message
                         showNotification('success', `Redirecting to ${response.restaurant_name}...`);
-                        
+
                         console.log('🔍 Impersonation URL:', response.impersonation_url);
 
                         // Redirect to restaurant panel with impersonation token
@@ -1458,7 +1458,7 @@
                  },
                  error: function(xhr) {
                      let errorMsg = 'An error occurred while generating impersonation token';
-                     
+
                      if (xhr.status === 429) {
                          errorMsg = 'Too many attempts. Please wait before trying again.';
                      } else if (xhr.status === 403) {
@@ -1468,7 +1468,7 @@
                      } else if (xhr.responseJSON?.error) {
                          errorMsg = xhr.responseJSON.error;
                      }
-                     
+
                      showNotification('error', errorMsg);
                  },
                  complete: function() {
@@ -1477,7 +1477,7 @@
                  }
              });
          }
-         
+
          attemptImpersonation();
      });
 
