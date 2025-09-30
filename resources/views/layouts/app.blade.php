@@ -1315,6 +1315,40 @@
             showNewOrderNotification(mockOrder);
         };
         
+        // Test function specifically for mart orders
+        window.testMartOrderNotification = function() {
+            console.log('🧪 Testing mart order notification...');
+            
+            const mockMartOrder = {
+                id: 'MART-TEST-' + Date.now(),
+                status: 'Order Placed',
+                author: { firstName: 'Test', lastName: 'Customer', phoneNumber: '1234567890' },
+                vendor: { 
+                    title: 'Test Jippy Mart', 
+                    phoneNumber: '9876543210',
+                    vType: 'mart'  // This is the key difference
+                },
+                toPayAmount: 200,
+                payment_method: 'cod',
+                takeAway: false,
+                products: [{ name: 'Test Mart Item', price: '200', quantity: 1 }]
+            };
+            
+            console.log('🔄 Triggering test notification with mock MART order:', mockMartOrder);
+            showNewOrderNotification(mockMartOrder);
+        };
+        
+        // Test function to check sound system
+        window.testSoundSystem = function() {
+            console.log('🧪 Testing sound system...');
+            console.log('Sound enabled:', soundEnabled);
+            console.log('Notification sound object:', notificationSound);
+            console.log('Custom ringtone:', customRingtone);
+            
+            // Test sound directly
+            playNotificationSound();
+        };
+        
         // Function to manually send email for specific order
         window.sendEmailForOrder = function(orderId) {
             console.log('📧 Manually sending email for order:', orderId);
@@ -1530,16 +1564,31 @@
 
         // Play notification sound
         function playNotificationSound() {
-            if (!soundEnabled) return;
+            console.log('🔊 playNotificationSound called');
+            console.log('🔊 soundEnabled:', soundEnabled);
+            
+            if (!soundEnabled) {
+                console.log('🔊 Sound is disabled, skipping audio');
+                return;
+            }
 
+            console.log('🔊 Creating notification sound...');
             createNotificationSound();
 
             try {
                 if (customRingtone && notificationSound.src) {
+                    console.log('🔊 Using custom ringtone');
                     // Custom ringtone audio
                     notificationSound.currentTime = 0;
-                    notificationSound.play().catch(e => console.log('Custom ringtone play failed:', e));
+                    notificationSound.play().then(() => {
+                        console.log('🔊 Custom ringtone played successfully');
+                    }).catch(e => {
+                        console.log('🔊 Custom ringtone play failed:', e);
+                        // Try fallback sound
+                        playFallbackSound();
+                    });
                 } else if (notificationSound.audioContext) {
+                    console.log('🔊 Using Web Audio API sound');
                     // Web Audio API sound
                     const audioContext = notificationSound.audioContext;
                     const oscillator = audioContext.createOscillator();
@@ -1557,19 +1606,95 @@
 
                     oscillator.start(audioContext.currentTime);
                     oscillator.stop(audioContext.currentTime + 0.3);
+                    console.log('🔊 Web Audio API sound played');
                 } else {
+                    console.log('🔊 Using fallback audio');
                     // Fallback audio
                     notificationSound.currentTime = 0;
-                    notificationSound.play().catch(e => console.log('Audio play failed:', e));
+                    notificationSound.play().then(() => {
+                        console.log('🔊 Fallback audio played successfully');
+                    }).catch(e => {
+                        console.log('🔊 Fallback audio play failed:', e);
+                        // Try browser beep as last resort
+                        playBrowserBeep();
+                    });
                 }
             } catch (e) {
-                console.log('Sound play failed:', e);
+                console.log('🔊 Sound play failed with error:', e);
+                // Try browser beep as last resort
+                playBrowserBeep();
+            }
+        }
+        
+        // Fallback sound function
+        function playFallbackSound() {
+            console.log('🔊 Playing fallback sound...');
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                oscillator.frequency.setValueAtTime(1000, audioContext.currentTime);
+                oscillator.frequency.setValueAtTime(800, audioContext.currentTime + 0.1);
+                oscillator.frequency.setValueAtTime(1000, audioContext.currentTime + 0.2);
+
+                gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.3);
+                console.log('🔊 Fallback sound played successfully');
+            } catch (e) {
+                console.log('🔊 Fallback sound failed:', e);
+                playBrowserBeep();
+            }
+        }
+        
+        // Browser beep as last resort
+        function playBrowserBeep() {
+            console.log('🔊 Playing browser beep as last resort...');
+            try {
+                // Try multiple methods to play a sound
+                const beep = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT');
+                beep.volume = 0.3;
+                beep.play().then(() => {
+                    console.log('🔊 Browser beep played successfully');
+                }).catch(e => {
+                    console.log('🔊 Browser beep failed:', e);
+                    // Final fallback - try to create a simple beep using document
+                    document.body.innerHTML += '<audio autoplay><source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT" type="audio/wav"></audio>';
+                });
+            } catch (e) {
+                console.log('🔊 Browser beep creation failed:', e);
             }
         }
 
         let toastOffset = 0;
 
         function showNewOrderNotification(orderData) {
+            // Enhanced debugging for order notifications
+            console.log('🔔 showNewOrderNotification called for order:', orderData.id);
+            console.log('🔔 Order data:', {
+                id: orderData.id,
+                status: orderData.status,
+                vendorID: orderData.vendorID,
+                vendor: orderData.vendor,
+                author: orderData.author,
+                createdAt: orderData.createdAt
+            });
+            
+            // Check if this is a mart order by looking at vendor data
+            const isMartOrder = orderData.vendor && orderData.vendor.vType === 'mart';
+            console.log('🏪 Is Mart Order:', isMartOrder);
+            
+            // Play notification sound with enhanced debugging
+            console.log('🔊 Attempting to play notification sound...');
+            console.log('🔊 Sound enabled:', soundEnabled);
+            console.log('🔊 Notification sound object:', notificationSound);
+            
             playNotificationSound();
 
             // Note: Email notification is now sent directly in the real-time listener
@@ -1824,13 +1949,25 @@
 
                             // Only process orders that pass age validation
                             if (shouldProcessOrder) {
+                                // Enhanced debugging for order type detection
+                                const isMartOrder = orderData.vendor && orderData.vendor.vType === 'mart';
+                                const isRestaurantOrder = orderData.vendor && orderData.vendor.vType === 'restaurant';
+                                
                                 console.log('📧 Sending email notification for validated new order:', orderData.id);
+                                console.log('🏪 Order type detection:', {
+                                    isMartOrder: isMartOrder,
+                                    isRestaurantOrder: isRestaurantOrder,
+                                    vendorType: orderData.vendor ? orderData.vendor.vType : 'unknown',
+                                    vendorTitle: orderData.vendor ? orderData.vendor.title : 'unknown'
+                                });
+                                
                                 sendNewOrderEmailNotification(orderData);
 
                                 // This is a new order we haven't seen before
                                 // Only show notification if system is initialized (to avoid showing old orders on page load)
                                 if (isInitialized) {
                                     console.log('🔔 Showing notification for new order:', orderData.id);
+                                    console.log('🔔 Order type:', isMartOrder ? 'MART ORDER' : isRestaurantOrder ? 'RESTAURANT ORDER' : 'UNKNOWN TYPE');
                                     showNewOrderNotification(orderData);
                                 } else {
                                     console.log('⏳ System not initialized yet, skipping visual notification for:', orderData.id, 'but email was sent');
