@@ -3,9 +3,7 @@
 namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Mail;
 use Google\Client as Google_Client;
-use App\Mail\OrderEmailNotification;
 
 class OrderController extends Controller
 {
@@ -14,12 +12,12 @@ class OrderController extends Controller
     {
         $this->middleware('auth');
     }
-    
+
     public function index($id='')
     {
        return view("orders.index")->with('id', $id);
     }
-    
+
 
  	public function edit($id)
     {
@@ -31,8 +29,7 @@ class OrderController extends Controller
 
         $orderStatus=$request->orderStatus;
 
-        // Send email notifications to admin team
-        $this->sendOrderEmailNotification($request);
+        // Email notifications removed to prevent resource issues on shared hosting
 
         if(Storage::disk('local')->has('firebase/credentials.json') && ($orderStatus=="Order Accepted" || $orderStatus=="Order Rejected"|| $orderStatus=="Order Completed" || $orderStatus=="Driver Accepted")){
 
@@ -44,7 +41,7 @@ class OrderController extends Controller
             $access_token = $client_token['access_token'];
 
             $fcm_token = $request->fcm;
-            
+
             if(!empty($access_token) && !empty($fcm_token)){
 
                 $projectId = env('FIREBASE_PROJECT_ID');
@@ -73,7 +70,7 @@ class OrderController extends Controller
                 curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
                 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
                 curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-                
+
                 $result = curl_exec($ch);
                 if ($result === FALSE) {
                     die('FCM Send Error: ' . curl_error($ch));
@@ -97,154 +94,25 @@ class OrderController extends Controller
             $response['success'] = false;
             $response['message'] = 'Firebase credentials file not found.';
         }
-       
+
         return response()->json($response);
     }
 
     /**
-     * Public method to send email notifications (for direct API calls)
+     * Public method to send email notifications (for direct API calls) - DISABLED
      */
     public function sendOrderEmailNotificationPublic(Request $request)
     {
-        $this->sendOrderEmailNotification($request);
-        
+        // Email notifications disabled to prevent resource issues on shared hosting
         return response()->json([
-            'success' => true,
-            'message' => 'Email notifications sent successfully'
+            'success' => false,
+            'message' => 'Email notifications are disabled'
         ]);
     }
 
-    /**
-     * Send email notifications to admin team for order updates
-     */
-    private function sendOrderEmailNotification(Request $request)
-    {
-        try {
-            // Admin email list
-            $adminEmails = [
-                'info@jippymart.in',
-                'mohan@jippymart.in',
-                'sivapm@jippymart.in',
-                'sudheer@jippymart.in',
-                'bhanuprasadmaradana9610@gmail.com',
-                'jerry@jippymart.in'
-            ];
+    // Email notification methods removed to prevent resource issues on shared hosting
 
-            $orderStatus = $request->orderStatus;
-            
-            \Log::info("Email notification request received", [
-                'order_status' => $orderStatus,
-                'order_id' => $request->input('order_id'),
-                'request_data' => $request->all()
-            ]);
-            
-            // Only send emails for specific statuses
-            if (in_array($orderStatus, ['Order Placed', 'Order Accepted', 'Order Rejected', 'Order Completed'])) {
-                
-                // Get order data from request or fetch from database
-                $orderData = $this->getOrderDataFromRequest($request);
-                
-                \Log::info("Preparing to send email notification", [
-                    'order_status' => $orderStatus,
-                    'order_data' => $orderData
-                ]);
-                
-                // Send email to all admin emails
-                foreach ($adminEmails as $email) {
-                    Mail::to($email)->send(new OrderEmailNotification($orderData, $orderStatus, $adminEmails));
-                    \Log::info("Email sent to: {$email}");
-                }
-                
-                \Log::info("Order email notification sent for order status: {$orderStatus}", [
-                    'order_id' => $orderData['id'] ?? 'unknown',
-                    'recipients' => $adminEmails
-                ]);
-            } else {
-                \Log::info("Email notification skipped - status not in target list", [
-                    'order_status' => $orderStatus,
-                    'target_statuses' => ['Order Placed', 'Order Rejected', 'Order Completed']
-                ]);
-            }
-            
-        } catch (\Exception $e) {
-            \Log::error("Failed to send order email notification: " . $e->getMessage(), [
-                'order_status' => $request->orderStatus ?? 'unknown',
-                'error' => $e->getTraceAsString()
-            ]);
-        }
-    }
-
-    /**
-     * Extract order data from request
-     */
-    private function getOrderDataFromRequest(Request $request)
-    {
-        // Try to get order data from request parameters with better validation
-        $orderId = $request->input('order_id');
-        if (empty($orderId) || $orderId === 'N/A' || $orderId === 'undefined') {
-            \Log::warning("Order ID is missing or invalid in email notification request", [
-                'order_id' => $orderId,
-                'all_request_data' => $request->all()
-            ]);
-            $orderId = 'UNKNOWN-' . time(); // Generate a temporary ID for tracking
-        }
-
-        $orderData = [
-            'id' => $orderId,
-            'status' => $request->orderStatus ?? 'Unknown',
-            'takeAway' => $request->input('takeAway', false),
-            'amount' => $request->input('amount', '₹0.00'),
-            'paymentMethod' => $request->input('paymentMethod', 'COD'),
-            'estimatedTimeToPrepare' => $request->input('estimatedTimeToPrepare'),
-            'rejectionReason' => $request->input('rejectionReason'),
-        ];
-
-        // Add customer information if available
-        $customerName = $request->input('customer_name');
-        if (!empty($customerName) && $customerName !== 'N/A') {
-            $orderData['author'] = [
-                'firstName' => $customerName,
-                'lastName' => $request->input('customer_lastname', ''),
-                'phoneNumber' => $request->input('customer_phone', 'Not provided')
-            ];
-        } else {
-            $orderData['author'] = [
-                'firstName' => 'Unknown',
-                'lastName' => 'Customer',
-                'phoneNumber' => 'Not provided'
-            ];
-        }
-
-        // Add restaurant information if available
-        $vendorName = $request->input('vendor_name');
-        if (!empty($vendorName) && $vendorName !== 'N/A') {
-            $orderData['vendor'] = [
-                'title' => $vendorName,
-                'phoneNumber' => $request->input('vendor_phone', 'Not provided')
-            ];
-        } else {
-            $orderData['vendor'] = [
-                'title' => 'Unknown Restaurant',
-                'phoneNumber' => 'Not provided'
-            ];
-        }
-
-        // Add driver information if available
-        if ($request->has('driver_name')) {
-            $orderData['driver'] = [
-                'firstName' => $request->input('driver_name'),
-                'lastName' => $request->input('driver_lastname', ''),
-                'phoneNumber' => $request->input('driver_phone', 'N/A')
-            ];
-        }
-
-        // Add products if available
-        if ($request->has('products')) {
-            $orderData['products'] = $request->input('products', []);
-        }
-
-        return $orderData;
-    }
+    // Helper methods removed along with email functionality
 
     public function orderprint($id){
         return view('orders.print')->with('id',$id);

@@ -444,7 +444,13 @@
                                     if (snapshotsnew.hasData != '') {
                                         var vendordata = snapshotsnew.docs[0].data();
                                         if (vendordata.id) {
-                                            var route_view = '{{route("restaurants.view",":id")}}';
+                                            // Determine correct view route based on vendor type
+                                            var route_view;
+                                            if (vendordata.hasOwnProperty('vType') && vendordata.vType === 'mart') {
+                                                route_view = '{{route("marts.view",":id")}}';
+                                            } else {
+                                                route_view = '{{route("restaurants.view",":id")}}';
+                                            }
                                             route_view = route_view.replace(':id', vendordata.id);
                                             $('#resturant-view').attr('data-url', route_view);
                                         }

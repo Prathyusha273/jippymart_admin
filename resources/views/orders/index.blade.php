@@ -617,9 +617,23 @@
                             console.log('Order', childData.id, 'matches zone filter');
                         }
                         
-                        // Add null checks for vendor data
+                        // Add null checks for vendor data and ensure vendor type is available
                         if(childData.hasOwnProperty('vendor') && childData.vendor && childData.vendor.title) {
                             childData.restaurants = childData.vendor.title;
+                            // Ensure vendor type is available for routing
+                            if (!childData.vendor.hasOwnProperty('vType') && childData.vendorID) {
+                                try {
+                                    const vendorDoc = await database.collection('vendors').doc(childData.vendorID).get();
+                                    if (vendorDoc.exists) {
+                                        const vendorData = vendorDoc.data();
+                                        childData.vendor.vType = vendorData.vType || 'restaurant'; // Default to restaurant if not specified
+                                        console.log('Loaded vendor type for order', childData.id, ':', childData.vendor.vType);
+                                    }
+                                } catch (error) {
+                                    console.error('Error loading vendor type for order', childData.id, ':', error);
+                                    childData.vendor.vType = 'restaurant'; // Default fallback
+                                }
+                            }
                         } else {
                             childData.restaurants = 'N/A'; // Default value if vendor data is missing
                             console.log('Warning: Missing vendor data for order:', doc.id);
@@ -643,25 +657,41 @@
                             childData.orderType="{{trans('lang.order_delivery')}}";
                         }
                         
-                        // --- REPLACE AMOUNT ASSIGNMENT TO USE order_Billing.ToPay ---
+                        // --- OPTIMIZED AMOUNT ASSIGNMENT - Use order.toPayAmount if available ---
                         childData.amount = '';
                         try {
-                            const billingDoc = await database.collection('order_Billing').doc(childData.id).get();
-                            if (billingDoc.exists && billingDoc.data().ToPay !== undefined) {
-                                let toPay = parseFloat(billingDoc.data().ToPay);
+                            // First try to use toPayAmount from order data (faster)
+                            if (childData.toPayAmount !== undefined && childData.toPayAmount !== null) {
+                                let toPay = parseFloat(childData.toPayAmount);
                                 if (!isNaN(toPay)) {
                                     if (currencyAtRight) {
                                         childData.amount = toPay.toFixed(decimal_degits) + currentCurrency;
                                     } else {
                                         childData.amount = currentCurrency + toPay.toFixed(decimal_degits);
                                     }
+                                } else {
+                                    childData.amount = await buildHTMLProductstotal(childData);
                                 }
                             } else {
-                                // fallback to previous calculation if ToPay not found
-                                childData.amount = await buildHTMLProductstotal(childData);
+                                // Fallback to billing collection only if toPayAmount not available
+                                const billingDoc = await database.collection('order_Billing').doc(childData.id).get();
+                                if (billingDoc.exists && billingDoc.data().ToPay !== undefined) {
+                                    let toPay = parseFloat(billingDoc.data().ToPay);
+                                    if (!isNaN(toPay)) {
+                                        if (currencyAtRight) {
+                                            childData.amount = toPay.toFixed(decimal_degits) + currentCurrency;
+                                        } else {
+                                            childData.amount = currentCurrency + toPay.toFixed(decimal_degits);
+                                        }
+                                    } else {
+                                        childData.amount = await buildHTMLProductstotal(childData);
+                                    }
+                                } else {
+                                    childData.amount = await buildHTMLProductstotal(childData);
+                                }
                             }
                         } catch (e) {
-                            // fallback to previous calculation on error
+                            console.warn('Error getting order amount for', childData.id, e);
                             childData.amount = await buildHTMLProductstotal(childData);
                         }
                         
@@ -830,8 +860,21 @@
         route1=route1+'?eid={{$id}}';
         printRoute=printRoute+'?eid={{$id}}';
         <?php } ?>
-        var route_view='{{route("restaurants.view", ":id")}}';
+        // Determine correct view route based on vendor type
+        var route_view;
+        console.log('Building route for order:', val.id, 'vendorID:', vendorID);
+        console.log('Vendor data:', val.vendor);
+        console.log('Vendor vType:', val.vendor ? val.vendor.vType : 'undefined');
+        
+        if(val.hasOwnProperty('vendor') && val.vendor.hasOwnProperty('vType') && val.vendor.vType === 'mart') {
+            route_view='{{route("marts.view", ":id")}}';
+            console.log('Using MART route for order:', val.id);
+        } else {
+            route_view='{{route("restaurants.view", ":id")}}';
+            console.log('Using RESTAURANT route for order:', val.id);
+        }
         route_view=route_view.replace(':id',vendorID);
+        console.log('Final route:', route_view);
         var customer_view='{{route("users.view", ":id")}}';
         customer_view=customer_view.replace(':id',user_id);
         if(checkDeletePermission) {

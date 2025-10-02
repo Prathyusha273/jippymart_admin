@@ -15,9 +15,8 @@ class NotificationController extends Controller
         $this->middleware('auth');
     }
     
-      public function index($id='')
+    public function index($id='')
     {
-
         return view("notification.index")->with('id',$id);
     }
 
@@ -28,30 +27,63 @@ class NotificationController extends Controller
 
     public function broadcastnotification(Request $request)
     {
+        // Log the request for debugging
+        \Log::info('Broadcast notification request', [
+            'role' => $request->role,
+            'subject' => $request->subject,
+            'message' => $request->message
+        ]);
 
-        if(Storage::disk('local')->has('firebase/credentials.json')){
-
-            $client= new Google_Client();
-            $client->setAuthConfig(storage_path('app/firebase/credentials.json'));
-            $client->addScope('https://www.googleapis.com/auth/firebase.messaging');
-            $client->refreshTokenWithAssertion();
-            $client_token = $client->getAccessToken();
-            $access_token = $client_token['access_token'];
+        if(Storage::disk('local')->has('firebase/serviceAccount.json')){
+            
+            try {
+                $client = new Google_Client();
+                $client->setAuthConfig(storage_path('app/firebase/serviceAccount.json'));
+                $client->addScope('https://www.googleapis.com/auth/firebase.messaging');
+                $client->setAccessType('offline');
+                $client->refreshTokenWithAssertion();
+                $client_token = $client->getAccessToken();
+                
+                if (!$client_token || !isset($client_token['access_token'])) {
+                    \Log::error('Failed to get access token from Google Client');
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Failed to authenticate with Firebase.'
+                    ]);
+                }
+                
+                $access_token = $client_token['access_token'];
+                \Log::info('Successfully obtained Firebase access token');
+            } catch (\Exception $e) {
+                \Log::error('Google Client authentication error: ' . $e->getMessage());
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Authentication error: ' . $e->getMessage()
+                ]);
+            }
 
             $role = $request->role;
             
             if(!empty($access_token) && !empty($role)){
 
-                $projectId = env('FIREBASE_PROJECT_ID');
+                $projectId = env('FIREBASE_PROJECT_ID', 'jippymart-27c08');
                 $url = 'https://fcm.googleapis.com/v1/projects/'.$projectId.'/messages:send';
 
-                if( $role == "vendor" ) {
-                    $topic = "restaurant";
-                }else if( $role == "customer" ) {
-                    $topic = "customer";
-                }else if( $role == "driver" ) {
-                    $topic = "driver";
-                }
+                // Map roles to topics
+                $topicMap = [
+                    'vendor' => 'restaurant',
+                    'customer' => 'customer', 
+                    'driver' => 'driver'
+                ];
+                
+                $topic = $topicMap[$role] ?? 'default';
+                
+                \Log::info('Sending notification', [
+                    'project_id' => $projectId,
+                    'role' => $role,
+                    'topic' => $topic,
+                    'url' => $url
+                ]);
 
                 $data = [
                     'message' => [
@@ -60,6 +92,20 @@ class NotificationController extends Controller
                             'body' => $request->message,
                         ],
                         'topic' => $topic,
+                        'android' => [
+                            'notification' => [
+                                'sound' => 'default'
+                            ],
+                            'priority' => 'high'
+                        ],
+                        'apns' => [
+                            'payload' => [
+                                'aps' => [
+                                    'sound' => 'default',
+                                    'badge' => 1
+                                ]
+                            ]
+                        ]
                     ],
                 ];
 
@@ -67,6 +113,8 @@ class NotificationController extends Controller
                     'Content-Type: application/json',
                     'Authorization: Bearer '.$access_token
                 );
+
+                \Log::info('FCM Request Data', ['data' => $data]);
 
                 $ch = curl_init();
                 curl_setopt($ch, CURLOPT_URL, $url);
@@ -76,51 +124,106 @@ class NotificationController extends Controller
                 curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
                 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
                 curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+                curl_setopt($ch, CURLOPT_TIMEOUT, 30);
                 
                 $result = curl_exec($ch);
-                if ($result === FALSE) {
-                    die('FCM Send Error: ' . curl_error($ch));
-                }
+                $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                $curlError = curl_error($ch);
                 curl_close($ch);
-                $result=json_decode($result);
-
-                $response = array();
-                $response['success'] = true;
-                $response['message'] = 'Notification successfully sent.';
-                $response['result'] = $result;
+                
+                \Log::info('FCM Response', [
+                    'http_code' => $httpCode,
+                    'result' => $result,
+                    'curl_error' => $curlError
+                ]);
+                
+                if ($result === FALSE || !empty($curlError)) {
+                    \Log::error('FCM Send Error: ' . $curlError);
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'FCM Send Error: ' . $curlError
+                    ]);
+                }
+                
+                $resultData = json_decode($result, true);
+                
+                if ($httpCode >= 200 && $httpCode < 300) {
+                    \Log::info('Notification sent successfully', ['result' => $resultData]);
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Notification successfully sent to ' . $role . ' topic: ' . $topic,
+                        'result' => $resultData
+                    ]);
+                } else {
+                    \Log::error('FCM API Error', [
+                        'http_code' => $httpCode,
+                        'response' => $resultData
+                    ]);
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'FCM API Error: ' . ($resultData['error']['message'] ?? 'Unknown error'),
+                        'result' => $resultData
+                    ]);
+                }
 
             }else{
-                $response = array();
-                $response['success'] = false;
-                $response['message'] = 'Missing sender id or token to send notification.';
+                \Log::error('Missing access token or role for notification');
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Missing access token or role to send notification.'
+                ]);
             }
 
         }else{
-            $response = array();
-            $response['success'] = false;
-            $response['message'] = 'Firebase credentials file not found.';
+            \Log::error('Firebase serviceAccount.json file not found in storage/app/firebase/');
+            return response()->json([
+                'success' => false,
+                'message' => 'Firebase serviceAccount.json file not found. Please check your Firebase configuration.'
+            ]);
         }
-       
-        return response()->json($response);
     }
     
     public function sendNotification(Request $request)
     {
+        \Log::info('Individual notification request', [
+            'fcm_token' => $request->fcm,
+            'title' => $request->title,
+            'message' => $request->message
+        ]);
 
-        if(Storage::disk('local')->has('firebase/credentials.json')){
-
-            $client= new Google_Client();
-            $client->setAuthConfig(storage_path('app/firebase/credentials.json'));
-            $client->addScope('https://www.googleapis.com/auth/firebase.messaging');
-            $client->refreshTokenWithAssertion();
-            $client_token = $client->getAccessToken();
-            $access_token = $client_token['access_token'];
+        if(Storage::disk('local')->has('firebase/serviceAccount.json')){
+            
+            try {
+                $client = new Google_Client();
+                $client->setAuthConfig(storage_path('app/firebase/serviceAccount.json'));
+                $client->addScope('https://www.googleapis.com/auth/firebase.messaging');
+                $client->setAccessType('offline');
+                $client->refreshTokenWithAssertion();
+                $client_token = $client->getAccessToken();
+                
+                if (!$client_token || !isset($client_token['access_token'])) {
+                    \Log::error('Failed to get access token from Google Client');
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Failed to authenticate with Firebase.'
+                    ]);
+                }
+                
+                $access_token = $client_token['access_token'];
+                \Log::info('Successfully obtained Firebase access token for individual notification');
+            } catch (\Exception $e) {
+                \Log::error('Google Client authentication error: ' . $e->getMessage());
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Authentication error: ' . $e->getMessage()
+                ]);
+            }
 
             $fcm_token = $request->fcm;
             
             if(!empty($access_token) && !empty($fcm_token)){
 
-                $projectId = env('FIREBASE_PROJECT_ID');
+                $projectId = env('FIREBASE_PROJECT_ID', 'jippymart-27c08');
                 $url = 'https://fcm.googleapis.com/v1/projects/'.$projectId.'/messages:send';
 
                 $data = [
@@ -130,6 +233,20 @@ class NotificationController extends Controller
                             'body' => $request->message,
                         ],
                         'token' => $fcm_token,
+                        'android' => [
+                            'notification' => [
+                                'sound' => 'default'
+                            ],
+                            'priority' => 'high'
+                        ],
+                        'apns' => [
+                            'payload' => [
+                                'aps' => [
+                                    'sound' => 'default',
+                                    'badge' => 1
+                                ]
+                            ]
+                        ]
                     ],
                 ];
 
@@ -137,6 +254,8 @@ class NotificationController extends Controller
                     'Content-Type: application/json',
                     'Authorization: Bearer '.$access_token
                 );
+
+                \Log::info('FCM Individual Request Data', ['data' => $data]);
 
                 $ch = curl_init();
                 curl_setopt($ch, CURLOPT_URL, $url);
@@ -146,34 +265,63 @@ class NotificationController extends Controller
                 curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
                 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
                 curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+                curl_setopt($ch, CURLOPT_TIMEOUT, 30);
                 
                 $result = curl_exec($ch);
-                if ($result === FALSE) {
-                    die('FCM Send Error: ' . curl_error($ch));
-                }
+                $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                $curlError = curl_error($ch);
                 curl_close($ch);
-                $result=json_decode($result);
-
-                $response = array();
-                $response['success'] = true;
-                $response['message'] = 'Notification successfully sent.';
-                $response['result'] = $result;
+                
+                \Log::info('FCM Individual Response', [
+                    'http_code' => $httpCode,
+                    'result' => $result,
+                    'curl_error' => $curlError
+                ]);
+                
+                if ($result === FALSE || !empty($curlError)) {
+                    \Log::error('FCM Send Error: ' . $curlError);
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'FCM Send Error: ' . $curlError
+                    ]);
+                }
+                
+                $resultData = json_decode($result, true);
+                
+                if ($httpCode >= 200 && $httpCode < 300) {
+                    \Log::info('Individual notification sent successfully', ['result' => $resultData]);
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Notification successfully sent to device',
+                        'result' => $resultData
+                    ]);
+                } else {
+                    \Log::error('FCM API Error', [
+                        'http_code' => $httpCode,
+                        'response' => $resultData
+                    ]);
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'FCM API Error: ' . ($resultData['error']['message'] ?? 'Unknown error'),
+                        'result' => $resultData
+                    ]);
+                }
 
             }else{
-                $response = array();
-                $response['success'] = false;
-                $response['message'] = 'Missing sender id or token to send notification.';
+                \Log::error('Missing access token or FCM token for individual notification');
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Missing access token or FCM token to send notification.'
+                ]);
             }
 
         }else{
-            $response = array();
-            $response['success'] = false;
-            $response['message'] = 'Firebase credentials file not found.';
+            \Log::error('Firebase serviceAccount.json file not found in storage/app/firebase/');
+            return response()->json([
+                'success' => false,
+                'message' => 'Firebase serviceAccount.json file not found. Please check your Firebase configuration.'
+            ]);
         }
-       
-        return response()->json($response);
     }
 
 }
-
-

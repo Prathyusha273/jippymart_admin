@@ -41,13 +41,13 @@
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
     <link href="https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css"/>
-    
+
     <!-- jQuery - Load early to avoid $ not defined errors -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    
+
     <!-- Global Activity Logger - Load after jQuery -->
     <script src="{{ asset('js/global-activity-logger.js') }}"></script>
-    
+
     <!-- Firebase 9.0.0 Compat SDKs - Load globally for all pages -->
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
@@ -74,13 +74,13 @@
             try {
                 firebase.initializeApp(firebaseConfig);
                 console.log('✅ Firebase initialized successfully');
-                
+
                 // Initialize Firestore database globally
                 window.database = firebase.firestore();
                 window.storage = firebase.storage();
                 // Temporarily disable auth to avoid errors
                 // window.auth = firebase.auth();
-                
+
                 console.log('✅ Firebase services initialized (Auth disabled temporarily)');
             } catch (error) {
                 console.error('❌ Firebase initialization error:', error);
@@ -684,12 +684,16 @@
         }
     });
 
+    // Email sending function disabled - email notifications removed
     async function sendEmail(url, subject, message, recipients) {
+        console.log('Email sending disabled - notifications removed');
+        return false;
+    }
 
-        var checkFlag = false;
-
+    // Original sendEmail function code removed - email notifications disabled
+    /*
+    async function sendEmail(url, subject, message, recipients) {
         await $.ajax({
-
             type: 'POST',
             data: {
                 subject: subject,
@@ -708,10 +712,9 @@
                 checkFlag = true;
             }
         });
-
         return checkFlag;
-
     }
+    */
     function exportData(dt, format, config) {
         const {
             columns,
@@ -919,35 +922,35 @@
     // 🧠 Smart Coupon Deletion Function - Preserves Global Coupons & Active Orders
     const smartDeleteCouponsForVendor = async (vendorId) => {
         console.log(`🔍 Smart coupon deletion for vendor: ${vendorId}`);
-        
+
         try {
             // Get all coupons for this vendor (including global ones)
             const couponsSnapshot = await database.collection('coupons')
                 .where('resturant_id', 'in', [vendorId, 'ALL'])
                 .get();
-            
+
             if (couponsSnapshot.empty) {
                 console.log(`📝 No coupons found for vendor: ${vendorId}`);
                 return { deleted: 0, preserved: 0, protected: 0 };
             }
-            
+
             let deletedCount = 0;
             let preservedCount = 0;
             let protectedCount = 0;
             const deletedCoupons = [];
             const preservedCoupons = [];
             const protectedCoupons = [];
-            
+
             // Process each coupon
             for (const doc of couponsSnapshot.docs) {
                 const couponData = doc.data();
                 const couponId = doc.id;
-                
+
                 // Only delete vendor-specific coupons, preserve global ones
                 if (couponData.resturant_id === vendorId) {
                     // Check if coupon has active orders before deletion
                     const hasActiveOrders = await checkCouponActiveOrders(couponData.code, vendorId);
-                    
+
                     if (hasActiveOrders) {
                         // Protect coupon with active orders
                         protectedCount++;
@@ -967,13 +970,13 @@
                     console.log(`✅ Preserved global coupon: ${couponData.code}`);
                 }
             }
-            
+
             // Log the smart deletion results
             console.log(`📊 Smart Coupon Deletion Results:`);
             console.log(`   🗑️ Deleted: ${deletedCount} vendor-specific coupons`);
             console.log(`   ✅ Preserved: ${preservedCount} global coupons`);
             console.log(`   🛡️ Protected: ${protectedCount} coupons with active orders`);
-            
+
             if (deletedCoupons.length > 0) {
                 console.log(`   Deleted coupons: ${deletedCoupons.join(', ')}`);
             }
@@ -983,21 +986,21 @@
             if (protectedCoupons.length > 0) {
                 console.log(`   Protected coupons: ${protectedCoupons.join(', ')}`);
             }
-            
+
             // Show user-friendly notification
             if (preservedCount > 0 || protectedCount > 0) {
                 showSmartDeletionNotification(deletedCount, preservedCount, protectedCount, deletedCoupons, preservedCoupons, protectedCoupons);
             }
-            
-            return { 
-                deleted: deletedCount, 
+
+            return {
+                deleted: deletedCount,
                 preserved: preservedCount,
                 protected: protectedCount,
                 deletedCoupons: deletedCoupons,
                 preservedCoupons: preservedCoupons,
                 protectedCoupons: protectedCoupons
             };
-            
+
         } catch (error) {
             console.error(`❌ Error in smart coupon deletion:`, error);
             throw error;
@@ -1014,7 +1017,7 @@
                 .where('status', 'in', ['pending', 'confirmed', 'preparing', 'ready_for_pickup', 'out_for_delivery'])
                 .limit(1)
                 .get();
-            
+
             return !activeOrdersSnapshot.empty;
         } catch (error) {
             console.error(`❌ Error checking active orders for coupon ${couponCode}:`, error);
@@ -1028,28 +1031,28 @@
         let message = `
             <div class="alert alert-info alert-dismissible fade show" role="alert">
                 <h5><i class="fas fa-brain"></i> Smart Coupon Deletion Completed</h5>`;
-        
+
         if (preservedCount > 0) {
             message += `<p><strong>✅ Preserved ${preservedCount} global coupon(s):</strong> ${preservedCoupons.join(', ')}</p>`;
         }
-        
+
         if (deletedCount > 0) {
             message += `<p><strong>🗑️ Deleted ${deletedCount} vendor-specific coupon(s):</strong> ${deletedCoupons.join(', ')}</p>`;
         }
-        
+
         if (protectedCount > 0) {
             message += `<p><strong>🛡️ Protected ${protectedCount} coupon(s) with active orders:</strong> ${protectedCoupons.join(', ')}</p>`;
         }
-        
+
         message += `<p class="mb-0"><small>Global coupons work for all restaurants and are automatically preserved. Coupons with active orders are protected to maintain data integrity.</small></p>
                 <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>`;
-        
+
         // Show notification at the top of the page
         $('body').prepend(message);
-        
+
         // Auto-dismiss after 10 seconds
         setTimeout(() => {
             $('.alert').fadeOut();
@@ -1126,18 +1129,18 @@
     const smartDeleteImageFromBucket = async (imageUrl, currentCollection, currentId) => {
         try {
             console.log(`🔍 Checking if image ${imageUrl} is still referenced by other documents...`);
-            
+
             // Check if this image is still referenced by other documents
             const isStillReferenced = await checkImageReferences(imageUrl, currentCollection, currentId);
-            
+
             if (isStillReferenced) {
                 console.log(`✅ Image ${imageUrl} is still referenced by other documents. Keeping the image.`);
                 return;
             }
-            
+
             console.log(`🗑️ Image ${imageUrl} is no longer referenced. Safe to delete.`);
             await deleteImageFromBucket(imageUrl);
-            
+
         } catch (error) {
             console.error("Error in smart media deletion:", error);
             // Fallback to old behavior if smart deletion fails
@@ -1151,7 +1154,7 @@
             // Collections that might reference media images
             const collectionsToCheck = [
                 'mart_categories',
-                'mart_subcategories', 
+                'mart_subcategories',
                 'mart_items',
                 'vendor_categories',
                 'vendor_products',
@@ -1165,29 +1168,29 @@
                 }
 
                 console.log(`🔍 Checking ${collectionName} for image references...`);
-                
+
                 const snapshot = await database.collection(collectionName).get();
-                
+
                 for (const doc of snapshot.docs) {
                     // Skip the current document being deleted
                     if (collectionName === currentCollection && doc.id === currentId) {
                         continue;
                     }
-                    
+
                     const data = doc.data();
-                    
+
                     // Check single photo field
                     if (data.photo === imageUrl) {
                         console.log(`✅ Found reference in ${collectionName}/${doc.id} (photo field)`);
                         return true;
                     }
-                    
+
                     // Check photos array field
                     if (data.photos && Array.isArray(data.photos) && data.photos.includes(imageUrl)) {
                         console.log(`✅ Found reference in ${collectionName}/${doc.id} (photos array)`);
                         return true;
                     }
-                    
+
                     // Check image_path field (for media collection)
                     if (data.image_path === imageUrl) {
                         console.log(`✅ Found reference in ${collectionName}/${doc.id} (image_path field)`);
@@ -1195,10 +1198,10 @@
                     }
                 }
             }
-            
+
             console.log(`❌ No other references found for image ${imageUrl}`);
             return false;
-            
+
         } catch (error) {
             console.error("Error checking image references:", error);
             // If we can't check references, assume it's still referenced (safer)
@@ -1211,7 +1214,7 @@
         try {
             const collectionsToCheck = [
                 'mart_categories',
-                'mart_subcategories', 
+                'mart_subcategories',
                 'mart_items',
                 'vendor_categories',
                 'vendor_products',
@@ -1223,22 +1226,22 @@
 
             for (const collectionName of collectionsToCheck) {
                 const snapshot = await database.collection(collectionName).get();
-                
+
                 for (const doc of snapshot.docs) {
                     const data = doc.data();
-                    
+
                     // Check single photo field
                     if (data.photo === imageUrl) {
                         referenceCount++;
                         references.push(`${collectionName}/${doc.id} (photo)`);
                     }
-                    
+
                     // Check photos array field
                     if (data.photos && Array.isArray(data.photos) && data.photos.includes(imageUrl)) {
                         referenceCount++;
                         references.push(`${collectionName}/${doc.id} (photos array)`);
                     }
-                    
+
                     // Check image_path field (for media collection)
                     if (data.image_path === imageUrl) {
                         referenceCount++;
@@ -1246,12 +1249,12 @@
                     }
                 }
             }
-            
+
             return {
                 count: referenceCount,
                 references: references
             };
-            
+
         } catch (error) {
             console.error("Error getting media reference count:", error);
             return { count: 0, references: [] };
@@ -1291,90 +1294,55 @@
         let pageLoadTime = Date.now();
         let isInitialized = false;
         
-        // Debug function to test real-time notifications manually
-        window.testRealtimeNotification = function() {
-            console.log('🧪 Testing real-time notification system...');
-            console.log('Known order IDs:', knownOrderIds.size);
-            console.log('Page load time:', new Date(pageLoadTime));
-            console.log('Is initialized:', isInitialized);
-            console.log('Current time:', new Date());
-            
-            // Test with a mock order
-            const mockOrder = {
-                id: 'TEST-' + Date.now(),
-                status: 'Order Placed',
-                author: { firstName: 'Test', lastName: 'Customer', phoneNumber: '1234567890' },
-                vendor: { title: 'Test Restaurant', phoneNumber: '9876543210' },
-                toPayAmount: 150,
-                payment_method: 'cod',
-                takeAway: false,
-                products: [{ name: 'Test Item', price: '150', quantity: 1 }]
-            };
-            
-            console.log('🔄 Triggering test notification with mock order:', mockOrder);
-            showNewOrderNotification(mockOrder);
-        };
+        // Connection management for shared hosting optimization
+        let connectionCount = 0;
+        const MAX_CONNECTIONS = 3; // Reduced limit for shared hosting
         
-        // Test function specifically for mart orders
-        window.testMartOrderNotification = function() {
-            console.log('🧪 Testing mart order notification...');
-            
-            const mockMartOrder = {
-                id: 'MART-TEST-' + Date.now(),
-                status: 'Order Placed',
-                author: { firstName: 'Test', lastName: 'Customer', phoneNumber: '1234567890' },
-                vendor: { 
-                    title: 'Test Jippy Mart', 
-                    phoneNumber: '9876543210',
-                    vType: 'mart'  // This is the key difference
-                },
-                toPayAmount: 200,
-                payment_method: 'cod',
-                takeAway: false,
-                products: [{ name: 'Test Mart Item', price: '200', quantity: 1 }]
-            };
-            
-            console.log('🔄 Triggering test notification with mock MART order:', mockMartOrder);
-            showNewOrderNotification(mockMartOrder);
-        };
+        function checkConnectionLimit() {
+            if (connectionCount >= MAX_CONNECTIONS) {
+                console.warn('⚠️ Connection limit reached, skipping request to prevent 503 errors...');
+                return false;
+            }
+            connectionCount++;
+            return true;
+        }
         
-        // Test function to check sound system
-        window.testSoundSystem = function() {
-            console.log('🧪 Testing sound system...');
-            console.log('Sound enabled:', soundEnabled);
-            console.log('Notification sound object:', notificationSound);
-            console.log('Custom ringtone:', customRingtone);
-            
-            // Test sound directly
-            playNotificationSound();
-        };
+        function releaseConnection() {
+            if (connectionCount > 0) {
+                connectionCount--;
+            }
+        }
         
-        // Function to manually send email for specific order
-        window.sendEmailForOrder = function(orderId) {
-            console.log('📧 Manually sending email for order:', orderId);
-            
-            // Get order data from Firebase
-            database.collection('restaurant_orders').doc(orderId).get().then((doc) => {
-                if (doc.exists) {
-                    const orderData = doc.data();
-                    orderData.id = doc.id;
-                    console.log('📋 Order data retrieved:', orderData);
-                    sendNewOrderEmailNotification(orderData);
-                } else {
-                    console.error('❌ Order not found:', orderId);
-                }
-            }).catch((error) => {
-                console.error('❌ Error getting order:', error);
-            });
-        };
-        
-        // Function to clear known orders cache (for testing)
+        // Auto-release connections after timeout to prevent leaks
+        function autoReleaseConnection() {
+            setTimeout(() => {
+                releaseConnection();
+            }, 5000); // Auto-release after 5 seconds
+        }
+
+
+
+
+
+
+        // Manual email function removed - email notifications disabled
+
+        // Function to clear known orders cache and reset notification system
         window.clearKnownOrders = function() {
             knownOrderIds.clear();
             localStorage.removeItem('knownOrderIds');
-            console.log('🗑️ Cleared known orders cache. Next orders will be treated as new.');
+            localStorage.removeItem('knownOrderIdsTimestamp');
+            
+            // Clear notification badge
+            const badge = document.getElementById('new-orders-badge');
+            if (badge) {
+                badge.style.display = 'none';
+                badge.textContent = '0';
+            }
+            
+            console.log('🗑️ Cleared known orders cache and reset notification badge. Next orders will be treated as new.');
         };
-        
+
         // Function to show current system status
         window.showNotificationStatus = function() {
             console.log('📊 Notification System Status:');
@@ -1383,59 +1351,42 @@
             console.log('- Is initialized:', isInitialized);
             console.log('- Current time:', new Date());
             console.log('- System start time:', new Date(pageLoadTime - (2 * 60 * 1000)));
-            console.log('- Available functions: testRealtimeNotification(), sendEmailForOrder(id), clearKnownOrders()');
+            console.log('- Available functions: clearKnownOrders(), showNotificationStatus()');
+            console.log('- Test functions disabled in production');
         };
-        
-        // Function to test recent orders processing
-        window.testRecentOrderProcessing = function() {
-            console.log('🧪 Testing recent order processing...');
-            console.log('📊 Current system state:');
-            console.log('- Known orders:', Array.from(knownOrderIds));
-            console.log('- Page load time:', new Date(pageLoadTime));
-            console.log('- System start time:', new Date(pageLoadTime - (2 * 60 * 1000)));
-            console.log('- Current time:', new Date());
-            console.log('- Time difference:', Math.round((Date.now() - pageLoadTime) / (1000 * 60)), 'minutes');
-        };
-        
+
+
+
         // Debug: Log that functions are available
         console.log('🔧 Debug functions loaded:', {
             clearKnownOrders: typeof window.clearKnownOrders,
-            testRealtimeNotification: typeof window.testRealtimeNotification,
-            sendEmailForOrder: typeof window.sendEmailForOrder,
+            sendEmailForOrder: 'DISABLED',
             showNotificationStatus: typeof window.showNotificationStatus
         });
-        
+
         // Alternative: Define functions globally for easier access
         window.debugClearCache = function() {
             if (typeof knownOrderIds !== 'undefined') {
                 knownOrderIds.clear();
                 localStorage.removeItem('knownOrderIds');
-                console.log('🗑️ Cleared known orders cache (alternative method)');
+                localStorage.removeItem('knownOrderIdsTimestamp');
+                
+                // Clear notification badge
+                const badge = document.getElementById('new-orders-badge');
+                if (badge) {
+                    badge.style.display = 'none';
+                    badge.textContent = '0';
+                }
+                
+                console.log('🗑️ Cleared known orders cache and reset badge (alternative method)');
             } else {
                 console.error('❌ knownOrderIds not available');
             }
         };
-        
-        window.debugTestNotification = function() {
-            if (typeof showNewOrderNotification !== 'undefined') {
-                const mockOrder = {
-                    id: 'DEBUG-TEST-' + Date.now(),
-                    status: 'Order Placed',
-                    author: { firstName: 'Debug', lastName: 'Test', phoneNumber: '1234567890' },
-                    vendor: { title: 'Debug Restaurant', phoneNumber: '9876543210' },
-                    toPayAmount: 150,
-                    payment_method: 'cod',
-                    takeAway: false,
-                    products: [{ name: 'Debug Item', price: '150', quantity: 1 }]
-                };
-                console.log('🧪 Testing with debug function:', mockOrder);
-                showNewOrderNotification(mockOrder);
-            } else {
-                console.error('❌ showNewOrderNotification not available');
-            }
-        };
-        
-        console.log('🔧 Alternative debug functions loaded: debugClearCache(), debugTestNotification()');
+
+
+        console.log('🔧 Debug functions loaded: clearKnownOrders(), debugClearCache(), showNotificationStatus(), removeSpecificTestOrder()');
+        console.log('🔧 Test functions disabled in production');
         let notificationSound = null;
         let customRingtone = null;
         let soundEnabled = localStorage.getItem('notificationSoundEnabled') !== 'false';
@@ -1455,7 +1406,7 @@
                     // Only use saved IDs if they're from the last 12 hours (reduced from 24 hours for better accuracy)
                     if (now - timestamp < 12 * 60 * 60 * 1000) {
                         const orderIds = JSON.parse(savedOrderIds);
-                        
+
                         // Validate that we have an array of strings
                         if (Array.isArray(orderIds) && orderIds.every(id => typeof id === 'string' && id.length > 0)) {
                             knownOrderIds = new Set(orderIds);
@@ -1488,7 +1439,7 @@
         function saveKnownOrderIds() {
             try {
                 const orderIdsArray = Array.from(knownOrderIds);
-                
+
                 // Validate data before saving
                 if (Array.isArray(orderIdsArray) && orderIdsArray.length > 0) {
                     localStorage.setItem('knownOrderIds', JSON.stringify(orderIdsArray));
@@ -1566,7 +1517,7 @@
         function playNotificationSound() {
             console.log('🔊 playNotificationSound called');
             console.log('🔊 soundEnabled:', soundEnabled);
-            
+
             if (!soundEnabled) {
                 console.log('🔊 Sound is disabled, skipping audio');
                 return;
@@ -1625,7 +1576,7 @@
                 playBrowserBeep();
             }
         }
-        
+
         // Fallback sound function
         function playFallbackSound() {
             console.log('🔊 Playing fallback sound...');
@@ -1652,7 +1603,7 @@
                 playBrowserBeep();
             }
         }
-        
+
         // Browser beep as last resort
         function playBrowserBeep() {
             console.log('🔊 Playing browser beep as last resort...');
@@ -1685,20 +1636,19 @@
                 author: orderData.author,
                 createdAt: orderData.createdAt
             });
-            
+
             // Check if this is a mart order by looking at vendor data
             const isMartOrder = orderData.vendor && orderData.vendor.vType === 'mart';
             console.log('🏪 Is Mart Order:', isMartOrder);
-            
+
             // Play notification sound with enhanced debugging
             console.log('🔊 Attempting to play notification sound...');
             console.log('🔊 Sound enabled:', soundEnabled);
             console.log('🔊 Notification sound object:', notificationSound);
-            
+
             playNotificationSound();
 
-            // Note: Email notification is now sent directly in the real-time listener
-            // to ensure emails are sent even if visual notifications are skipped
+            // Email notifications have been completely removed
 
             // Fallback: Check for toast plugin
             if (typeof Swal === 'undefined') {
@@ -1743,68 +1693,7 @@
             updateNotificationBadge();
         }
 
-        // Function to send email notification for new orders
-        async function sendNewOrderEmailNotification(orderData) {
-            try {
-                console.log('📧 Sending email notification for new order:', orderData.id, 'Status:', orderData.status);
-                console.log('📧 Email notification details:', {
-                    orderId: orderData.id,
-                    status: orderData.status,
-                    customer: orderData.author ? `${orderData.author.firstName} ${orderData.author.lastName}` : 'Unknown',
-                    restaurant: orderData.vendor ? orderData.vendor.title : 'Unknown',
-                    amount: orderData.toPayAmount || orderData.amount || '₹0.00',
-                    timestamp: new Date().toISOString()
-                });
-                
-                const emailData = {
-                    _token: '{{ csrf_token() }}',
-                    order_id: orderData.id,
-                    orderStatus: orderData.status || 'Order Placed', // Use actual order status
-                    takeAway: orderData.takeAway || false,
-                    amount: orderData.toPayAmount ? `₹${orderData.toPayAmount}` : (orderData.amount || '₹0.00'),
-                    paymentMethod: orderData.payment_method || orderData.paymentMethod || 'COD',
-                    
-                    // Customer information
-                    customer_name: orderData.author ? orderData.author.firstName : '',
-                    customer_lastname: orderData.author ? orderData.author.lastName : '',
-                    customer_phone: orderData.author ? orderData.author.phoneNumber : '',
-                    
-                    // Restaurant information
-                    vendor_name: orderData.vendor ? orderData.vendor.title : '',
-                    vendor_phone: orderData.vendor ? orderData.vendor.phoneNumber : '',
-                    
-                    // Driver information (usually null for new orders)
-                    driver_name: orderData.driver ? orderData.driver.firstName : '',
-                    driver_lastname: orderData.driver ? orderData.driver.lastName : '',
-                    driver_phone: orderData.driver ? orderData.driver.phoneNumber : '',
-                    
-                    // Products information
-                    products: orderData.products || []
-                };
-
-                const response = await fetch('{{ route("order-email-notification") }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    },
-                    body: new URLSearchParams(emailData)
-                });
-
-                if (response.ok) {
-                    const result = await response.json();
-                    console.log('✅ Email notification sent successfully for order:', orderData.id);
-                    console.log('📧 Email response:', result);
-                } else {
-                    console.error('❌ Failed to send email notification for order:', orderData.id);
-                    console.error('📧 HTTP Error:', response.status, response.statusText);
-                    const errorText = await response.text();
-                    console.error('📧 Error details:', errorText);
-                }
-            } catch (error) {
-                console.error('❌ Error sending email notification:', error);
-            }
-        }
+        // Email notification function removed to prevent resource issues on shared hosting
         // Get time ago string
         function getTimeAgo(date) {
             const now = new Date();
@@ -1834,9 +1723,8 @@
         function updateNotificationBadge() {
             const badge = document.getElementById('new-orders-badge');
             if (badge) {
-                const currentCount = parseInt(badge.textContent) || 0;
-                const newCount = currentCount + 1;
-                badge.textContent = newCount;
+                // Reset badge count to prevent accumulation
+                badge.textContent = '1';
                 badge.style.display = 'block';
 
                 // Auto-hide badge after 30 seconds
@@ -1899,7 +1787,7 @@
                 pageLoadTime: new Date(pageLoadTime),
                 currentTime: new Date()
             });
-            
+
             const ordersRef = database.collection('restaurant_orders');
 
             // Listen for new documents
@@ -1918,24 +1806,26 @@
                         const orderData = change.doc.data();
                         orderData.id = change.doc.id;
 
+
                         // console.log('Order change detected:', change.type, orderData.id, orderData.createdAt);
 
                         // Check if this is a truly new order
                         if (!knownOrderIds.has(orderData.id)) {
                             // Enhanced order age validation - check if order is actually new
                             const orderCreatedAt = orderData.createdAt ? new Date(orderData.createdAt.seconds * 1000) : new Date();
-                            const bufferTime = 2 * 60 * 1000; // 2 minutes buffer (reduced from 10 minutes for better accuracy)
+                            const bufferTime = 5 * 60 * 1000; // 5 minutes buffer (increased for better mart order support)
                             const isRecentOrder = orderCreatedAt.getTime() > (pageLoadTime - bufferTime);
-                            
-                            // Additional validation: Check if order is older than 1 hour (likely an old order being re-processed)
-                            const oneHourAgo = Date.now() - (60 * 60 * 1000);
-                            const isOrderTooOld = orderCreatedAt.getTime() < oneHourAgo;
-                            
+
+                            // Additional validation: Check if order is older than 2 hours (increased tolerance)
+                            const twoHoursAgo = Date.now() - (2 * 60 * 60 * 1000);
+                            const isOrderTooOld = orderCreatedAt.getTime() < twoHoursAgo;
+
                             // Critical validation: Only process orders created AFTER system initialization
                             const systemStartTime = pageLoadTime - bufferTime; // System start time with buffer
                             const isOrderCreatedAfterSystemStart = orderCreatedAt.getTime() > systemStartTime;
-                            
+
                             // Only process if order is recent AND not too old AND created after system start
+                            // IMPROVED AGE VALIDATION: More lenient for better mart order support
                             const shouldProcessOrder = isRecentOrder && !isOrderTooOld && isOrderCreatedAfterSystemStart;
 
                             console.log('🆕 New order detected (ID not in known set):', orderData.id, 'Status:', orderData.status);
@@ -1943,25 +1833,36 @@
                             console.log('📅 Page load time:', new Date(pageLoadTime));
                             console.log('📅 System start time:', new Date(systemStartTime));
                             console.log('📅 Is recent order (with buffer):', isRecentOrder);
-                            console.log('📅 Is order too old (>1 hour):', isOrderTooOld);
+                            console.log('📅 Is order too old (>2 hours):', isOrderTooOld);
                             console.log('📅 Is order created after system start:', isOrderCreatedAfterSystemStart);
                             console.log('📅 Should process order:', shouldProcessOrder);
 
                             // Only process orders that pass age validation
                             if (shouldProcessOrder) {
+
                                 // Enhanced debugging for order type detection
                                 const isMartOrder = orderData.vendor && orderData.vendor.vType === 'mart';
                                 const isRestaurantOrder = orderData.vendor && orderData.vendor.vType === 'restaurant';
-                                
-                                console.log('📧 Sending email notification for validated new order:', orderData.id);
+
+                                console.log('🔔 Processing new order (email notifications disabled):', orderData.id);
                                 console.log('🏪 Order type detection:', {
                                     isMartOrder: isMartOrder,
                                     isRestaurantOrder: isRestaurantOrder,
                                     vendorType: orderData.vendor ? orderData.vendor.vType : 'unknown',
                                     vendorTitle: orderData.vendor ? orderData.vendor.title : 'unknown'
                                 });
-                                
-                                sendNewOrderEmailNotification(orderData);
+
+                                // Enhanced debugging for mart orders specifically
+                                if (isMartOrder) {
+                                    console.log('🏪 MART ORDER DETECTED - Enhanced Debug Info:');
+                                    console.log('   - Order ID:', orderData.id);
+                                    console.log('   - Vendor ID:', orderData.vendorID);
+                                    console.log('   - Vendor Title:', orderData.vendor.title);
+                                    console.log('   - Order Status:', orderData.status);
+                                    console.log('   - Created At:', orderCreatedAt);
+                                    console.log('   - System Initialized:', isInitialized);
+                                    console.log('   - Age Validation (DISABLED):', shouldProcessOrder);
+                                }
 
                                 // This is a new order we haven't seen before
                                 // Only show notification if system is initialized (to avoid showing old orders on page load)
@@ -1970,10 +1871,10 @@
                                     console.log('🔔 Order type:', isMartOrder ? 'MART ORDER' : isRestaurantOrder ? 'RESTAURANT ORDER' : 'UNKNOWN TYPE');
                                     showNewOrderNotification(orderData);
                                 } else {
-                                    console.log('⏳ System not initialized yet, skipping visual notification for:', orderData.id, 'but email was sent');
+                                    console.log('⏳ System not initialized yet, skipping visual notification for:', orderData.id);
                                 }
                             } else {
-                                console.log('❌ Order failed age validation - skipping email and notification:', orderData.id);
+                                console.log('❌ Order failed age validation - skipping notification:', orderData.id);
                                 console.log('   - Is recent:', isRecentOrder);
                                 console.log('   - Is too old:', isOrderTooOld);
                                 console.log('   - Created after system start:', isOrderCreatedAfterSystemStart);
@@ -1990,16 +1891,15 @@
                                 console.log('⏭️ Skipped adding order to known set (failed validation):', orderData.id);
                             }
                         } else {
-                            // Order is already known, but let's check if it's a status change that needs email notification
+                            // Order is already known, but let's check if it's a status change that needs notification
                             console.log('📋 Order already known (ID in known set):', orderData.id, 'Status:', orderData.status);
-                            
-                            // Check if this is a status change that should trigger email notification
+
+                            // Check if this is a status change that should trigger notification
                             const shouldNotifyStatus = ['Order Accepted', 'Order Rejected', 'Order Completed'].includes(orderData.status);
-                            
+
                             if (shouldNotifyStatus && isInitialized) {
-                                console.log('📧 Status change detected for known order, sending email notification:', orderData.id);
-                                // Send email notification for status changes
-                                sendNewOrderEmailNotification(orderData);
+                                console.log('🔔 Status change detected for known order (email notifications disabled):', orderData.id);
+                                // Show notification for status changes (email notifications disabled)
                                 showNewOrderNotification(orderData);
                             } else {
                                 console.log('📋 Status change for known order but no notification needed:', orderData.id, 'Status:', orderData.status);
@@ -2104,6 +2004,13 @@
 
         // Initialize the enhanced notification system when DOM is ready
         $(document).ready(function() {
+            // Clear notification badge on page load to prevent accumulation
+            const badge = document.getElementById('new-orders-badge');
+            if (badge) {
+                badge.style.display = 'none';
+                badge.textContent = '0';
+            }
+            
             // Load custom ringtone first
             loadCustomRingtone();
             loadKnownOrderIds(); // Load known order IDs on page load
@@ -2219,26 +2126,26 @@
     // Auto-login function for Admin Impersonation
     function initializeImpersonationAutoLogin() {
         console.log('🔍 Auto-login script started');
-        
+
         // Check URL parameters
         const urlParams = new URLSearchParams(window.location.search);
         const impersonationToken = urlParams.get('impersonation_token');
         const restaurantUid = urlParams.get('restaurant_uid');
         const autoLogin = urlParams.get('auto_login');
-        
+
         console.log('🔍 Parameters:', {
             token: !!impersonationToken,
             uid: !!restaurantUid,
             autoLogin: autoLogin
         });
-        
+
         // Only proceed if we have all required parameters
         if (impersonationToken && restaurantUid && autoLogin === 'true') {
             console.log('🔐 Starting auto-login process...');
-            
+
             // Show loading immediately
             showImpersonationLoading();
-            
+
             // Wait for Firebase to be ready
             setTimeout(function() {
                 if (typeof firebase !== 'undefined' && firebase.auth) {
@@ -2251,33 +2158,33 @@
         } else {
             console.log('ℹ️ No impersonation parameters, showing normal page');
         }
-        
+
         function startImpersonationAutoLogin() {
             console.log('🚀 Starting auto-login...');
-            
+
             const auth = firebase.auth();
-            
+
             // Sign in with custom token
             auth.signInWithCustomToken(impersonationToken)
                 .then(function(userCredential) {
                     console.log('✅ Login successful!');
                     console.log('User UID:', userCredential.user.uid);
                     console.log('Expected UID:', restaurantUid);
-                    
+
                     // Verify UID matches
                     if (userCredential.user.uid !== restaurantUid) {
                         throw new Error('UID mismatch - security violation');
                     }
-                    
+
                     // Store impersonation info
                     localStorage.setItem('restaurant_impersonation', JSON.stringify({
                         isImpersonated: true,
                         restaurantUid: restaurantUid,
                         impersonatedAt: new Date().toISOString()
                     }));
-                    
+
                     console.log('🔄 Impersonation successful, cleaning URL...');
-                    
+
                     // Clean URL and show success
                     setTimeout(function() {
                         window.history.replaceState({}, document.title, window.location.pathname);
@@ -2287,12 +2194,12 @@
                 .catch(function(error) {
                     console.error('❌ Login failed:', error);
                     showImpersonationError('Auto-login failed: ' + error.message);
-                    
+
                     // Clean URL
                     window.history.replaceState({}, document.title, window.location.pathname);
                 });
         }
-        
+
         function showImpersonationLoading() {
             const loading = document.createElement('div');
             loading.id = 'impersonation-loading';
@@ -2314,14 +2221,14 @@
             `;
             document.body.appendChild(loading);
         }
-        
+
         function showImpersonationSuccess() {
             // Remove loading first
             const loading = document.getElementById('impersonation-loading');
             if (loading) {
                 loading.remove();
             }
-            
+
             const success = document.createElement('div');
             success.innerHTML = `
                 <div style="position: fixed; top: 20px; right: 20px; background: #d4edda; color: #155724; padding: 15px; border-radius: 5px; z-index: 9999; max-width: 400px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
@@ -2331,7 +2238,7 @@
                 </div>
             `;
             document.body.appendChild(success);
-            
+
             // Auto-remove after 5 seconds
             setTimeout(() => {
                 if (success.parentNode) {
@@ -2339,14 +2246,14 @@
                 }
             }, 5000);
         }
-        
+
         function showImpersonationError(message) {
             // Remove loading first
             const loading = document.getElementById('impersonation-loading');
             if (loading) {
                 loading.remove();
             }
-            
+
             const error = document.createElement('div');
             error.innerHTML = `
                 <div style="position: fixed; top: 20px; right: 20px; background: #f8d7da; color: #721c24; padding: 15px; border-radius: 5px; z-index: 9999; max-width: 400px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
