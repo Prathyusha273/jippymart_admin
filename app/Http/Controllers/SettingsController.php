@@ -202,4 +202,9 @@ class SettingsController extends Controller
     {
         return view('settings.app.documentVerificationSetting');
     }
+
+    public function surgeRules()
+    {
+      return view('settings.app.surgeRules');
+    }
 }

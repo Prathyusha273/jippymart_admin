@@ -155,7 +155,7 @@ function populateProducts(restaurantId) {
 
 $(document).ready(function () {
     populateRestaurants();
-    
+
     // Input validation for numeric fields
     $('#promotion_special_price, #promotion_item_limit, #promotion_extra_km_charge, #promotion_free_delivery_km').on('input', function() {
         var value = $(this).val();
@@ -168,7 +168,7 @@ $(document).ready(function () {
         }
         $(this).val(value);
     });
-    
+
     restaurantSelect.on('change', function() {
         var restId = $(this).val();
         populateProducts(restId);
@@ -204,7 +204,7 @@ $(document).ready(function () {
         // Get restaurant and product titles
         var restaurant_title = restaurantSelect.find('option:selected').text();
         var product_title = productSelect.find('option:selected').text();
-        
+
         // Create formatted document name: restaurantTitle-productTitle
         var documentName = restaurant_title + '-' + product_title;
         // Clean the document name to be Firestore-compatible (remove special characters, spaces, etc.)
@@ -219,7 +219,7 @@ $(document).ready(function () {
 
         $('.error_top').hide();
         jQuery('#data-table_processing').show();
-        
+
         // Check if document with this name already exists
         var docRef = database.collection('promotions').doc(documentName);
         var docExists = await docRef.get().then(function(doc) {

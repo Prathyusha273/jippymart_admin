@@ -1787,6 +1787,9 @@
                 pageLoadTime: new Date(pageLoadTime),
                 currentTime: new Date()
             });
+            
+            // ENHANCED FILTERING: Only show notifications for truly new orders
+            console.log('🔍 Enhanced notification filtering enabled');
 
             const ordersRef = database.collection('restaurant_orders');
 
@@ -1851,6 +1854,24 @@
                                     vendorType: orderData.vendor ? orderData.vendor.vType : 'unknown',
                                     vendorTitle: orderData.vendor ? orderData.vendor.title : 'unknown'
                                 });
+
+                                // ENHANCED FILTERING: Additional checks to prevent false notifications
+                                const isTestOrder = orderData.id.includes('Restaurant_') || orderData.id.includes('test_') || orderData.id.includes('debug');
+                                const isAdminOrder = orderData.author && (orderData.author.name === 'admin' || orderData.author.name === 'Admin');
+                                const hasValidStatus = ['Order Placed', 'Order Accepted', 'Order Rejected', 'Order Completed'].includes(orderData.status);
+                                
+                                console.log('🔍 Enhanced filtering checks:', {
+                                    isTestOrder: isTestOrder,
+                                    isAdminOrder: isAdminOrder,
+                                    hasValidStatus: hasValidStatus,
+                                    orderStatus: orderData.status
+                                });
+
+                                // Skip test orders, admin orders, and orders with invalid status
+                                if (isTestOrder || isAdminOrder || !hasValidStatus) {
+                                    console.log('⏭️ Skipping notification - Test/Admin order or invalid status:', orderData.id);
+                                    return;
+                                }
 
                                 // Enhanced debugging for mart orders specifically
                                 if (isMartOrder) {

@@ -2388,6 +2388,8 @@ return [
 
     'app_screen' => 'App Screen',
 
+    'surge_rules' => 'Surge Rules',
+
     'select_map_type_for_application'=>'Select the type of map for the application',
     'google_maps'=>'Google Maps',
     'open_street_map'=>'OpenStreetMap (OSM)',
