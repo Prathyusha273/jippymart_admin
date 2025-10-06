@@ -1293,11 +1293,11 @@
         let knownOrderIds = new Set();
         let pageLoadTime = Date.now();
         let isInitialized = false;
-        
+
         // Connection management for shared hosting optimization
         let connectionCount = 0;
         const MAX_CONNECTIONS = 3; // Reduced limit for shared hosting
-        
+
         function checkConnectionLimit() {
             if (connectionCount >= MAX_CONNECTIONS) {
                 console.warn('⚠️ Connection limit reached, skipping request to prevent 503 errors...');
@@ -1306,13 +1306,13 @@
             connectionCount++;
             return true;
         }
-        
+
         function releaseConnection() {
             if (connectionCount > 0) {
                 connectionCount--;
             }
         }
-        
+
         // Auto-release connections after timeout to prevent leaks
         function autoReleaseConnection() {
             setTimeout(() => {
@@ -1332,14 +1332,14 @@
             knownOrderIds.clear();
             localStorage.removeItem('knownOrderIds');
             localStorage.removeItem('knownOrderIdsTimestamp');
-            
+
             // Clear notification badge
             const badge = document.getElementById('new-orders-badge');
             if (badge) {
                 badge.style.display = 'none';
                 badge.textContent = '0';
             }
-            
+
             console.log('🗑️ Cleared known orders cache and reset notification badge. Next orders will be treated as new.');
         };
 
@@ -1370,14 +1370,14 @@
                 knownOrderIds.clear();
                 localStorage.removeItem('knownOrderIds');
                 localStorage.removeItem('knownOrderIdsTimestamp');
-                
+
                 // Clear notification badge
                 const badge = document.getElementById('new-orders-badge');
                 if (badge) {
                     badge.style.display = 'none';
                     badge.textContent = '0';
                 }
-                
+
                 console.log('🗑️ Cleared known orders cache and reset badge (alternative method)');
             } else {
                 console.error('❌ knownOrderIds not available');
@@ -1735,7 +1735,6 @@
             }
         }
 
-        // Initialize real-time listener for new orders
         function initializeOrderListener() {
             // console.log('Initializing enhanced global order notification listener...');
 
@@ -1787,7 +1786,7 @@
                 pageLoadTime: new Date(pageLoadTime),
                 currentTime: new Date()
             });
-            
+
             // ENHANCED FILTERING: Only show notifications for truly new orders
             console.log('🔍 Enhanced notification filtering enabled');
 
@@ -1859,7 +1858,7 @@
                                 const isTestOrder = orderData.id.includes('Restaurant_') || orderData.id.includes('test_') || orderData.id.includes('debug');
                                 const isAdminOrder = orderData.author && (orderData.author.name === 'admin' || orderData.author.name === 'Admin');
                                 const hasValidStatus = ['Order Placed', 'Order Accepted', 'Order Rejected', 'Order Completed'].includes(orderData.status);
-                                
+
                                 console.log('🔍 Enhanced filtering checks:', {
                                     isTestOrder: isTestOrder,
                                     isAdminOrder: isAdminOrder,
@@ -2031,7 +2030,7 @@
                 badge.style.display = 'none';
                 badge.textContent = '0';
             }
-            
+
             // Load custom ringtone first
             loadCustomRingtone();
             loadKnownOrderIds(); // Load known order IDs on page load
