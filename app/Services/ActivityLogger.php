@@ -11,28 +11,37 @@ class ActivityLogger
     protected $firestore;
     protected $collection = 'activity_logs';
 
+    private static $firestoreInstance = null;
+    
     public function __construct()
     {
-        try {
-            // Check if service account file exists
-            $keyFilePath = config('firestore.credentials');
-            if (!file_exists($keyFilePath)) {
-                \Log::warning('Firebase service account file not found: ' . $keyFilePath);
-                $this->firestore = null;
-                return;
+        // Use singleton pattern to prevent multiple connections
+        if (self::$firestoreInstance === null) {
+            try {
+                // Check if service account file exists
+                $keyFilePath = config('firestore.credentials');
+                if (!file_exists($keyFilePath)) {
+                    \Log::warning('Firebase service account file not found: ' . $keyFilePath);
+                    $this->firestore = null;
+                    return;
+                }
+                
+                self::$firestoreInstance = new FirestoreClient([
+                    'projectId' => config('firestore.project_id'),
+                    'keyFilePath' => $keyFilePath,
+                    'databaseId' => config('firestore.database_id'),
+                    'timeout' => config('firestore.timeout', 15),
+                    'maxConnections' => config('firestore.max_connections', 5),
+                ]);
+                
+                $this->collection = config('firestore.collection', 'activity_logs');
+            } catch (\Exception $e) {
+                \Log::error('Failed to initialize ActivityLogger: ' . $e->getMessage());
+                self::$firestoreInstance = null;
             }
-            
-            $this->firestore = new FirestoreClient([
-                'projectId' => config('firestore.project_id'),
-                'keyFilePath' => $keyFilePath,
-                'databaseId' => config('firestore.database_id'),
-            ]);
-            
-            $this->collection = config('firestore.collection', 'activity_logs');
-        } catch (\Exception $e) {
-            \Log::error('Failed to initialize ActivityLogger: ' . $e->getMessage());
-            $this->firestore = null;
         }
+        
+        $this->firestore = self::$firestoreInstance;
     }
 
     /**

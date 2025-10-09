@@ -60,11 +60,13 @@ return [
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
-                // Shared hosting optimization - prevent resource exhaustion
-                PDO::ATTR_PERSISTENT => false, // Disable persistent connections to prevent connection leaks
-                PDO::ATTR_TIMEOUT => 10, // Reduced timeout to 10 seconds for shared hosting
+                // Optimized for shared hosting - prevent resource exhaustion
+                PDO::ATTR_PERSISTENT => false, // Keep disabled to prevent connection leaks
+                PDO::ATTR_TIMEOUT => 5, // Reduced timeout to 5 seconds
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 PDO::MYSQL_ATTR_INIT_COMMAND => "SET SESSION sql_mode='STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION'",
+                PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => true, // Use buffered queries
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC, // Optimize fetch mode
             ]) : [],
         ],
 
