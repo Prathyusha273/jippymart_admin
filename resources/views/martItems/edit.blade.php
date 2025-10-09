@@ -862,7 +862,7 @@
                         var data = listval.data();
                         // Handle subcategoryID as array (matching sample document structure)
                         var selectedSubcategories = Array.isArray(product.subcategoryID) ? product.subcategoryID : (product.subcategoryID ? [product.subcategoryID] : []);
-                        
+
                         if (selectedSubcategories.includes(data.id)) {
                             $('#food_subcategory').append($("<option selected></option>")
                                 .attr("value", data.id)
@@ -954,7 +954,7 @@
                     //     photos.forEach((element, index) => {
                     //         $(".product_image").append('<span class="image-item" id="photo_' + index + '"><span class="remove-btn" data-id="' + index + '" data-img="' + photos[index] + '" data-status="old"><i class="fa fa-remove"></i></span><img onerror="this.onerror=null;this.src=\'' + placeholderImage + '\'" class="rounded" width="50px" id="" height="auto" src="' + photos[index] + '"></span>');
                     //     })
-                    // } else 
+                    // } else
                     if (photo != '' && photo != null) {
                         $(".product_image").append('<span class="image-item" id="photo_1"><span class="remove-btn" data-id="1" data-img="' + photo + '" data-status="old"><i class="fa fa-remove"></i></span><img onerror="this.onerror=null;this.src=\'' + placeholderImage + '\'" class="rounded" width="50px" id="" height="auto" src="' + photo + '"></span>');
                     } else {
@@ -1049,18 +1049,18 @@
 
                 jQuery("#data-table_processing").hide();
             })
-            
+
             // Random review generation functions
             function generateRandomReviewCount() {
                 // Generate random number between 70 and 130
                 return Math.floor(Math.random() * (130 - 70 + 1)) + 70;
             }
-            
+
             function generateRandomReviewSum() {
                 // Generate random number between 4.8 and 5.0 with 1 decimal place
                 return (Math.random() * (5.0 - 4.8) + 4.8).toFixed(1);
             }
-            
+
             $(".edit-form-btn").click( async function () {
                 console.log('🚀 EDIT FORM ID GENERATION LOGIC LOADED - Version: {{ now()->format('Y-m-d H:i:s') }}');
                 var name = $(".food_name").val();
@@ -1070,7 +1070,7 @@
             var category = $("#food_category option:selected").val();
             var subcategory = $("#food_subcategory").val();
             var brand = $("#brand_select").val();
-            
+
             // Handle multiple subcategory selection - take the first selected subcategory (matching create.blade.php)
             if (Array.isArray(subcategory) && subcategory.length > 0) {
                 subcategory = subcategory[0]; // Take the first selected subcategory
@@ -1082,27 +1082,27 @@
             var foodProteins = parseInt($(".food_proteins").val());
             var foodFats = parseInt($(".food_fats").val());
             var description = $("#food_description").val();
-            
+
             // Get category, subcategory, and brand titles - matching create.blade.php
             var categoryTitle = '';
             var subcategoryTitle = '';
             var vendorTitle = '';
             var brandTitle = '';
-            
+
             if (category) {
                 categoryTitle = $("#food_category option:selected").text() || '';
             }
-            
+
             if (subcategory) {
                 // Get the title of the first selected subcategory (matching create.blade.php)
                 var selectedSubcategoryOption = $("#food_subcategory option[value='" + subcategory + "']");
                 subcategoryTitle = selectedSubcategoryOption.text() || '';
             }
-            
+
             if (brand) {
                 brandTitle = $("#brand_select option:selected").text() || '';
             }
-            
+
             // Get vendor title from restaurant_list - matching create.blade.php
             if (restaurant) {
                 restaurant_list.forEach((vendor) => {
@@ -1255,12 +1255,12 @@
                         product_specification = null;
                     }
                     jQuery("#data-table_processing").show();
-                    
+
                     // Process photo data first - convert base64 to Firebase URL if needed
                     console.log('🖼️ Processing photo data...');
                     photo = await storeProductImageData();
                     console.log('🖼️ Photo processed:', photo);
-                    
+
                     // SINGLE PHOTO FIELD APPROACH - Following create.blade.php pattern
                     // await storeImageData().then(async (IMG) => {
                     //     if (IMG.length > 0) {
@@ -1309,11 +1309,11 @@
                             'item_attribute': item_attribute || null, // Null format to match sample
                             // 'photos': [], // REMOVED: Not needed for mobile app compatibility
                             'isAvailable': Boolean(foodIsAvailable), // Boolean format to match sample
-                            
+
                             // Review fields - Generate random realistic values
                             'reviewCount': generateRandomReviewCount().toString(), // Random review count (70-130)
                             'reviewSum': generateRandomReviewSum().toString(), // Random review sum (4.8-5.0)
-                            
+
                             // Enhanced Filter Fields - matching create.blade.php
                             'isSpotlight': Boolean(isSpotlight), // Boolean format to match create.blade.php
                             'isStealOfMoment': Boolean(isStealOfMoment), // Boolean format to match create.blade.php
@@ -1322,7 +1322,7 @@
                             'isNew': Boolean(isNew), // Boolean format to match create.blade.php
                             'isBestSeller': Boolean(isBestSeller), // Boolean format to match create.blade.php
                             'isSeasonal': Boolean(isSeasonal), // Boolean format to match create.blade.php
-                            
+
                             'updated_at': firebase.firestore.FieldValue.serverTimestamp()
                         };
 
@@ -1409,17 +1409,17 @@
 
                         // Ensure ID field is present in the update data
                         updateData['id'] = id;
-                        
+
                         console.log('📊 Updating mart item with ID:', id);
                         console.log('📊 Update data:', updateData);
                         console.log('🔍 ID field being set in updateData:', updateData['id']);
                         console.log('🔍 Full updateData keys:', Object.keys(updateData));
-                        
+
                         // SINGLE PHOTO FIELD APPROACH - Direct save without storeImageData wrapper
                         database.collection('mart_items').doc(id).update(updateData).then(async function (result) {
                             console.log('✅ Mart item updated successfully with ID:', id);
                             console.log('🔍 Now logging activity...');
-                            
+
                             try {
                                 if (typeof logActivity === 'function') {
                                     console.log('🔍 Calling logActivity for mart item update...');
@@ -1431,16 +1431,16 @@
                             } catch (error) {
                                 console.error('❌ Error calling logActivity:', error);
                             }
-                            
+
                             // Hide loading indicator
                             jQuery("#data-table_processing").hide();
-                            
+
                             <?php if(isset($_GET['eid']) && $_GET['eid'] != ''){?>
                                 window.location.href = "{{ route('marts.mart-items',$_GET['eid']) }}";
                             <?php }else{ ?>
                                 window.location.href = '{{ route("mart-items")}}';
                             <?php } ?>
-                            
+
                         }).catch(err => {
                             console.error('❌ Error updating mart item:', err);
                             jQuery("#data-table_processing").hide();
@@ -1488,7 +1488,7 @@
             })(f);
             reader.readAsDataURL(f);
         }
-        
+
         // Store image data function - matching mart categories format
         async function storeImageData() {
             var newPhoto = '';
@@ -1497,19 +1497,19 @@
                 if (productImageFile != "" && photo != productImageFile) {
                     try {
                         var productOldImageUrlRef = await storage.refFromURL(productImageFile);
-                        var imageBucket = productOldImageUrlRef.bucket; 
+                        var imageBucket = productOldImageUrlRef.bucket;
                         var envBucket = "<?php echo env('FIREBASE_STORAGE_BUCKET'); ?>";
                         if (imageBucket == envBucket) {
                             await productOldImageUrlRef.delete();
                             console.log("Old file deleted!")
                         } else {
-                            console.log('Bucket not matched');  
+                            console.log('Bucket not matched');
                         }
                     } catch (deleteError) {
                         console.log("ERR File delete ===", deleteError);
                     }
-                } 
-                
+                }
+
                 // Upload new image if it's different from original
                 if (photo != productImageFile) {
                     photo = photo.replace(/^data:image\/[a-z]+;base64,/, "")
@@ -1525,7 +1525,7 @@
             }
             return newPhoto;
         }
-        
+
         // Upload image with compression - matching mart categories format
         // SINGLE PHOTO FIELD APPROACH - Following create.blade.php pattern
         $("#product_image").resizeImg({
@@ -1542,7 +1542,7 @@
                 $("#product_image").val('');
             }
         });
-        
+
         function addOneFunction() {
             $("#add_ones_div").show();
             $(".save_add_one_btn").show();
@@ -1631,7 +1631,7 @@
             }
             return base64Image || '';
         }
-        
+
         async function storeImageData() {
             var newPhoto = [];
             if (photos.length > 0) {
@@ -2099,7 +2099,7 @@
 
             console.log('🔧 Option added to optionsList. Total options:', optionsList.length);
             attachOptionEventListeners(optionId);
-            
+
             // Trigger calculations to populate calculated fields
             calculateOptionCalculations(optionId);
         }
@@ -2135,10 +2135,10 @@
         });
 
             attachOptionEventListeners(optionId);
-            
+
             // Trigger calculations to populate calculated fields
             calculateOptionCalculations(optionId);
-            
+
             updateOptionsSummary();
             updateDefaultOptionSelect();
         }
@@ -2458,12 +2458,12 @@
 
             // Calculate total prices from unit prices
             const totalPrice = unitPrice * quantity;
-            const originalTotalPrice = originalUnitPrice * quantity;
+            const originalTotalPrice = originalUnitPrice;
 
             // Calculate discount
             let discountAmount = 0;
             let discountPercentage = 0;
-            
+
             if (originalTotalPrice > 0 && originalTotalPrice > totalPrice) {
                 discountAmount = originalTotalPrice - totalPrice;
                 discountPercentage = ((discountAmount / originalTotalPrice) * 100);
@@ -2579,7 +2579,7 @@
                 reader.onload = async function(e) {
                     const optionItem = $(`[data-option-id="${optionId}"]`);
                     const base64Image = e.target.result;
-                    
+
                     // Show preview immediately
                     optionItem.find('.option-image-preview').html(
                         `<img src="${base64Image}" style="max-width: 100px; max-height: 100px; border-radius: 4px;">
@@ -2589,7 +2589,7 @@
                     try {
                         // Convert base64 to Firebase storage URL
                         const firebaseUrl = await storeOptionImageData(base64Image, optionId);
-                        
+
                         // Update preview with Firebase URL
                         optionItem.find('.option-image-preview').html(
                             `<img src="${firebaseUrl}" style="max-width: 100px; max-height: 100px; border-radius: 4px;">
@@ -2601,7 +2601,7 @@
                         if (optionIndex !== -1) {
                             optionsList[optionIndex].image = firebaseUrl;
                         }
-                        
+
                         console.log('✅ Option image uploaded to Firebase:', firebaseUrl);
                     } catch (error) {
                         console.error('❌ Error uploading option image:', error);
