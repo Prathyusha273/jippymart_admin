@@ -1293,11 +1293,11 @@
         let knownOrderIds = new Set();
         let pageLoadTime = Date.now();
         let isInitialized = false;
-        
+
         // Connection management for shared hosting optimization
         let connectionCount = 0;
         const MAX_CONNECTIONS = 3; // Reduced limit for shared hosting
-        
+
         function checkConnectionLimit() {
             if (connectionCount >= MAX_CONNECTIONS) {
                 console.warn('⚠️ Connection limit reached, skipping request to prevent 503 errors...');
@@ -1306,13 +1306,13 @@
             connectionCount++;
             return true;
         }
-        
+
         function releaseConnection() {
             if (connectionCount > 0) {
                 connectionCount--;
             }
         }
-        
+
         // Auto-release connections after timeout to prevent leaks
         function autoReleaseConnection() {
             setTimeout(() => {
@@ -1332,14 +1332,14 @@
             knownOrderIds.clear();
             localStorage.removeItem('knownOrderIds');
             localStorage.removeItem('knownOrderIdsTimestamp');
-            
+
             // Clear notification badge
             const badge = document.getElementById('new-orders-badge');
             if (badge) {
                 badge.style.display = 'none';
                 badge.textContent = '0';
             }
-            
+
             console.log('🗑️ Cleared known orders cache and reset notification badge. Next orders will be treated as new.');
         };
 
@@ -1370,14 +1370,14 @@
                 knownOrderIds.clear();
                 localStorage.removeItem('knownOrderIds');
                 localStorage.removeItem('knownOrderIdsTimestamp');
-                
+
                 // Clear notification badge
                 const badge = document.getElementById('new-orders-badge');
                 if (badge) {
                     badge.style.display = 'none';
                     badge.textContent = '0';
                 }
-                
+
                 console.log('🗑️ Cleared known orders cache and reset badge (alternative method)');
             } else {
                 console.error('❌ knownOrderIds not available');
@@ -1403,8 +1403,8 @@
                     const timestamp = parseInt(savedTimestamp);
                     const now = Date.now();
 
-                    // Only use saved IDs if they're from the last 12 hours (reduced from 24 hours for better accuracy)
-                    if (now - timestamp < 12 * 60 * 60 * 1000) {
+                    // Only use saved IDs if they're from the last 2 hours (very strict to prevent stale cache issues)
+                    if (now - timestamp < 2 * 60 * 60 * 1000) {
                         const orderIds = JSON.parse(savedOrderIds);
 
                         // Validate that we have an array of strings
@@ -1419,7 +1419,7 @@
                             localStorage.removeItem('knownOrderIdsTimestamp');
                         }
                     } else {
-                        console.log('📋 Saved order IDs are too old (older than 12 hours), starting fresh');
+                        console.log('📋 Saved order IDs are too old (older than 2 hours), starting fresh');
                         localStorage.removeItem('knownOrderIds');
                         localStorage.removeItem('knownOrderIdsTimestamp');
                     }
@@ -1799,43 +1799,34 @@
                     isEqual: snapshot.metadata.isEqual
                 });
 
+                // Skip processing if this is a cache snapshot (not real-time data)
+                if (snapshot.metadata.fromCache) {
+                    return;
+                }
+
                 snapshot.docChanges().forEach((change) => {
-                    console.log('🔄 Change type:', change.type, 'Document ID:', change.doc.id);
 
                     if (change.type === 'added') {
                         const orderData = change.doc.data();
                         orderData.id = change.doc.id;
 
-
-                        // console.log('Order change detected:', change.type, orderData.id, orderData.createdAt);
-
                         // Check if this is a truly new order
                         if (!knownOrderIds.has(orderData.id)) {
-                            // Enhanced order age validation - check if order is actually new
+                            // STRICT order age validation - only process truly new orders
                             const orderCreatedAt = orderData.createdAt ? new Date(orderData.createdAt.seconds * 1000) : new Date();
-                            const bufferTime = 5 * 60 * 1000; // 5 minutes buffer (increased for better mart order support)
-                            const isRecentOrder = orderCreatedAt.getTime() > (pageLoadTime - bufferTime);
+                            const currentTime = Date.now();
+                            const orderAge = currentTime - orderCreatedAt.getTime();
 
-                            // Additional validation: Check if order is older than 2 hours (increased tolerance)
-                            const twoHoursAgo = Date.now() - (2 * 60 * 60 * 1000);
-                            const isOrderTooOld = orderCreatedAt.getTime() < twoHoursAgo;
+                            // Only process orders created within the last 2 minutes (very strict)
+                            const maxOrderAge = 2 * 60 * 1000; // 2 minutes
+                            const isVeryRecentOrder = orderAge <= maxOrderAge;
 
-                            // Critical validation: Only process orders created AFTER system initialization
-                            const systemStartTime = pageLoadTime - bufferTime; // System start time with buffer
-                            const isOrderCreatedAfterSystemStart = orderCreatedAt.getTime() > systemStartTime;
+                            // Additional check: order must be created after page load
+                            const isOrderCreatedAfterPageLoad = orderCreatedAt.getTime() > pageLoadTime;
 
-                            // Only process if order is recent AND not too old AND created after system start
-                            // IMPROVED AGE VALIDATION: More lenient for better mart order support
-                            const shouldProcessOrder = isRecentOrder && !isOrderTooOld && isOrderCreatedAfterSystemStart;
+                            // Only process if order is very recent AND created after page load
+                            const shouldProcessOrder = isVeryRecentOrder && isOrderCreatedAfterPageLoad;
 
-                            console.log('🆕 New order detected (ID not in known set):', orderData.id, 'Status:', orderData.status);
-                            console.log('📅 Order created at:', orderCreatedAt);
-                            console.log('📅 Page load time:', new Date(pageLoadTime));
-                            console.log('📅 System start time:', new Date(systemStartTime));
-                            console.log('📅 Is recent order (with buffer):', isRecentOrder);
-                            console.log('📅 Is order too old (>2 hours):', isOrderTooOld);
-                            console.log('📅 Is order created after system start:', isOrderCreatedAfterSystemStart);
-                            console.log('📅 Should process order:', shouldProcessOrder);
 
                             // Only process orders that pass age validation
                             if (shouldProcessOrder) {
@@ -1844,13 +1835,35 @@
                                 const isMartOrder = orderData.vendor && orderData.vendor.vType === 'mart';
                                 const isRestaurantOrder = orderData.vendor && orderData.vendor.vType === 'restaurant';
 
-                                console.log('🔔 Processing new order (email notifications disabled):', orderData.id);
                                 console.log('🏪 Order type detection:', {
                                     isMartOrder: isMartOrder,
                                     isRestaurantOrder: isRestaurantOrder,
                                     vendorType: orderData.vendor ? orderData.vendor.vType : 'unknown',
                                     vendorTitle: orderData.vendor ? orderData.vendor.title : 'unknown'
                                 });
+
+                                // ENHANCED FILTERING: Additional checks to prevent false notifications
+                                const isTestOrder = orderData.id.includes('Restaurant_') ||
+                                                   orderData.id.includes('test_') ||
+                                                   orderData.id.includes('debug') ||
+                                                   orderData.id.includes('TEST-ORDER') ||
+                                                   orderData.id.includes('TEST_') ||
+                                                   orderData.id.toLowerCase().includes('test');
+                                const isAdminOrder = orderData.author && (orderData.author.name === 'admin' || orderData.author.name === 'Admin');
+                                const hasValidStatus = ['Order Placed', 'Order Accepted', 'Order Rejected', 'Order Completed'].includes(orderData.status);
+
+                                console.log('🔍 Enhanced filtering checks:', {
+                                    isTestOrder: isTestOrder,
+                                    isAdminOrder: isAdminOrder,
+                                    hasValidStatus: hasValidStatus,
+                                    orderStatus: orderData.status
+                                });
+
+                                // Skip test orders, admin orders, and orders with invalid status
+                                if (isTestOrder || isAdminOrder || !hasValidStatus) {
+                                    console.log('⏭️ Skipping notification - Test/Admin order or invalid status:', orderData.id);
+                                    return;
+                                }
 
                                 // Enhanced debugging for mart orders specifically
                                 if (isMartOrder) {
@@ -1864,7 +1877,6 @@
                                     console.log('   - Age Validation (DISABLED):', shouldProcessOrder);
                                 }
 
-                                // This is a new order we haven't seen before
                                 // Only show notification if system is initialized (to avoid showing old orders on page load)
                                 if (isInitialized) {
                                     console.log('🔔 Showing notification for new order:', orderData.id);
@@ -1875,11 +1887,10 @@
                                 }
                             } else {
                                 console.log('❌ Order failed age validation - skipping notification:', orderData.id);
-                                console.log('   - Is recent:', isRecentOrder);
-                                console.log('   - Is too old:', isOrderTooOld);
-                                console.log('   - Created after system start:', isOrderCreatedAfterSystemStart);
-                                console.log('   - Order age:', Math.round((Date.now() - orderCreatedAt.getTime()) / (1000 * 60)), 'minutes');
-                                console.log('   - System age:', Math.round((Date.now() - systemStartTime) / (1000 * 60)), 'minutes');
+                                console.log('   - Is very recent (≤2 minutes):', isVeryRecentOrder);
+                                console.log('   - Created after page load:', isOrderCreatedAfterPageLoad);
+                                console.log('   - Order age:', Math.round(orderAge / 1000), 'seconds');
+                                console.log('   - Max allowed age:', Math.round(maxOrderAge / 1000), 'seconds');
                             }
 
                             // Only add to known orders if the order was actually processed
@@ -2010,7 +2021,7 @@
                 badge.style.display = 'none';
                 badge.textContent = '0';
             }
-            
+
             // Load custom ringtone first
             loadCustomRingtone();
             loadKnownOrderIds(); // Load known order IDs on page load

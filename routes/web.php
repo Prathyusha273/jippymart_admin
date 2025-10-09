@@ -167,8 +167,8 @@ Route::middleware(['permission:mart-items,mart-items'])->group(function () {
 
 // Mart items import routes - must be before /mart-items/{id} route to avoid conflicts
 Route::middleware(['permission:mart-items,mart-items'])->group(function () {
-Route::post('/mart-items/import', [App\Http\Controllers\MartItemController::class, 'import'])->name('mart-items.import');
-Route::get('/mart-items/download-template', [App\Http\Controllers\MartItemController::class, 'downloadTemplate'])->name('mart-items.download-template');
+    Route::post('/mart-items/import', [App\Http\Controllers\MartItemController::class, 'import'])->name('mart-items.import');
+    Route::get('/mart-items/download-template', [App\Http\Controllers\MartItemController::class, 'downloadTemplate'])->name('mart-items.download-template');
 });
 
 Route::middleware(['permission:mart-items,mart-items'])->group(function () {
@@ -289,7 +289,6 @@ Route::middleware(['permission:menu-periods,menu-periods.edit'])->group(function
 Route::middleware(['permission:menu-periods,menu-periods.delete'])->group(function () {
     Route::get('/menu-periods/delete/{id}', [App\Http\Controllers\MenuPeriodController::class, 'delete'])->name('menu-periods.delete');
 });
-
 
 
 // Brands Routes
@@ -421,11 +420,14 @@ Route::prefix('settings')->group(function () {
     Route::middleware(['permission:mart-settings,settings.app.martSettings'])->group(function () {
         Route::get('app/martSettings', [App\Http\Controllers\SettingsController::class, 'martSettings'])->name('settings.app.martSettings');
     });
+    Route::middleware(['permission:surge-rules,settings.app.surgeRules'])->group(function () {
+        Route::get('app/surgeRules', [App\Http\Controllers\SettingsController::class, 'surgeRules'])->name('settings.app.surgeRules');
+    });
     Route::middleware(['permission:app-settings,settings.app.appSettings'])->group(function () {
         Route::get('app/appSettings', [App\Http\Controllers\SettingsController::class, 'appSettings'])->name('settings.app.appSettings');
     });
     // Route::middleware(['permission:price-setting,settings.app.priceSetting'])->group(function () {
-        Route::get('app/priceSetting', [App\Http\Controllers\SettingsController::class, 'priceSetting'])->name('settings.app.priceSettings');
+    Route::get('app/priceSetting', [App\Http\Controllers\SettingsController::class, 'priceSetting'])->name('settings.app.priceSettings');
     // });
     Route::middleware(['permission:document-verification,settings.app.documentVerification'])->group(function () {
         Route::get('app/documentVerification', [App\Http\Controllers\SettingsController::class, 'documentVerification'])->name('settings.app.documentVerification');
@@ -488,7 +490,7 @@ Route::middleware(['permission:general-notifications,notification.send'])->group
 Route::post('broadcastnotification', [App\Http\Controllers\NotificationController::class, 'broadcastnotification'])->name('broadcastnotification');
 
 // Debug route for testing notifications (remove in production)
-Route::get('debug/notification-test', function() {
+Route::get('debug/notification-test', function () {
     return view('debug.notification-test');
 })->name('debug.notification-test');
 
@@ -700,10 +702,10 @@ Route::middleware(['permission:drivers-document,driver.document.edit'])->group(f
 });
 Route::post('send-notification', [App\Http\Controllers\NotificationController::class, 'sendNotification'])->name('send-notification');
 
-Route::post('store-firebase-service', [App\Http\Controllers\HomeController::class,'storeFirebaseService'])->name('store-firebase-service');
+Route::post('store-firebase-service', [App\Http\Controllers\HomeController::class, 'storeFirebaseService'])->name('store-firebase-service');
 
-Route::post('pay-to-user', [App\Http\Controllers\UserController::class,'payToUser'])->name('pay.user');
-Route::post('check-payout-status', [App\Http\Controllers\UserController::class,'checkPayoutStatus'])->name('check.payout.status');
+Route::post('pay-to-user', [App\Http\Controllers\UserController::class, 'payToUser'])->name('pay.user');
+Route::post('check-payout-status', [App\Http\Controllers\UserController::class, 'checkPayoutStatus'])->name('check.payout.status');
 
 Route::middleware(['permission:on-board,onboard.list'])->group(function () {
     Route::get('/on-board', [App\Http\Controllers\OnBoardController::class, 'index'])->name('on-board');
@@ -742,7 +744,6 @@ Route::middleware(['permission:media,media.create'])->group(function () {
 Route::middleware(['permission:media,media.delete'])->group(function () {
     Route::get('/media/delete/{id}', [App\Http\Controllers\MediaController::class, 'delete'])->name('media.delete');
 });
-
 
 
 Route::get('/create-package', function () {
@@ -786,120 +787,112 @@ Route::prefix('cache-test')->group(function () {
 
 Route::middleware(['permission:admin-commission,settings.app.adminCommission'])->group(function () {
 
-        Route::get('app/adminCommission', [App\Http\Controllers\SettingsController::class, 'adminCommission'])->name('settings.app.adminCommission');
+    Route::get('app/adminCommission', [App\Http\Controllers\SettingsController::class, 'adminCommission'])->name('settings.app.adminCommission');
 
-    });
+});
 
-    Route::middleware(['permission:radius,settings.app.radiusConfiguration'])->group(function () {
+Route::middleware(['permission:radius,settings.app.radiusConfiguration'])->group(function () {
 
-        Route::get('app/radiusConfiguration', [App\Http\Controllers\SettingsController::class, 'radiosConfiguration'])->name('settings.app.radiusConfiguration');
+    Route::get('app/radiusConfiguration', [App\Http\Controllers\SettingsController::class, 'radiosConfiguration'])->name('settings.app.radiusConfiguration');
 
-    });
+});
 
-    Route::middleware(['permission:dinein,settings.app.bookTable'])->group(function () {
+Route::middleware(['permission:dinein,settings.app.bookTable'])->group(function () {
 
-        Route::get('app/bookTable', [App\Http\Controllers\SettingsController::class, 'bookTable'])->name('settings.app.bookTable');
+    Route::get('app/bookTable', [App\Http\Controllers\SettingsController::class, 'bookTable'])->name('settings.app.bookTable');
 
-    });
+});
 
-    Route::middleware(['permission:delivery-charge,settings.app.deliveryCharge'])->group(function () {
+Route::middleware(['permission:delivery-charge,settings.app.deliveryCharge'])->group(function () {
 
-        Route::get('app/deliveryCharge', [App\Http\Controllers\SettingsController::class, 'deliveryCharge'])->name('settings.app.deliveryCharge');
+    Route::get('app/deliveryCharge', [App\Http\Controllers\SettingsController::class, 'deliveryCharge'])->name('settings.app.deliveryCharge');
 
-    });
+});
 
-    // Route::middleware(['permission:price-setting,settings.app.priceSetting'])->group(function () {
+// Route::middleware(['permission:price-setting,settings.app.priceSetting'])->group(function () {
 
-        Route::get('app/priceSetting', [App\Http\Controllers\SettingsController::class, 'priceSetting'])->name('settings.app.priceSettings');
+Route::get('app/priceSetting', [App\Http\Controllers\SettingsController::class, 'priceSetting'])->name('settings.app.priceSettings');
 
-    // });
+// });
 
-    Route::middleware(['permission:document-verification,settings.app.documentVerification'])->group(function () {
+Route::middleware(['permission:document-verification,settings.app.documentVerification'])->group(function () {
 
-        Route::get('app/documentVerification', [App\Http\Controllers\SettingsController::class, 'documentVerification'])->name('settings.app.documentVerification');
+    Route::get('app/documentVerification', [App\Http\Controllers\SettingsController::class, 'documentVerification'])->name('settings.app.documentVerification');
 
-    });
-
-
-
-    Route::middleware(['permission:payment-method,payment-method'])->group(function () {
-
-        Route::get('payment/stripe', [App\Http\Controllers\SettingsController::class, 'stripe'])->name('payment.stripe');
-
-        Route::get('payment/applepay', [App\Http\Controllers\SettingsController::class, 'applepay'])->name('payment.applepay');
-
-        Route::get('payment/razorpay', [App\Http\Controllers\SettingsController::class, 'razorpay'])->name('payment.razorpay');
-
-        Route::get('payment/cod', [App\Http\Controllers\SettingsController::class, 'cod'])->name('payment.cod');
-
-        Route::get('payment/paypal', [App\Http\Controllers\SettingsController::class, 'paypal'])->name('payment.paypal');
-
-        Route::get('payment/paytm', [App\Http\Controllers\SettingsController::class, 'paytm'])->name('payment.paytm');
-
-        Route::get('payment/wallet', [App\Http\Controllers\SettingsController::class, 'wallet'])->name('payment.wallet');
-
-        Route::get('payment/payfast', [App\Http\Controllers\SettingsController::class, 'payfast'])->name('payment.payfast');
-
-        Route::get('payment/paystack', [App\Http\Controllers\SettingsController::class, 'paystack'])->name('payment.paystack');
-
-        Route::get('payment/flutterwave', [App\Http\Controllers\SettingsController::class, 'flutterwave'])->name('payment.flutterwave');
-
-        Route::get('payment/mercadopago', [App\Http\Controllers\SettingsController::class, 'mercadopago'])->name('payment.mercadopago');
-
-        Route::get('payment/xendit', [App\Http\Controllers\SettingsController::class, 'xendit'])->name('payment.xendit');
-
-        Route::get('payment/orangepay', [App\Http\Controllers\SettingsController::class, 'orangepay'])->name('payment.orangepay');
-
-        Route::get('payment/midtrans', [App\Http\Controllers\SettingsController::class, 'midtrans'])->name('payment.midtrans');
-
-    });
+});
 
 
+Route::middleware(['permission:payment-method,payment-method'])->group(function () {
 
-    Route::middleware(['permission:language,settings.app.languages'])->group(function () {
+    Route::get('payment/stripe', [App\Http\Controllers\SettingsController::class, 'stripe'])->name('payment.stripe');
 
-        Route::get('app/languages', [App\Http\Controllers\SettingsController::class, 'languages'])->name('settings.app.languages');
+    Route::get('payment/applepay', [App\Http\Controllers\SettingsController::class, 'applepay'])->name('payment.applepay');
+
+    Route::get('payment/razorpay', [App\Http\Controllers\SettingsController::class, 'razorpay'])->name('payment.razorpay');
+
+    Route::get('payment/cod', [App\Http\Controllers\SettingsController::class, 'cod'])->name('payment.cod');
+
+    Route::get('payment/paypal', [App\Http\Controllers\SettingsController::class, 'paypal'])->name('payment.paypal');
+
+    Route::get('payment/paytm', [App\Http\Controllers\SettingsController::class, 'paytm'])->name('payment.paytm');
+
+    Route::get('payment/wallet', [App\Http\Controllers\SettingsController::class, 'wallet'])->name('payment.wallet');
+
+    Route::get('payment/payfast', [App\Http\Controllers\SettingsController::class, 'payfast'])->name('payment.payfast');
+
+    Route::get('payment/paystack', [App\Http\Controllers\SettingsController::class, 'paystack'])->name('payment.paystack');
+
+    Route::get('payment/flutterwave', [App\Http\Controllers\SettingsController::class, 'flutterwave'])->name('payment.flutterwave');
+
+    Route::get('payment/mercadopago', [App\Http\Controllers\SettingsController::class, 'mercadopago'])->name('payment.mercadopago');
+
+    Route::get('payment/xendit', [App\Http\Controllers\SettingsController::class, 'xendit'])->name('payment.xendit');
+
+    Route::get('payment/orangepay', [App\Http\Controllers\SettingsController::class, 'orangepay'])->name('payment.orangepay');
+
+    Route::get('payment/midtrans', [App\Http\Controllers\SettingsController::class, 'midtrans'])->name('payment.midtrans');
+
+});
 
 
+Route::middleware(['permission:language,settings.app.languages'])->group(function () {
 
-    });
-
-    Route::middleware(['permission:language,settings.app.languages.create'])->group(function () {
-
-        Route::get('app/languages/create', [App\Http\Controllers\SettingsController::class, 'languagescreate'])->name('settings.app.languages.create');
+    Route::get('app/languages', [App\Http\Controllers\SettingsController::class, 'languages'])->name('settings.app.languages');
 
 
+});
 
-    });
+Route::middleware(['permission:language,settings.app.languages.create'])->group(function () {
 
-    Route::middleware(['permission:language,settings.app.languages.edit'])->group(function () {
-
-        Route::get('app/languages/edit/{id}', [App\Http\Controllers\SettingsController::class, 'languagesedit'])->name('settings.app.languages.edit');
-
+    Route::get('app/languages/create', [App\Http\Controllers\SettingsController::class, 'languagescreate'])->name('settings.app.languages.create');
 
 
-    });
+});
 
-    Route::middleware(['permission:special-offer,setting.specialOffer'])->group(function () {
+Route::middleware(['permission:language,settings.app.languages.edit'])->group(function () {
 
-        Route::get('app/specialOffer', [App\Http\Controllers\SettingsController::class, 'specialOffer'])->name('setting.specialOffer');
-
-    });
+    Route::get('app/languages/edit/{id}', [App\Http\Controllers\SettingsController::class, 'languagesedit'])->name('settings.app.languages.edit');
 
 
+});
 
-    Route::get('app/story', [App\Http\Controllers\SettingsController::class, 'story'])->name('setting.story');
+Route::middleware(['permission:special-offer,setting.specialOffer'])->group(function () {
 
-    Route::get('app/notifications', [App\Http\Controllers\SettingsController::class, 'notifications'])->name('settings.app.notifications');
+    Route::get('app/specialOffer', [App\Http\Controllers\SettingsController::class, 'specialOffer'])->name('setting.specialOffer');
 
-    Route::get('mobile/globals', [App\Http\Controllers\SettingsController::class, 'mobileGlobals'])->name('settings.mobile.globals');
+});
 
+
+Route::get('app/story', [App\Http\Controllers\SettingsController::class, 'story'])->name('setting.story');
+
+Route::get('app/notifications', [App\Http\Controllers\SettingsController::class, 'notifications'])->name('settings.app.notifications');
+
+Route::get('mobile/globals', [App\Http\Controllers\SettingsController::class, 'mobileGlobals'])->name('settings.mobile.globals');
 
 
 Route::middleware(['permission:dinein-orders,restaurants.booktable'])->group(function () {
 
     Route::get('/booktable/{id}', [App\Http\Controllers\BookTableController::class, 'index'])->name('restaurants.booktable');
-
 
 
 });
@@ -913,7 +906,6 @@ Route::middleware(['permission:dinein-orders,booktable.edit'])->group(function (
 Route::post('/sendnotification', [App\Http\Controllers\BookTableController::class, 'sendnotification'])->name('sendnotification');
 
 
-
 Route::middleware(['permission:general-notifications,notification'])->group(function () {
 
     Route::get('/notification', [App\Http\Controllers\NotificationController::class, 'index'])->name('notification');
@@ -925,11 +917,9 @@ Route::middleware(['permission:general-notifications,notification.send'])->group
     Route::get('/notification/send', [App\Http\Controllers\NotificationController::class, 'send'])->name('notification.send');
 
 
-
 });
 
 Route::post('broadcastnotification', [App\Http\Controllers\NotificationController::class, 'broadcastnotification'])->name('broadcastnotification');
-
 
 
 Route::middleware(['permission:payout-request,payoutRequests.drivers'])->group(function () {
@@ -947,7 +937,6 @@ Route::middleware(['permission:payout-request,payoutRequests.restaurants'])->gro
     Route::get('/payoutRequests/restaurants/{id}', [App\Http\Controllers\PayoutRequestController::class, 'restaurant'])->name('payoutRequests.restaurants.view');
 
 
-
 });
 
 Route::get('order_transactions', [App\Http\Controllers\PaymentController::class, 'index'])->name('order_transactions');
@@ -955,9 +944,6 @@ Route::get('order_transactions', [App\Http\Controllers\PaymentController::class,
 Route::get('/order_transactions/{id}', [App\Http\Controllers\PaymentController::class, 'index'])->name('order_transactions.index');
 
 // Test routes removed to prevent resource issues on shared hosting
-
-
-
 
 
 // Activity Log Routes
@@ -975,13 +961,11 @@ Route::get('/api/activity-logs/all', [App\Http\Controllers\ActivityLogController
 Route::get('/api/activity-logs/cuisines', [App\Http\Controllers\ActivityLogController::class, 'getCuisinesLogs'])->name('api.activity-logs.cuisines');
 
 
-
 Route::get('payment/success', [App\Http\Controllers\PaymentController::class, 'paymentsuccess'])->name('payment.success');
 
 Route::get('payment/failed', [App\Http\Controllers\PaymentController::class, 'paymentfailed'])->name('payment.failed');
 
 Route::get('payment/pending', [App\Http\Controllers\PaymentController::class, 'paymentpending'])->name('payment.pending');
-
 
 
 Route::middleware(['permission:banners,setting.banners'])->group(function () {
@@ -993,7 +977,6 @@ Route::middleware(['permission:banners,setting.banners'])->group(function () {
 Route::middleware(['permission:banners,setting.banners.create'])->group(function () {
 
     Route::get('/banners/create', [App\Http\Controllers\SettingsController::class, 'menuItemsCreate'])->name('setting.banners.create');
-
 
 
 });
@@ -1175,7 +1158,6 @@ Route::middleware(['permission:drivers-document,driver.document.edit'])->group(f
 // Duplicate routes removed
 
 
-
 Route::middleware(['permission:on-board,onboard.list'])->group(function () {
 
     Route::get('/on-board', [App\Http\Controllers\OnBoardController::class, 'index'])->name('on-board');
@@ -1193,7 +1175,6 @@ Route::middleware(['permission:subscription-plans,subscription-plans'])->group(f
     Route::get('/subscription-plans', [App\Http\Controllers\SubscriptionPlanController::class, 'index'])->name('subscription-plans.index');
 
     Route::get('/current-subscriber/{id}', [App\Http\Controllers\RestaurantController::class, 'currentSubscriberList'])->name('current-subscriber.list');
-
 
 
 });
@@ -1223,9 +1204,6 @@ Route::get('/restaurantFilters/create', [App\Http\Controllers\RestaurantFiltersC
 Route::get('/restaurantFilters/edit/{id}', [App\Http\Controllers\RestaurantFiltersController::class, 'edit'])->name('restaurantFilters.edit');
 
 
-
-
-
 Route::middleware(['permission:media,media'])->group(function () {
 
     Route::get('/media', [App\Http\Controllers\MediaController::class, 'index'])->name('media.index');
@@ -1249,11 +1227,6 @@ Route::middleware(['permission:media,media.delete'])->group(function () {
     Route::get('/media/delete/{id}', [App\Http\Controllers\MediaController::class, 'delete'])->name('media.delete');
 
 });
-
-
-
-
-
 
 
 Route::get('/create-package', function () {
@@ -1289,13 +1262,11 @@ Route::post('/vendors/import', [App\Http\Controllers\RestaurantController::class
 Route::get('/vendors/download-template', [App\Http\Controllers\RestaurantController::class, 'downloadVendorsTemplate'])->name('vendors.download-template');
 
 
-
 // Restaurant bulk import routes
 
 Route::post('/restaurants/bulk-import', [App\Http\Controllers\RestaurantController::class, 'bulkUpdate'])->name('restaurants.bulk-import');
 
 Route::get('/restaurants/download-template', [App\Http\Controllers\RestaurantController::class, 'downloadBulkUpdateTemplate'])->name('restaurants.download-template');
-
 
 
 // Local Performance Optimization Routes
@@ -1324,10 +1295,7 @@ Route::prefix('admin/seo')->middleware('')->group(function () {
 });
 
 
-
-
 // Database Cache Testing Routes
-
 Route::prefix('cache-test')->group(function () {
 
     Route::get('/database', [App\Http\Controllers\CacheTestController::class, 'testDatabaseCache'])->name('cache-test.database');
@@ -1337,6 +1305,3 @@ Route::prefix('cache-test')->group(function () {
     Route::get('/config', [App\Http\Controllers\CacheTestController::class, 'getCacheConfig'])->name('cache-test.config');
 
 });
-
-// Test routes removed to prevent resource issues on shared hosting
-

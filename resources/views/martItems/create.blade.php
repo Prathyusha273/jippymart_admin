@@ -661,18 +661,18 @@
         });
 
         jQuery("#data-table_processing").hide();
-        
+
         // Random review generation functions
         function generateRandomReviewCount() {
             // Generate random number between 70 and 130
             return Math.floor(Math.random() * (130 - 70 + 1)) + 70;
         }
-        
+
         function generateRandomReviewSum() {
             // Generate random number between 4.8 and 5.0 with 1 decimal place
             return (Math.random() * (5.0 - 4.8) + 4.8).toFixed(1);
         }
-        
+
         $(".save-form-btn").click(async function() {
             console.log('🔍 Save button clicked - starting validation...');
             console.log('🚀 NEW ID GENERATION LOGIC LOADED - Version: {{ now()->format('Y-m-d H:i:s') }}');
@@ -713,19 +713,19 @@
             var subcategoryTitle = '';
             var vendorTitle = '';
             var brandTitle = '';
-            
+
             if (category) {
                 categoryTitle = $("#food_category option:selected").text() || '';
             }
-            
+
             if (subcategory) {
                 subcategoryTitle = $("#food_subcategory option:selected").text() || '';
             }
-            
+
             if (brand) {
                 brandTitle = $("#brand_select option:selected").text() || '';
             }
-            
+
             // Get vendor title from restaurant_list
             if (restaurant) {
                 restaurant_list.forEach((vendor) => {
@@ -893,7 +893,7 @@
                 // Generate a temporary document reference to get the ID first
                 const docRef = database.collection('mart_items').doc();
                 const documentId = docRef.id;
-                
+
                 const itemData = {
                     id: documentId, // Include ID in the initial document creation
                     name: name,
@@ -995,7 +995,7 @@
                 // Generate a temporary document reference to get the ID first
                 const docRef = database.collection('mart_items').doc();
                 const documentId = docRef.id;
-                
+
                 const itemData = {
                     id: documentId, // Include ID in the initial document creation
                     name: name,
@@ -1822,10 +1822,10 @@ function addNewOption() {
     });
 
     attachOptionEventListeners(optionId);
-    
+
     // Trigger calculations to populate calculated fields
     calculateOptionCalculations(optionId);
-    
+
     updateOptionsSummary();
     updateDefaultOptionSelect();
 }
@@ -2186,7 +2186,7 @@ function calculateOptionCalculations(optionId) {
     // Calculate discount
     let discountAmount = 0;
     let discountPercentage = 0;
-    
+
     if (originalTotalPrice > 0 && originalTotalPrice > totalPrice) {
         discountAmount = originalTotalPrice - totalPrice;
         discountPercentage = ((discountAmount / originalTotalPrice) * 100);
@@ -2302,7 +2302,7 @@ async function handleOptionImageUpload(input, optionId) {
         reader.onload = async function(e) {
             const optionItem = $(`[data-option-id="${optionId}"]`);
             const base64Image = e.target.result;
-            
+
             // Show preview immediately
             optionItem.find('.option-image-preview').html(
                 `<img src="${base64Image}" style="max-width: 100px; max-height: 100px; border-radius: 4px;">
@@ -2312,7 +2312,7 @@ async function handleOptionImageUpload(input, optionId) {
             try {
                 // Convert base64 to Firebase storage URL
                 const firebaseUrl = await storeOptionImageData(base64Image, optionId);
-                
+
                 // Update preview with Firebase URL
                 optionItem.find('.option-image-preview').html(
                     `<img src="${firebaseUrl}" style="max-width: 100px; max-height: 100px; border-radius: 4px;">
@@ -2324,7 +2324,7 @@ async function handleOptionImageUpload(input, optionId) {
                 if (optionIndex !== -1) {
                     optionsList[optionIndex].image = firebaseUrl;
                 }
-                
+
                 console.log('✅ Option image uploaded to Firebase:', firebaseUrl);
             } catch (error) {
                 console.error('❌ Error uploading option image:', error);

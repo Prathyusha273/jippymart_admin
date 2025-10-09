@@ -34,7 +34,7 @@ class UserController extends Controller
     {
 
         return view("settings.users.index");
-        
+
     }
 
 
@@ -161,7 +161,7 @@ class UserController extends Controller
                     $users->delete();
                 }
             }
-            
+
             // Log bulk delete activity
             if (!empty($deletedUsers)) {
                 app(\App\Services\ActivityLogger::class)->log(
@@ -177,7 +177,7 @@ class UserController extends Controller
             if ($user) {
                 $userName = $user->name;
                 $user->delete();
-                
+
                 // Log single delete activity
                 app(\App\Services\ActivityLogger::class)->log(
                     auth()->user(),
@@ -260,29 +260,29 @@ class UserController extends Controller
         if(!empty($encrypt_data)){
 
             $data = json_decode(base64_decode($encrypt_data),true);
-            
+
             if($data['method'] == "paypal"){
-            
-                $response = $this->payWithPaypal($data);  
-            
+
+                $response = $this->payWithPaypal($data);
+
             }else if($data['method'] == "stripe"){
-            
-                $response = $this->payWithStripe($data);  
-            
+
+                $response = $this->payWithStripe($data);
+
             }else if($data['method'] == "razorpay"){
-            
-                $response = $this->payWithRazorpay($data);  
+
+                $response = $this->payWithRazorpay($data);
 
             }else if($data['method'] == "flutterwave"){
-            
-                $response = $this->payWithFlutterwave($data);  
+
+                $response = $this->payWithFlutterwave($data);
             }
-            
+
         }else{
             $response['success'] = false;
             $response['message'] = 'Payout method setup is not done';
         }
-        
+
         return response()->json($response);
     }
 
@@ -302,7 +302,7 @@ class UserController extends Controller
             }else{
                 $environment = new SandboxEnvironment($clientId, $clientSecret);
             }
-            
+
             $client = new PayPalHttpClient($environment);
             $request = new PayoutsPostRequest();
             $body = [
@@ -324,7 +324,7 @@ class UserController extends Controller
                     ],
                 ]
             ];
-            
+
             $request->body = $body;
 
             try {
@@ -345,12 +345,12 @@ class UserController extends Controller
                 $payout_response['success'] = false;
                 $payout_response['message'] = $e->getMessage();
             }
-            
+
         }else{
             $payout_response['success'] = false;
             $payout_response['message'] = 'User paypal email address is required';
         }
-        
+
         return $payout_response;
     }
 
@@ -359,15 +359,15 @@ class UserController extends Controller
         $payout_response = array();
 
         if(!empty($data['user']['withdrawMethod']['stripe']['accountId'])){
-    
+
             $accountId = $data['user']['withdrawMethod']['stripe']['accountId'];
             $amount = bcmul($data["amount"], 100);
-            
+
             $stripeSecret = $data['settings']['stripe']['stripeSecret'];
             $stripe = new \Stripe\StripeClient($stripeSecret);
 
             try {
-                
+
                 $response = $stripe->transfers->create([
                     'amount' => $amount,
                     'currency' => 'usd',
@@ -396,28 +396,28 @@ class UserController extends Controller
             $payout_response['success'] = false;
             $payout_response['message'] = 'Stripe accountId is required';
         }
-        
+
         return $payout_response;
     }
 
     public function payWithRazorpay($data){
-        
+
         $payout_response = array();
 
         if(!empty($data['user']['withdrawMethod']['razorpay']['accountId'])){
-    
+
             $accountId = $data['user']['withdrawMethod']['razorpay']['accountId'];
             $amount = bcmul($data["amount"], 100);
-            
+
             $api_key = $data['settings']['razorpay']['razorpayKey'];
             $api_secret = $data['settings']['razorpay']['razorpaySecret'];
             $api = new Api($api_key, $api_secret);
-            
+
             try {
-               
+
                 $response = $api->transfer->create(array('account' => $accountId, 'amount' => $amount, 'currency' => 'INR'));
                 $response = json_decode($response,true);
-                
+
                 if(isset($response['status']) && isset($response['id'])){
                     $payout_response['success'] = true;
                     $payout_response['message'] = 'We successfully processed your payout request';
@@ -425,7 +425,7 @@ class UserController extends Controller
                     $payout_response['status'] = "In Process";
                 }else{
                     $payout_response['success'] = false;
-                    $payout_response['message'] = $response['error']['description'];    
+                    $payout_response['message'] = $response['error']['description'];
                 }
 
             }catch(\Throwable $e){
@@ -437,21 +437,21 @@ class UserController extends Controller
             $payout_response['success'] = false;
             $payout_response['message'] = 'Razorpay accountId is required';
         }
-        
+
         return $payout_response;
     }
 
     public function payWithFlutterwave($data){
-        
+
         $payout_response = array();
 
         if(!empty($data['user']['withdrawMethod']['flutterwave'])){
-    
+
             $bankCode = $data['user']['withdrawMethod']['flutterwave']['bankCode'];
             $accountNumber = $data['user']['withdrawMethod']['flutterwave']['accountNumber'];
             $amount = bcmul($data["amount"],10);
             $secretKey = $data['settings']['flutterwave']['secretKey'];
-            
+
             $fields = [
                 "account_bank" => $bankCode,
                 "account_number" => $accountNumber,
@@ -470,7 +470,7 @@ class UserController extends Controller
                 "Cache-Control: no-cache",
                 "Content-Type: application/json",
             ));
-            curl_setopt($ch,CURLOPT_RETURNTRANSFER, true); 
+            curl_setopt($ch,CURLOPT_RETURNTRANSFER, true);
             $result = curl_exec($ch);
             $response = json_decode($result,true);
 
@@ -481,45 +481,45 @@ class UserController extends Controller
                 $payout_response['status'] = "In Process";
             }else{
                 $payout_response['success'] = false;
-                $payout_response['message'] = $response['message'];    
+                $payout_response['message'] = $response['message'];
             }
-        
+
         }else{
             $payout_response['success'] = false;
             $payout_response['message'] = 'Flutterwave account detail is required';
         }
-        
+
         return $payout_response;
     }
 
     public function checkPayoutStatus(Request $request){
-        
+
         $response = array();
         $encrypt_data =  $request->data;
 
         if(!empty($encrypt_data)){
 
             $data = json_decode(base64_decode($encrypt_data),true);
-            
+
             if($data['method'] == "paypal"){
-            
-                $response = $this->checkStatusPaypal($data);  
-            
+
+                $response = $this->checkStatusPaypal($data);
+
             }else if($data['method'] == "razorpay"){
-            
-                $response = $this->checkStatusRazorpay($data);  
+
+                $response = $this->checkStatusRazorpay($data);
 
             }else if($data['method'] == "flutterwave"){
-            
-                $response = $this->checkStatusFlutterwave($data);  
+
+                $response = $this->checkStatusFlutterwave($data);
             }
-            
+
         }else{
             $response['success'] = false;
             $response['message'] = 'Something went wrong to check status';
         }
-        
-        return response()->json($response);        
+
+        return response()->json($response);
     }
 
     public function checkStatusPaypal($data){
@@ -550,7 +550,7 @@ class UserController extends Controller
                     "Authorization: Basic ".base64_encode($clientId.":".$clientSecret),
                     "Content-Type: application/x-www-form-urlencoded"
                 ));
-                curl_setopt($ch,CURLOPT_RETURNTRANSFER, true); 
+                curl_setopt($ch,CURLOPT_RETURNTRANSFER, true);
                 $result = curl_exec($ch);
                 $response = json_decode($result,true);
 
@@ -563,10 +563,10 @@ class UserController extends Controller
                         "Authorization: Bearer ".$response['access_token'],
                         "Cache-Control: no-cache",
                     ));
-                    curl_setopt($ch,CURLOPT_RETURNTRANSFER, true); 
+                    curl_setopt($ch,CURLOPT_RETURNTRANSFER, true);
                     $result2 = curl_exec($ch);
                     $response2 = json_decode($result2,true);
-                    
+
                     if(isset($response2['items']) && isset($response2['items'][0]['transaction_status'])){
                         if($response2['items'][0]['transaction_status'] == "SUCCESS"){
                             $payout_response['success'] = true;
@@ -590,14 +590,14 @@ class UserController extends Controller
 
             }else{
                 $payout_response['success'] = false;
-                $payout_response['message'] = 'Invalid payout_batch_id';    
+                $payout_response['message'] = 'Invalid payout_batch_id';
             }
 
         }else{
             $payout_response['success'] = false;
             $payout_response['message'] = 'Invalid payout response';
         }
-        
+
         return $payout_response;
     }
 
@@ -606,7 +606,7 @@ class UserController extends Controller
         $payout_response = array();
 
         if(isset($data['payoutDetail']['payoutResponse']) && !empty($data['payoutDetail']['payoutResponse'])){
-    
+
             $transfer_id = $data['payoutDetail']['payoutResponse']['id'];
 
             if(!empty($transfer_id)){
@@ -614,9 +614,9 @@ class UserController extends Controller
                 $api_key = $data['settings']['razorpay']['razorpayKey'];
                 $api_secret = $data['settings']['razorpay']['razorpaySecret'];
                 $api = new Api($api_key, $api_secret);
-                
+
                 try {
-                
+
                     $response = $api->transfer->fetch($transfer_id);
                     $response = json_decode($response,true);
 
@@ -627,7 +627,7 @@ class UserController extends Controller
                         $payout_response['status'] = "Success";
                     }else{
                         $payout_response['success'] = false;
-                        $payout_response['message'] = $response['error']['description'];    
+                        $payout_response['message'] = $response['error']['description'];
                         $payout_response['status'] = "Failed";
                     }
 
@@ -638,41 +638,41 @@ class UserController extends Controller
 
             }else{
                 $payout_response['success'] = false;
-                $payout_response['message'] = 'Invalid transfer id';    
+                $payout_response['message'] = 'Invalid transfer id';
             }
-            
+
         }else{
             $payout_response['success'] = false;
             $payout_response['message'] = 'Invalid payout response';
         }
 
         return $payout_response;
-    }   
+    }
 
     public function checkStatusFlutterwave($data){
 
         $payout_response = array();
-        
+
         if(isset($data['payoutDetail']['payoutResponse']) && !empty($data['payoutDetail']['payoutResponse'])){
-    
+
             $transfer_id = $data['payoutDetail']['payoutResponse']['data']['id'];
-            
+
             if(!empty($transfer_id)){
 
                 $secretKey = $data['settings']['flutterwave']['secretKey'];
 
                 $ch = curl_init();
                 curl_setopt($ch,CURLOPT_URL,"https://api.flutterwave.com/v3/transfers/".$transfer_id);
-                curl_setopt($ch,CURLOPT_CUSTOMREQUEST, "GET"); 
+                curl_setopt($ch,CURLOPT_CUSTOMREQUEST, "GET");
                 curl_setopt($ch, CURLOPT_HTTPHEADER, array(
                     "Authorization: Bearer ".$secretKey,
                     "Cache-Control: no-cache",
                     "Content-Type: application/json",
                 ));
-                curl_setopt($ch,CURLOPT_RETURNTRANSFER, true); 
+                curl_setopt($ch,CURLOPT_RETURNTRANSFER, true);
                 $result = curl_exec($ch);
                 $response = json_decode($result,true);
-                
+
                 if($response['status'] == "success"){
                     $payout_response['success'] = true;
                     $payout_response['message'] = 'We successfully processed your transaction';
@@ -680,19 +680,19 @@ class UserController extends Controller
                     $payout_response['status'] = "Success";
                 }else{
                     $payout_response['success'] = false;
-                    $payout_response['message'] = $response['message'];    
+                    $payout_response['message'] = $response['message'];
                 }
 
             }else{
                 $payout_response['success'] = false;
-                $payout_response['message'] = 'Invalid transfer id';    
+                $payout_response['message'] = 'Invalid transfer id';
             }
-            
+
         }else{
             $payout_response['success'] = false;
             $payout_response['message'] = 'Invalid payout response';
         }
-        
+
         return $payout_response;
     }
 
@@ -726,6 +726,7 @@ class UserController extends Controller
                 'lastName' => $data['lastName'],
                 'email' => $data['email'],
                 'password' => Hash::make($data['password']),
+                'zone' => $data['zone'],
                 'active' => strtolower($data['active'] ?? '') === 'true',
                 'role' => $data['role'] ?? 'customer',
                 'profilePictureURL' => $data['profilePictureURL'] ?? '',
