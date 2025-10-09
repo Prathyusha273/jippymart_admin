@@ -59,6 +59,10 @@ class DatabaseSeeder extends Seeder
         $this->call([
             AppSettingsPermissionsSeeder::class,
         ]);
+
+        $this->call([
+            SurgeRulesSeeder::class,
+        ]);
     }
 }
 
@@ -72,4 +76,5 @@ class DatabaseSeeder extends Seeder
 //php artisan db:seed --class=BrandsPermissionsSeeder
 //php artisan db:seed --class=MartItemsPermissionsSeeder
 //php artisan db:seed --class=MartSettingsPermissionsSeeder
-// php artisan db:seed --class=AppSettingsPermissionsSeeder
+//php artisan db:seed --class=AppSettingsPermissionsSeeder
+//php artisan db:seed --class=SurgeRulesSeeder
